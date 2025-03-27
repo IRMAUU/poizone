@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: url('bg.png') repeat; /* Tiled background */
+        }
+
+a {
+    color: #5dff00; /* Green */
+    text-decoration: none;
+    font-weight: normal;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #5dff00; /* Yellow on hover */
+    text-decoration: underline;
+}
+
+a:visited {
+    color: #5dff00; /* Green for visited links */
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        #car {
+            width: 75px;
+            height: 140px;
+            background: url('car.png') no-repeat center/contain;
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            transform-origin: center;
+            transition: transform 0.02s linear;
+        }
+        /* Scale car to 80% on mobile */
+        @media (max-width: 768px) {
+            #car {
+                width: 40px;
+                height: 80px;
+            }
+        }
+        #goal {
+            width: 115px;
+            height: 210px;
+            background: url('park.png') no-repeat center/contain;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #text-container {
+            position: absolute;
+            width: 100%;
+            top: calc(50% + 120px);
+            text-align: center;
+            color: #5dff00;
+            font-family: Andale Mono, monospace;
+        }
+        #text {
+            font-size: 16px;
+        }
+        #subtext {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="goal"></div>
+        <div id="car"></div>
+        <div id="text-container">
+            <div id="text">Domain Parked&#8482;<sup>[staff only]</sup></div>
+            <div id="subtext"><a href="https://www.instagram.com/poiz.0ne"><i>@poiz.0ne</i></div>
+        </div>
+    </div>
+
+    <script>
+        let car = document.getElementById("car");
+        let goal = document.getElementById("goal");
+        let speed = 6;
+        let angle = 0;
+        let useGyro = false;
+        let keys = { w: false, a: false, s: false, d: false };
+
+        let carX = 50;
+        let carY = 50;
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key in keys) keys[event.key] = true;
+        });
+
+        document.addEventListener("keyup", (event) => {
+            if (event.key in keys) keys[event.key] = false;
+        });
+
+        function moveCar() {
+            let container = document.body.getBoundingClientRect();
+            let dx = 0, dy = 0;
+
+            if (!useGyro) {
+                if (keys.w) dy -= speed;
+                if (keys.s) dy += speed;
+                if (keys.a) dx -= speed;
+                if (keys.d) dx += speed;
+            }
+
+            if (dx !== 0 || dy !== 0) {
+                let newX = carX + dx;
+                let newY = carY + dy;
+
+                // Keep car within screen boundaries
+                if (newX >= 0 && newX + car.clientWidth <= container.width) {
+                    carX = newX;
+                }
+                if (newY >= 0 && newY + car.clientHeight <= container.height) {
+                    carY = newY;
+                }
+
+                angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90; 
+                car.style.transform = `rotate(${angle}deg)`;
+            }
+
+            car.style.left = carX + "px";
+            car.style.top = carY + "px";
+
+            checkParking();
+            requestAnimationFrame(moveCar);
+        }
+
+        function checkParking() {
+            let carRect = car.getBoundingClientRect();
+            let goalRect = goal.getBoundingClientRect();
+
+            if (
+                carRect.top >= goalRect.top &&
+                carRect.bottom <= goalRect.bottom &&
+                carRect.left >= goalRect.left &&
+                carRect.right <= goalRect.right
+            ) {
+                setTimeout(respawnCar, 500);
+            }
+        }
+
+        function respawnCar() {
+            let maxWidth = window.innerWidth - car.clientWidth;
+            let maxHeight = window.innerHeight - car.clientHeight;
+            carX = Math.random() * maxWidth;
+            carY = Math.random() * maxHeight;
+        }
+
+        // Gyroscope controls (for mobile)
+        function enableGyro() {
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener("deviceorientation", (event) => {
+                    let beta = event.beta;  // Front/back tilt [-180, 180]
+                    let gamma = event.gamma; // Left/right tilt [-90, 90]
+
+                    let dx = gamma * 0.5; // Scale movement speed
+                    let dy = beta * 0.5;
+
+                    let container = document.body.getBoundingClientRect();
+
+                    let newX = carX + dx;
+                    let newY = carY + dy;
+
+                    // Keep car within screen boundaries
+                    if (newX >= 0 && newX + car.clientWidth <= container.width) {
+                        carX = newX;
+                    }
+                    if (newY >= 0 && newY + car.clientHeight <= container.height) {
+                        carY = newY;
+                    }
+
+                    angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90; 
+                    car.style.transform = `rotate(${angle}deg)`;
+                });
+                useGyro = true;
+            } else {
+                alert("Gyroscope not supported on this device.");
+            }
+        }
+
+        // Ask for permission on mobile
+        function requestGyroPermission() {
+            if (typeof DeviceOrientationEvent.requestPermission === "function") {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === "granted") enableGyro();
+                    })
+                    .catch(console.error);
+            } else {
+                enableGyro(); // For older devices
+            }
+        }
+
+        // Enable gyro on button click (for iOS)
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            let button = document.createElement("button");
+            button.innerText = "Enable Gyroscope";
+            button.style.position = "absolute";
+            button.style.top = "10px";
+            button.style.left = "50%";
+            button.style.transform = "translateX(-50%)";
+            button.style.zIndex = "10";
+            button.style.padding = "10px";
+            button.style.fontSize = "16px";
+            document.body.appendChild(button);
+            button.addEventListener("click", () => {
+                requestGyroPermission();
+                button.style.display = "none";
+            });
+        }
+
+        moveCar();
+    </script>
+</body>
+</html>
