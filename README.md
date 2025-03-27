@@ -1,2 +1,2 @@
 # poizone
-The PoiZ.oNe
+poiz.one
