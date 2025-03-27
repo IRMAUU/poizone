@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parking Game</title>
+    <title>Domain Parked&#8482;<sup>[staff only]</sup></title>
+    <link rel="shortcut icon" href="favicon.png" type="image/x-icon"> 
     <style>
         body {
             margin: 0;
@@ -62,6 +63,12 @@ a:visited {
             left: 50%;
             transform: translate(-50%, -50%);
         }
+        @media (max-width: 768px) {
+            #goal {
+                width: 70px;
+                height: 150px;
+            }
+        
         #text-container {
             position: absolute;
             width: 100%;
@@ -92,7 +99,7 @@ a:visited {
     <script>
         let car = document.getElementById("car");
         let goal = document.getElementById("goal");
-        let speed = 6;
+        let speed = 5.5;
         let angle = 0;
         let useGyro = false;
         let keys = { w: false, a: false, s: false, d: false };
