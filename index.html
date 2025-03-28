@@ -155,30 +155,36 @@
             if (typeof DeviceOrientationEvent.requestPermission === "function") {
                 DeviceOrientationEvent.requestPermission()
                     .then(permissionState => {
-                        if (permissionState === "granted") enableGyro();
+                        if (permissionState === "granted") {
+                            enableGyro();
+                        } else {
+                            console.log('Gyroscope permission denied');
+                        }
                     })
                     .catch(console.error);
             } else {
-                enableGyro(); // For older devices
+                enableGyro(); // For older devices or if no permission is needed
             }
         }
 
-        // Enable gyro functionality
+        // Enable gyroscope functionality
         function enableGyro() {
             if (!gyroEnabled) {
                 // Start reading the gyroscope data when the user interacts
                 window.addEventListener("deviceorientation", (event) => {
-                    let beta = event.beta;  // Forward/backward tilt
-                    let gamma = event.gamma; // Left/right tilt
+                    let beta = event.beta;  // Forward/backward tilt (X-axis)
+                    let gamma = event.gamma; // Left/right tilt (Y-axis)
+
+                    console.log("Gyroscope data: beta=" + beta + ", gamma=" + gamma); // Debug logs
 
                     let gyroSpeed = 1.8;
 
                     // Calculate the new position based on the gyro data
-                    carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carY + gamma * gyroSpeed));
-                    carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carX + beta * gyroSpeed));
+                    carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
+                    carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
 
-                    // Calculate the angle based on movement direction
-                    let angle = Math.atan2(beta, gamma) * (180 / Math.PI);
+                    // Calculate the angle based on the movement direction
+                    angle = Math.atan2(beta, gamma) * (180 / Math.PI);
 
                     // Update the car position and rotation
                     car.style.left = carX + "px";
@@ -209,6 +215,7 @@
             });
         }
 
+        // Listen to keypress events for keyboard control (for desktop)
         document.addEventListener("keydown", (event) => {
             if (event.key in keys) keys[event.key] = true;
             updateEngineSound();
