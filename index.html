@@ -178,8 +178,9 @@
       car.style.left = carX + "px";
       car.style.top = carY + "px";
 
-      // For this version, we keep rotation fixed (or you could choose to remove rotation entirely)
-      car.style.transform = `rotate(0deg)`;
+      // Calculate angle based on device orientation
+      let movementAngle = Math.atan2(beta, gamma) * (180 / Math.PI);
+      car.style.transform = `rotate(${movementAngle}deg)`; // Rotate car to match movement direction
     }
 
     // Button event listener for iOS and Android to request gyroscope permission
@@ -225,7 +226,7 @@
         carX = Math.max(0, Math.min(container.width - car.clientWidth, carX + dx));
         carY = Math.max(0, Math.min(container.height - car.clientHeight, carY + dy));
         angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-        car.style.transform = `rotate(${angle}deg)`;
+        car.style.transform = `rotate(${angle}deg)`; // Rotate car to match movement direction
       }
 
       car.style.left = carX + "px";
