@@ -54,8 +54,8 @@
     @media (max-width: 768px) {
       #car {
         background: url('car2.png') no-repeat center/contain;
-        width: 80px;
-        height: 40px;
+        width: 100px;
+        height: 60px;
       }
     }
     #goal {
@@ -69,8 +69,8 @@
     }
     @media (max-width: 768px) {
       #goal {
-        width: 70px;
-        height: 150px;
+        width: 85px;
+        height: 175px;
       }
     }
     #text-container {
@@ -171,7 +171,7 @@
       let beta = event.beta;    // Forward/backward tilt
       let gamma = event.gamma;  // Left/right tilt
 
-      let gyroSpeed = 0.9;
+      let gyroSpeed = 0.5;
 
       // Update position based on tilt; forward tilt moves up (decreasing Y)
       carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
