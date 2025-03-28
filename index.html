@@ -210,22 +210,26 @@
         // Mobile Gyroscope Movement Code
         function enableGyro() {
             if (!gyroEnabled) {
-                // Prompt to enable device orientation on mobile
-                alert("Please allow access to your device's orientation sensor to control the car with the gyroscope.");
-                
-                // Start reading the gyroscope data when the user interacts
-                window.addEventListener("deviceorientation", (event) => {
-                    let beta = event.beta;  // Forward/backward tilt
-                    let gamma = event.gamma; // Left/right tilt
+                // Request permission on mobile
+                if (window.DeviceOrientationEvent) {
+                    alert("Please allow access to your device's orientation sensor to control the car with the gyroscope.");
+                    
+                    // Start reading the gyroscope data when the user interacts
+                    window.addEventListener("deviceorientation", (event) => {
+                        let beta = event.beta;  // Forward/backward tilt
+                        let gamma = event.gamma; // Left/right tilt
 
-                    let gyroSpeed = 2;
-                    carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
-                    carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
-                    car.style.left = carX + "px";
-                    car.style.top = carY + "px";
-                });
+                        let gyroSpeed = 2;
+                        carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
+                        carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
+                        car.style.left = carX + "px";
+                        car.style.top = carY + "px";
+                    });
 
-                gyroEnabled = true;
+                    gyroEnabled = true;
+                } else {
+                    alert("Gyroscope not supported on this device.");
+                }
             }
         }
 
