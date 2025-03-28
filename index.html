@@ -174,8 +174,8 @@
                     let gyroSpeed = 1.8;
 
                     // Calculate the new position based on the gyro data
-                    carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
-                    carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
+                    carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carY + gamma * gyroSpeed));
+                    carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carX + beta * gyroSpeed));
 
                     // Calculate the angle based on movement direction
                     let angle = Math.atan2(beta, gamma) * (180 / Math.PI);
