@@ -172,10 +172,18 @@
                     let gamma = event.gamma; // Left/right tilt
 
                     let gyroSpeed = 2;
+
+                    // Calculate the new position based on the gyro data
                     carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
                     carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
+
+                    // Calculate the angle based on movement direction
+                    let angle = Math.atan2(beta, gamma) * (180 / Math.PI);
+
+                    // Update the car position and rotation
                     car.style.left = carX + "px";
                     car.style.top = carY + "px";
+                    car.style.transform = `rotate(${angle}deg)`; // Apply rotation
                 });
 
                 gyroEnabled = true;
@@ -276,12 +284,12 @@
 
         function updateEngineSound() {
             let isMoving = Object.values(keys).some(v => v);
-            
-engineSound.volume = isMoving ? Math.min(1, speed / 10) : 0;
-isMoving ? engineSound.play() : engineSound.pause();
-}
 
-moveCar();
-</script>
+            engineSound.volume = isMoving ? Math.min(1, speed / 10) : 0;
+            isMoving ? engineSound.play() : engineSound.pause();
+        }
+
+        moveCar();
+    </script>
 </body>
 </html>
