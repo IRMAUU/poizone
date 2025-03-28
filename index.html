@@ -121,12 +121,12 @@
         let scoreDisplay = document.getElementById("score");
         let speed = 5.5;
         let angle = 0;
-        let useGyro = false;
         let keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
         let score = 0;
         let canScore = true;
         let carX = 50;
         let carY = 50;
+        let gyroEnabled = false; // Flag to track if gyroscope is enabled
 
         document.addEventListener("keydown", (event) => {
             if (event.key in keys) keys[event.key] = true;
@@ -207,9 +207,13 @@
             isMoving ? engineSound.play() : engineSound.pause();
         }
 
-        // Gyroscope Movement (Mobile)
+        // Mobile Gyroscope Movement Code
         function enableGyro() {
-            if (window.DeviceOrientationEvent) {
+            if (!gyroEnabled) {
+                // Prompt to enable device orientation on mobile
+                alert("Please allow access to your device's orientation sensor to control the car with the gyroscope.");
+                
+                // Start reading the gyroscope data when the user interacts
                 window.addEventListener("deviceorientation", (event) => {
                     let beta = event.beta;  // Forward/backward tilt
                     let gamma = event.gamma; // Left/right tilt
@@ -220,12 +224,13 @@
                     car.style.left = carX + "px";
                     car.style.top = carY + "px";
                 });
+
+                gyroEnabled = true;
             }
         }
 
-        if (window.DeviceOrientationEvent) {
-            window.addEventListener("click", enableGyro, { once: true });
-        }
+        // Trigger to enable gyroscope after the first click
+        window.addEventListener("click", enableGyro, { once: true });
 
         moveCar();
     </script>
