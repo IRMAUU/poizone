@@ -46,6 +46,7 @@
             height: 100vh;
             position: relative;
         }
+
         #car {
             width: 75px;
             height: 140px;
@@ -89,13 +90,16 @@
             color: #5dff00;
             font-family: Andale Mono, monospace;
         }
+
         #text {
             font-size: 16px;
         }
+
         #score {
             font-size: 14px;
             margin-top: 5px;
         }
+
         #subtext {
             font-size: 14px;
             opacity: 0.7;
@@ -148,9 +152,9 @@
         let canScore = true;
         let carX = 50;
         let carY = 50;
-        let gyroEnabled = false; // Flag to track if gyroscope is enabled
+        let gyroEnabled = false;
 
-        // Ask for permission on mobile
+        // Request permission to use gyroscope on mobile
         function requestGyroPermission() {
             if (typeof DeviceOrientationEvent.requestPermission === "function") {
                 DeviceOrientationEvent.requestPermission()
@@ -158,45 +162,39 @@
                         if (permissionState === "granted") {
                             enableGyro();
                         } else {
-                            console.log('Gyroscope permission denied');
+                            alert('Permission to use the gyroscope was denied');
                         }
                     })
                     .catch(console.error);
             } else {
-                enableGyro(); // For older devices or if no permission is needed
+                enableGyro(); // Fallback for older devices
             }
         }
 
-        // Enable gyroscope functionality
+        // Function to enable the gyroscope once permission is granted
         function enableGyro() {
             if (!gyroEnabled) {
-                // Start reading the gyroscope data when the user interacts
-                window.addEventListener("deviceorientation", (event) => {
-                    let beta = event.beta;  // Forward/backward tilt (X-axis)
-                    let gamma = event.gamma; // Left/right tilt (Y-axis)
-
-                    console.log("Gyroscope data: beta=" + beta + ", gamma=" + gamma); // Debug logs
-
-                    let gyroSpeed = 1.8;
-
-                    // Calculate the new position based on the gyro data
-                    carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
-                    carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
-
-                    // Calculate the angle based on the movement direction
-                    angle = Math.atan2(beta, gamma) * (180 / Math.PI);
-
-                    // Update the car position and rotation
-                    car.style.left = carX + "px";
-                    car.style.top = carY + "px";
-                    car.style.transform = `rotate(${angle}deg)`; // Apply rotation
-                });
-
+                window.addEventListener("deviceorientation", handleGyroData);
                 gyroEnabled = true;
             }
         }
 
-        // Button event listener for iOS and Android
+        function handleGyroData(event) {
+            let beta = event.beta; // Forward/backward tilt
+            let gamma = event.gamma; // Left/right tilt
+
+            let gyroSpeed = 1.8;
+            carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
+            carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
+
+            // Update car position based on gyroscope data
+            car.style.left = carX + "px";
+            car.style.top = carY + "px";
+            angle = Math.atan2(beta, gamma) * (180 / Math.PI);
+            car.style.transform = `rotate(${angle}deg)`;
+        }
+
+        // Button to request gyroscope permission on mobile
         if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
             let button = document.createElement("button");
             button.innerText = "Enable Gyroscope";
@@ -211,11 +209,11 @@
 
             button.addEventListener("click", () => {
                 requestGyroPermission();
-                button.style.display = "none"; // Hide the button after click
+                button.style.display = "none"; // Hide button after click
             });
         }
 
-        // Listen to keypress events for keyboard control (for desktop)
+        // Handle keypress events for desktop control (arrow keys or WASD)
         document.addEventListener("keydown", (event) => {
             if (event.key in keys) keys[event.key] = true;
             updateEngineSound();
