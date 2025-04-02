@@ -14,27 +14,27 @@
       align-items: center;
       height: 100vh;
       flex-direction: column;
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Helvetica', Arial, sans-serif;
     }
 
     .links-container {
-      margin-bottom: 20px; /* Space between the links and the image */
-      padding-top: 8px; /* Adds 8px padding from the top */
-      display: flex; /* Use flex to make the text and links inline */
-      align-items: center; /* Aligns items vertically */
+      margin-bottom: 20px;
+      padding-top: 8px;
+      display: flex;
+      align-items: center;
     }
 
     .links-container p {
-      font-size: 18px; /* Same font size as the links */
-      font-weight: bold; /* Makes the text bold */
-      color: black; /* Black color */
-      text-decoration: none; /* No underline */
-      margin-right: 10px; /* Adds some space between the word "attachments" and the links */
-      text-transform: lowercase; /* Makes the text lowercase */
+      font-size: 16px;
+      font-weight: bold;
+      color: black;
+      text-decoration: none;
+      margin-right: 10px;
+      text-transform: lowercase;
     }
 
     .link {
-      font-size: 18px;
+      font-size: 16px;
       text-decoration: none;
       color: grey;
       font-weight: normal;
@@ -56,7 +56,7 @@
     }
 
     .image-container {
-      width: 35vw; /* For desktop */
+      width: 35vw;
       max-width: 656px;
       max-height: 100%;
       overflow-y: auto;
@@ -67,7 +67,6 @@
       height: auto;
     }
 
-    /* Mobile view */
     @media (max-width: 768px) {
       .image-container {
         width: 70vw;
@@ -80,10 +79,10 @@
 <body>
 
   <div class="links-container">
-    <p>attachments:</p> <!-- This is where the styling is applied -->
-    <a href="April-SwampStMSched_PRINT.pdf" target="_blank" id="link1" class="link" onclick="activateLink(1)">link 1.pdf</a>
-    <a href="Quote_Monthly_Service_Poizone.pdf" target="_blank" id="link2" class="link" onclick="activateLink(2)">link 2.pdf</a>
-    <a href="Schedule_Weekly_April.pdf" target="_blank" id="link3" class="link" onclick="activateLink(3)">link 3.pdf</a>
+    <p>attachments:</p>
+    <a href="April-SwampStMSched_PRINT.pdf" target="_blank" id="link1" class="link" onclick="activateLink(1, event)">link 1.pdf</a>
+    <a href="Quote_Monthly_Service_Poizone.pdf" target="_blank" id="link2" class="link" onclick="activateLink(2, event)">link 2.pdf</a>
+    <a href="Schedule_Weekly_April.pdf" target="_blank" id="link3" class="link" onclick="activateLink(3, event)">link 3.pdf</a>
   </div>
 
   <div class="image-container">
@@ -93,23 +92,20 @@
   <script>
     let currentLink = 1;
 
-    function activateLink(linkNumber) {
-      // If the clicked link is the correct one, activate it
+    function activateLink(linkNumber, event) {
+      event.preventDefault();
+      
       if (linkNumber === currentLink) {
-        // Mark the clicked link as 'clicked'
         document.getElementById('link' + linkNumber).classList.add('clicked');
-        
-        // Activate the next link
+        window.open(document.getElementById('link' + linkNumber).href, '_blank');
         currentLink++;
         
-        // Enable the next link (if available)
         if (currentLink <= 3) {
           document.getElementById('link' + currentLink).classList.add('active');
         }
       }
     }
 
-    // Initially, only Link 1 should be active
     document.getElementById('link1').classList.add('active');
   </script>
 
