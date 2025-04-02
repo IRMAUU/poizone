@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>poiz.one/email003</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      font-family: 'Helvetica', Arial, sans-serif;
+      touch-action: manipulation; /* Prevent swipe up to reload */
+    }
+
+    .links-container {
+      margin-bottom: 20px;
+      padding-top: 8px;
+      display: flex;
+      align-items: center;
+    }
+
+    .links-container p {
+      font-size: 16px;
+      font-weight: bold;
+      color: black;
+      text-decoration: none;
+      margin-right: 10px;
+      text-transform: lowercase;
+    }
+
+    .link {
+      font-size: 16px;
+      text-decoration: none;
+      color: grey;
+      font-weight: normal;
+      cursor: not-allowed;
+      margin: 5px;
+    }
+
+    .link.active {
+      color: blue;
+      font-weight: bold;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .link.clicked {
+      color: maroon;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+
+    .image-container {
+      width: 35vw;
+      max-width: 656px;
+      max-height: 100%;
+      overflow-y: auto;
+    }
+
+    .image-container img {
+      width: 100%;
+      height: auto;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        font-size: 75%;
+      }
+
+      .links-container p {
+        font-size: 12px;
+      }
+
+      .link {
+        font-size: 12px; 
+      }
+
+      .image-container {
+        width: 70vw;
+        max-width: 656px;
+        max-height: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="links-container">
+    <p>attachments:</p>
+    <a href="April-SwampStMSched_PRINT.pdf" target="_blank" id="link1" class="link" onclick="activateLink(1, event)">link 1.pdf</a>
+    <a href="Quote_Monthly_Service_Poizone.pdf" target="_blank" id="link2" class="link" onclick="activateLink(2, event)">link 2.pdf</a>
+    <a href="Schedule_Weekly_April.pdf" target="_blank" id="link3" class="link" onclick="activateLink(3, event)">link 3.pdf</a>
+  </div>
+
+  <div class="image-container">
+    <img src="email3.png" alt="Image" />
+  </div>
+
+  <script>
+    let currentLink = 1;
+
+    function activateLink(linkNumber, event) {
+      event.preventDefault();
+      
+      if (linkNumber === currentLink) {
+        document.getElementById('link' + linkNumber).classList.add('clicked');
+        window.open(document.getElementById('link' + linkNumber).href, '_blank');
+        currentLink++;
+        
+        if (currentLink <= 3) {
+          document.getElementById('link' + currentLink).classList.add('active');
+        }
+      }
+    }
+
+    document.getElementById('link1').classList.add('active');
+  </script>
+
+</body>
+</html>
+
+
