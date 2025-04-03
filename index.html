@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Domain Parked™"ˢᵗᵃᶠᵗ ᵒⁿˡʸ"</title>
+  <title>Domain Parked™"ˢᵗᵃᶠᵗ ᵒⁿˡʏ"</title>
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <meta name="theme-color" content="#070707">
   <style>
@@ -24,6 +24,7 @@
     a:hover {
       color: #5dff00;
       text-decoration: underline;
+      font-weight: bold;
     }
     a:visited {
       color: #5dff00;
@@ -93,6 +94,7 @@
       font-size: 14px;
       opacity: 0.7;
       margin-top: 5px;
+      color: #00FF00;
     }
     #gyro-button {
       position: absolute;
@@ -110,6 +112,14 @@
       background-color: #888;
       cursor: not-allowed;
     }
+    #green-link {
+      font-size: 12px;
+      color: #00FF00;
+      text-decoration: underline;
+      font-weight: normal;
+      display: none;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -119,6 +129,9 @@
     <div id="text-container">
       <div id="text">Domain Parked™<sup>[STAFF ONLY]</sup></div>
       <div id="score" style="display: none;">Score: 0</div>
+      <div id="green-link" style="display: none;">
+        <a href="http://poiz.one/edex" target="_blank">poiz.one: e-dex</a>
+      </div>
       <div id="subtext"><a href="https://www.instagram.com/poiz.0ne"><i>@poiz.0ne</i></a></div>
     </div>
   </div>
@@ -132,6 +145,7 @@
     let engineSound = document.getElementById("engineSound");
     let parkSound = document.getElementById("parkSound");
     let scoreDisplay = document.getElementById("score");
+    let greenLink = document.getElementById("green-link");
     let speed = 5.5;
     let angle = 0;
     let keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
@@ -141,7 +155,6 @@
     let carY = 50;
     let gyroEnabled = false;
 
-    // Request permission to use gyroscope on mobile
     function requestGyroPermission() {
       if (typeof DeviceOrientationEvent.requestPermission === "function") {
         DeviceOrientationEvent.requestPermission()
@@ -154,11 +167,10 @@
           })
           .catch(console.error);
       } else {
-        enableGyro(); // For older devices
+        enableGyro();
       }
     }
 
-    // Enable gyroscope functionality
     function enableGyro() {
       if (!gyroEnabled) {
         window.addEventListener("deviceorientation", handleGyroData);
@@ -167,25 +179,21 @@
     }
 
     function handleGyroData(event) {
-      // Use beta for vertical movement and gamma for horizontal movement
-      let beta = event.beta;    // Forward/backward tilt
-      let gamma = event.gamma;  // Left/right tilt
+      let beta = event.beta;
+      let gamma = event.gamma;
 
       let gyroSpeed = 0.5;
 
-      // Update position based on tilt; forward tilt moves up (decreasing Y)
       carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
       carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
 
       car.style.left = carX + "px";
       car.style.top = carY + "px";
 
-      // Calculate angle based on device orientation
       let movementAngle = Math.atan2(beta, gamma) * (180 / Math.PI);
-      car.style.transform = `rotate(${movementAngle}deg)`; // Rotate car to match movement direction
+      car.style.transform = `rotate(${movementAngle}deg)`;
     }
 
-    // Button event listener for iOS and Android to request gyroscope permission
     if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) {
       let button = document.createElement("button");
       button.innerText = "Enable Gyroscope";
@@ -204,7 +212,6 @@
       });
     }
 
-    // Desktop keyboard controls
     document.addEventListener("keydown", (event) => {
       if (event.key in keys) keys[event.key] = true;
       updateEngineSound();
@@ -228,7 +235,7 @@
         carX = Math.max(0, Math.min(container.width - car.clientWidth, carX + dx));
         carY = Math.max(0, Math.min(container.height - car.clientHeight, carY + dy));
         angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-        car.style.transform = `rotate(${angle}deg)`; // Rotate car to match movement direction
+        car.style.transform = `rotate(${angle}deg)`;
       }
 
       car.style.left = carX + "px";
@@ -256,6 +263,10 @@
           if (score >= 3) {
             scoreDisplay.style.display = "block";
             scoreDisplay.innerText = "< score: " + score + " >";
+          }
+
+          if (score === 10) {
+            greenLink.style.display = "block";
           }
 
           car.style.opacity = 0;
