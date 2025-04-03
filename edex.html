@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>poizone: e-dex</title>
+    <style>
+        @font-face {
+            font-family: 'Andale Mono';
+            src: url('andalemono.woff2') format('woff2'),
+                 url('andalemono.woff') format('woff'),
+                 url('andalemono.ttf') format('truetype');
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            font-family: 'Andale Mono', monospace;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 70%; /* Adjust width to 70% of the current size */
+            max-width: 400px;
+            position: relative;
+        }
+
+        .header {
+            text-align: left;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .header h1 {
+            color: #5dff00;
+            font-size: 18px;
+            text-transform: lowercase;
+            letter-spacing: 1px;
+        }
+
+        .green-line {
+            position: absolute;
+            top: 0;
+            left: -10px;
+            width: 2px;
+            height: calc(4 * 40px + 35px);
+            background-color: #5dff00;
+            z-index: -1;
+        }
+
+        .links .link-container {
+            margin: 10px 0;
+        }
+
+        .links a {
+            display: block;
+            text-decoration: none;
+            color: #5dff00;
+            padding: 8px 10px;
+            font-size: 14px;
+            text-transform: lowercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .links .email005 {
+            display: block;
+            text-decoration: none;
+            color: #333;
+            padding: 8px 10px;
+            font-size: 14px;
+            text-transform: lowercase;
+            letter-spacing: 1px;
+        }
+
+        .links .link-container:hover a,
+        .links .link-container:active a {
+            color: black;
+            font-weight: bold;
+        }
+
+        .links .link-container:hover,
+        .links .link-container:active {
+            background-color: #5dff00;
+            border-radius: 5px;
+        }
+
+        .links a:hover,
+        .links a:active {
+            color: black;
+            font-weight: bold;
+        }
+
+        .links .link-container:nth-child(5):hover {
+            background-color: #333;
+        }
+
+        .links .link-container:nth-child(5):hover a,
+        .links .email005:hover {
+            color: black;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 16px;
+            }
+            .links a {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 14px;
+            }
+            .links a {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>poiz.one: e-dex</h1>
+            <div class="green-line"></div>
+        </div>
+        <div class="links">
+            <div class="link-container">
+                <a href="http://poiz.one/email001">email001</a>
+            </div>
+            <div class="link-container">
+                <a href="http://poiz.one/email002">email002</a>
+            </div>
+            <div class="link-container">
+                <a href="http://poiz.one/email003">email003</a>
+            </div>
+            <div class="link-container">
+                <a href="http://poiz.one/email004">email004</a>
+            </div>
+            <div class="link-container">
+                <span class="email005">email005</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
