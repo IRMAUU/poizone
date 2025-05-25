@@ -107,6 +107,12 @@ button {
         padding: 4px;
         text-transform: lowercase;
       }
+      /* Only the .menu-title for undo is pointer, others are move unless you want all to be pointer */
+      .menu-title#undo-btn {
+        cursor: pointer;
+        color: #39ff14;
+        /* visually distinguish undo */
+      }
   
       .dropdown {
         margin-top: 5px;
@@ -247,6 +253,8 @@ button {
         <button class="export-settings" id="export-btn">save</button>
         <button class="export-settings" id="export-back">back</button>
       </div>
+      <!-- UNDO BUTTON: No dropdown, just a button! -->
+      <div class="menu-title" id="undo-btn">-undo</div>
     </div>
   </div>
 
@@ -257,16 +265,36 @@ button {
     canvas.height = canvas.offsetHeight;
     ctx.imageSmoothingEnabled = false;
 
-// Responsive canvas scaling
-function resizeCanvas() {
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
-  ctx.imageSmoothingEnabled = false;
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+    // --- UNDO STACK LOGIC ---
+    let undoStack = [];
+    const MAX_UNDO = 20;
+    function saveState() {
+      // Save a copy of the current canvas state
+      if (undoStack.length >= MAX_UNDO) undoStack.shift();
+      try {
+        undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      } catch(e) { /* Ignore errors in rare edge cases */ }
+    }
+    function undo() {
+      if (undoStack.length > 0) {
+        let imgData = undoStack.pop();
+        ctx.putImageData(imgData, 0, 0);
+      }
+    }
 
+    // Responsive canvas scaling
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      // Save current image
+      const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      ctx.imageSmoothingEnabled = false;
+      // Restore image (may stretch/shrink)
+      ctx.putImageData(image, 0, 0);
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
     let drawing = false;
     let currentTool = 'marker';
@@ -277,16 +305,16 @@ window.addEventListener('resize', resizeCanvas);
     let flow = 900;
     let lastPos = null;
     let spraySize = 3;
-let spraySpread = 10;
-let sprayFlow = 50;
-let sprayColor = '#000000';
+    let spraySpread = 10;
+    let sprayFlow = 50;
+    let sprayColor = '#000000';
     let calligraphySize = 1;
     let calligraphyColor = '#000000';
-        let calligraphyRotation = 0;
+    let calligraphyRotation = 0;
 
     document.getElementById('calligraphy-size').oninput = e => calligraphySize = +e.target.value;
     document.getElementById('calligraphy-color').oninput = e => calligraphyColor = e.target.value;
-        document.getElementById('calligraphy-rotation').oninput = e => calligraphyRotation = +e.target.value;
+    document.getElementById('calligraphy-rotation').oninput = e => calligraphyRotation = +e.target.value;
 
     function drawCalligraphy(x, y) {
       const width = calligraphySize * 2;
@@ -299,8 +327,6 @@ let sprayColor = '#000000';
       ctx.fillRect(-width / 2, -height / 2, width, height);
       ctx.restore();
     }
-
-
 
     function getBrushSettings() {
       return {
@@ -333,16 +359,15 @@ let sprayColor = '#000000';
     }
 
     function sprayAt(x, y) {
-  ctx.fillStyle = (currentTool === 'spray') ? sprayColor : color;
-  for (let i = 0; i < sprayFlow; i++) {
-    const angle = Math.random() * 2 * Math.PI;
-    const radius = Math.random() * spraySpread;
-    const offsetX = Math.cos(angle) * radius;
-    const offsetY = Math.sin(angle) * radius;
-    ctx.fillRect(x + offsetX, y + offsetY, spraySize, spraySize);
-  }
-}
-
+      ctx.fillStyle = (currentTool === 'spray') ? sprayColor : color;
+      for (let i = 0; i < sprayFlow; i++) {
+        const angle = Math.random() * 2 * Math.PI;
+        const radius = Math.random() * spraySpread;
+        const offsetX = Math.cos(angle) * radius;
+        const offsetY = Math.sin(angle) * radius;
+        ctx.fillRect(x + offsetX, y + offsetY, spraySize, spraySize);
+      }
+    }
 
     function hexToRgb(hex) {
       const bigint = parseInt(hex.slice(1), 16);
@@ -378,24 +403,25 @@ let sprayColor = '#000000';
       ctx.putImageData(imgData, 0, 0);
     }
 
+    // --- DRAW EVENTS: Save state before altering canvas! ---
     canvas.addEventListener('mousedown', e => {
       const rect = canvas.getBoundingClientRect();
       const x = Math.floor((e.clientX - rect.left) * canvas.width / rect.width);
       const y = Math.floor((e.clientY - rect.top) * canvas.height / rect.height);
 
+      saveState(); // <-- Save before drawing/bucket
       if (currentTool === 'bucket') {
         floodFill(x, y, bucketColor);
       } else {
         drawing = true;
         lastPos = { x, y };
         if (currentTool === 'calligraphy') {
-  drawCalligraphy(x, y);
-} else if (currentTool === 'spray') {
-  sprayAt(x, y);
-} else {
-  drawAt(x, y);
-}
-
+          drawCalligraphy(x, y);
+        } else if (currentTool === 'spray') {
+          sprayAt(x, y);
+        } else {
+          drawAt(x, y);
+        }
       }
     });
 
@@ -405,14 +431,14 @@ let sprayColor = '#000000';
       const x = Math.floor((e.clientX - rect.left) * canvas.width / rect.width);
       const y = Math.floor((e.clientY - rect.top) * canvas.height / rect.height);
       if (currentTool === 'calligraphy') {
-  drawCalligraphy(x, y);
-} else if (currentTool === 'spray') {
-  sprayAt(x, y);
-} else if (flow >= 1000 && lastPos) {
-  drawLine(lastPos.x, lastPos.y, x, y);
-} else {
-  drawAt(x, y);
-}
+        drawCalligraphy(x, y);
+      } else if (currentTool === 'spray') {
+        sprayAt(x, y);
+      } else if (flow >= 1000 && lastPos) {
+        drawLine(lastPos.x, lastPos.y, x, y);
+      } else {
+        drawAt(x, y);
+      }
       lastPos = { x, y };
     });
 
@@ -420,73 +446,70 @@ let sprayColor = '#000000';
       drawing = false;
     });
 
-    
-// Touch support for mobile
-function getCanvasCoordsTouch(e) {
-  const rect = canvas.getBoundingClientRect();
-  const touch = e.touches[0];
-  return {
-    x: Math.floor((touch.clientX - rect.left) * canvas.width / rect.width),
-    y: Math.floor((touch.clientY - rect.top) * canvas.height / rect.height)
-  };
-}
+    // Touch support for mobile
+    function getCanvasCoordsTouch(e) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      return {
+        x: Math.floor((touch.clientX - rect.left) * canvas.width / rect.width),
+        y: Math.floor((touch.clientY - rect.top) * canvas.height / rect.height)
+      };
+    }
 
-canvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  const { x, y } = getCanvasCoordsTouch(e);
-  if (currentTool === 'bucket') {
-    floodFill(x, y, bucketColor);
-  } else {
-    drawing = true;
-    lastPos = { x, y };
-    if (currentTool === 'calligraphy') drawCalligraphy(x, y);
-      else if (currentTool === 'spray') sprayAt(x, y);
-    else drawAt(x, y);
-  }
-});
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const { x, y } = getCanvasCoordsTouch(e);
+      saveState(); // <-- Save before drawing/bucket
+      if (currentTool === 'bucket') {
+        floodFill(x, y, bucketColor);
+      } else {
+        drawing = true;
+        lastPos = { x, y };
+        if (currentTool === 'calligraphy') drawCalligraphy(x, y);
+        else if (currentTool === 'spray') sprayAt(x, y);
+        else drawAt(x, y);
+      }
+    });
 
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if (!drawing || currentTool === 'bucket') return;
-  const { x, y } = getCanvasCoordsTouch(e);
-  if (currentTool === 'calligraphy') drawCalligraphy(x, y);
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (!drawing || currentTool === 'bucket') return;
+      const { x, y } = getCanvasCoordsTouch(e);
+      if (currentTool === 'calligraphy') drawCalligraphy(x, y);
       else if (currentTool === 'spray') sprayAt(x, y);
-  else if (flow >= 1000 && lastPos) {
+      else if (flow >= 1000 && lastPos) {
         if (currentTool === 'calligraphy') {
           drawLineWithCalligraphy(lastPos.x, lastPos.y, x, y);
         } else {
           drawLine(lastPos.x, lastPos.y, x, y);
         }
       }
-  else drawAt(x, y);
-  lastPos = { x, y };
-});
+      else drawAt(x, y);
+      lastPos = { x, y };
+    });
 
-canvas.addEventListener('touchend', () => {
-  drawing = false;
-});
-
+    canvas.addEventListener('touchend', () => {
+      drawing = false;
+    });
 
     canvas.addEventListener('mouseout', () => {
       drawing = false;
     });
 
     document.querySelectorAll('.menu-title').forEach(title => {
-  title.addEventListener('click', () => {
-    const menu = title.dataset.menu;
-    const dropdown = document.getElementById(`${menu}-dropdown`);
-    const isAlreadyOpen = !dropdown.classList.contains('hidden');
-
-    // Hide all dropdowns
-    document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
-
-    // If the clicked menu was not open, open it
-    if (!isAlreadyOpen) {
-      dropdown.classList.remove('hidden');
-    }
-  });
-});
-
+      title.addEventListener('click', () => {
+        if (title.id === "undo-btn") return; // Don't toggle dropdown for undo
+        const menu = title.dataset.menu;
+        const dropdown = document.getElementById(`${menu}-dropdown`);
+        const isAlreadyOpen = !dropdown.classList.contains('hidden');
+        // Hide all dropdowns
+        document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
+        // If the clicked menu was not open, open it
+        if (!isAlreadyOpen) {
+          dropdown.classList.remove('hidden');
+        }
+      });
+    });
 
     document.getElementById('export-back').addEventListener('click', () => {
       document.getElementById('export-dropdown').classList.add('hidden');
@@ -503,49 +526,46 @@ canvas.addEventListener('touchend', () => {
     });
 
     document.querySelectorAll('.tool-option').forEach(opt => {
-  opt.addEventListener('click', () => {
-    const tool = opt.id.split('-')[0];
+      opt.addEventListener('click', () => {
+        const tool = opt.id.split('-')[0];
 
-    if (currentTool === tool && tool === 'clear') {
-      document.getElementById('clear-settings').classList.toggle('hidden');
-      return;
+        if (currentTool === tool && tool === 'clear') {
+          document.getElementById('clear-settings').classList.toggle('hidden');
+          return;
+        }
+
+        currentTool = tool;
+        setToolHighlight(currentTool);
+      });
+    });
+
+    function setToolHighlight(tool) {
+      ['marker', 'calligraphy', 'spray', 'eraser', 'bucket', 'clear'].forEach(t => {
+        document.getElementById(`${t}-settings`).classList.toggle('hidden', t !== tool);
+        document.getElementById(`${t}-option`).classList.toggle('selected', t === tool);
+        if (tool === 'calligraphy') {
+          flow = 12000;
+        }
+      });
     }
-
-    currentTool = tool;
-    setToolHighlight(currentTool);
-  });
-});
-
-
-function setToolHighlight(tool) {
-  ['marker', 'calligraphy', 'spray', 'eraser', 'bucket', 'clear'].forEach(t => {
-    document.getElementById(`${t}-settings`).classList.toggle('hidden', t !== tool);
-    document.getElementById(`${t}-option`).classList.toggle('selected', t === tool);
-    if (tool === 'calligraphy') {
-      flow = 12000;
-    }
-  });
-}
-
 
     document.getElementById('marker-size').oninput = e => markerSize = +e.target.value;
     document.getElementById('eraser-size').oninput = e => eraserSize = +e.target.value;
     document.getElementById('marker-flow').oninput = e => {
-  if (currentTool === 'calligraphy') {
-    flow = 12000;
-    return;
-  }
-  if (currentTool !== 'calligraphy') {
-    flow = +e.target.value;
-  }
-};
+      if (currentTool === 'calligraphy') {
+        flow = 12000;
+        return;
+      }
+      if (currentTool !== 'calligraphy') {
+        flow = +e.target.value;
+      }
+    };
     document.getElementById('color-picker').oninput = e => color = e.target.value;
     document.getElementById('bucket-color').oninput = e => bucketColor = e.target.value;
     document.getElementById('spray-size').oninput = e => spraySize = +e.target.value;
-document.getElementById('spray-spread').oninput = e => spraySpread = +e.target.value;
-document.getElementById('spray-flow').oninput = e => sprayFlow = +e.target.value;
-document.getElementById('spray-color').oninput = e => sprayColor = e.target.value;
-
+    document.getElementById('spray-spread').oninput = e => spraySpread = +e.target.value;
+    document.getElementById('spray-flow').oninput = e => sprayFlow = +e.target.value;
+    document.getElementById('spray-color').oninput = e => sprayColor = e.target.value;
 
     const panel = document.getElementById('tool-panel');
     let isDraggingPanel = false, offsetX = 0, offsetY = 0;
@@ -566,7 +586,7 @@ document.getElementById('spray-color').oninput = e => sprayColor = e.target.valu
     });
 
     document.addEventListener('mouseup', () => isDraggingPanel = false);
-    
+
     function drawLineWithCalligraphy(x0, y0, x1, y1) {
       const dx = Math.abs(x1 - x0);
       const dy = Math.abs(y1 - y0);
@@ -582,23 +602,32 @@ document.getElementById('spray-color').oninput = e => sprayColor = e.target.valu
       }
     }
 
+    // Handle clear confirmation buttons
+    document.getElementById('clear-yes').addEventListener('click', () => {
+      saveState(); // Save before clearing!
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById('clear-settings').classList.add('hidden');
+    });
 
-// Handle clear confirmation buttons
-document.getElementById('clear-yes').addEventListener('click', () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  document.getElementById('clear-settings').classList.add('hidden');
-});
+    document.getElementById('clear-back').addEventListener('click', () => {
+      document.getElementById('clear-settings').classList.add('hidden');
+    });
 
-document.getElementById('clear-back').addEventListener('click', () => {
-  document.getElementById('clear-settings').classList.add('hidden');
-});
+    // --- UNDO BUTTON HANDLER ---
+    document.getElementById('undo-btn').addEventListener('click', () => {
+      undo();
+    });
 
+    // --- Optional: Keyboard shortcut Ctrl+Z or Cmd+Z ---
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        undo();
+      }
+    });
   </script>
-
 
   <div class="footer">
     <center><a href="https://instagram.com/poiz.one">@poiz.one</a></center>
   </div>
 </body>
 </html>
-
