@@ -178,20 +178,20 @@
         <div class="dropdown hidden" id="tools-dropdown">
           <div class="tool-option" id="marker-option">-marker</div>
           <div class="tool-settings hidden" id="marker-settings">
-            <label>size: <input type="number" id="marker-size" min="1" max="25" value="1"></label><br>
+            <label>size: <input type="number" id="marker-size" min="1" max="25" value="3"></label><br>
             <label>color: <input type="color" id="color-picker"></label><br>
-            <label>flow: <input type="range" id="marker-flow" min="1" max="3000" value="900"></label>
+            <label>flow: <input type="range" id="marker-flow" min="1" max="3000" value="2500"></label>
           </div>
           <div class="tool-option" id="calligraphy-option">-calligraphy</div>
           <div class="tool-settings hidden" id="calligraphy-settings">
-            <label>size: <input type="number" id="calligraphy-size" min="1" max="25" value="1"></label><br>
+            <label>size: <input type="number" id="calligraphy-size" min="1" max="25" value="3"></label><br>
             <label>rotation: <input type="range" id="calligraphy-rotation" min="0" max="360" value="0"></label><br>
             <label>color: <input type="color" id="calligraphy-color"></label><br>
           </div>
           <div class="tool-option" id="spray-option">-spray</div>
           <div class="tool-settings hidden" id="spray-settings">
             <label>size: <input type="number" id="spray-size" min="1" max="25" value="3"></label><br>
-            <label>spread: <input type="range" id="spray-spread" min="1" max="50" value="10"></label><br>
+            <label>spread: <input type="range" id="spray-spread" min="1" max="50" value="16"></label><br>
             <label>flow: <input type="range" id="spray-flow" min="1" max="100" value="50"></label><br>
             <label>color: <input type="color" id="spray-color"></label>
           </div>
@@ -201,7 +201,7 @@
           </div>
           <div class="tool-option" id="eraser-option">-eraser</div>
           <div class="tool-settings hidden" id="eraser-settings">
-            <label>size: <input type="number" id="eraser-size" min="1" max="25" value="1"></label>
+            <label>size: <input type="number" id="eraser-size" min="1" max="25" value="3"></label>
           </div>
           <div class="tool-option clear-tool" id="clear-option">-clear</div>
           <div class="tool-settings hidden" id="clear-settings">
@@ -261,17 +261,17 @@
 
       let drawing = false;
       let currentTool = 'marker';
-      let markerSize = 1;
-      let eraserSize = 1;
+      let markerSize = 3;
+      let eraserSize = 3;
       let color = '#000000';
       let bucketColor = '#000000';
-      let flow = 900;
+      let flow = 2500;
       let lastPos = null;
       let spraySize = 3;
-      let spraySpread = 10;
+      let spraySpread = 16;
       let sprayFlow = 50;
       let sprayColor = '#000000';
-      let calligraphySize = 1;
+      let calligraphySize = 3;
       let calligraphyColor = '#000000';
       let calligraphyRotation = 0;
 
@@ -506,14 +506,14 @@
         const option = document.getElementById(`${tool}-option`);
         if (settings) settings.classList.remove('hidden');
         if (option) option.classList.add('selected');
-        if (tool === 'calligraphy') flow = 12000;
+        if (tool === 'calligraphy') flow = 50000;
       }
 
       document.getElementById('marker-size').oninput = e => markerSize = +e.target.value;
       document.getElementById('eraser-size').oninput = e => eraserSize = +e.target.value;
       document.getElementById('marker-flow').oninput = e => {
         if (currentTool === 'calligraphy') {
-          flow = 12000; return;
+          flow = 50000; return;
         }
         if (currentTool !== 'calligraphy') flow = +e.target.value;
       };
