@@ -522,7 +522,7 @@ function setToolHighlight(tool) {
     document.getElementById(`${t}-settings`).classList.toggle('hidden', t !== tool);
     document.getElementById(`${t}-option`).classList.toggle('selected', t === tool);
     if (tool === 'calligraphy') {
-      flow = 6000;
+      flow = 12000;
     }
   });
 }
@@ -532,7 +532,7 @@ function setToolHighlight(tool) {
     document.getElementById('eraser-size').oninput = e => eraserSize = +e.target.value;
     document.getElementById('marker-flow').oninput = e => {
   if (currentTool === 'calligraphy') {
-    flow = 6000;
+    flow = 12000;
     return;
   }
   if (currentTool !== 'calligraphy') {
