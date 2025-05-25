@@ -5,6 +5,7 @@
     <title>poiz.one paint</title>
     <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
     <meta name="theme-color" content="#070707">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
       html, body {
@@ -248,6 +249,17 @@ button {
     canvas.height = canvas.offsetHeight;
     ctx.imageSmoothingEnabled = false;
 
+// Responsive canvas scaling
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+  ctx.imageSmoothingEnabled = false;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+
     let drawing = false;
     let currentTool = 'marker';
     let markerSize = 1;
@@ -374,6 +386,45 @@ let sprayFlow = 50;
     canvas.addEventListener('mouseup', () => {
       drawing = false;
     });
+
+    
+// Touch support for mobile
+function getCanvasCoordsTouch(e) {
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  return {
+    x: Math.floor((touch.clientX - rect.left) * canvas.width / rect.width),
+    y: Math.floor((touch.clientY - rect.top) * canvas.height / rect.height)
+  };
+}
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const { x, y } = getCanvasCoordsTouch(e);
+  if (currentTool === 'bucket') {
+    floodFill(x, y, bucketColor);
+  } else {
+    drawing = true;
+    lastPos = { x, y };
+    if (currentTool === 'spray') sprayAt(x, y);
+    else drawAt(x, y);
+  }
+});
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!drawing || currentTool === 'bucket') return;
+  const { x, y } = getCanvasCoordsTouch(e);
+  if (currentTool === 'spray') sprayAt(x, y);
+  else if (flow >= 1000 && lastPos) drawLine(lastPos.x, lastPos.y, x, y);
+  else drawAt(x, y);
+  lastPos = { x, y };
+});
+
+canvas.addEventListener('touchend', () => {
+  drawing = false;
+});
+
 
     canvas.addEventListener('mouseout', () => {
       drawing = false;
