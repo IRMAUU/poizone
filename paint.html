@@ -481,8 +481,31 @@ document.getElementById('clear-back').addEventListener('click',()=>{document.get
 document.getElementById('export-back').addEventListener('click',()=>{document.getElementById('export-dropdown').classList.add('hidden');});
 document.getElementById('export-btn').addEventListener('click',()=>{
   const filename=document.getElementById('file-name').value||'pixel-art',transparent=document.getElementById('transparent-bg').checked;
-  if(!transparent)ctx.fillStyle='#fff',ctx.fillRect(0,0,canvas.width,canvas.height);
-  const link=document.createElement('a');link.download=filename+'.png';link.href=canvas.toDataURL('image/png');link.click();
+
+  // If transparent background is unchecked, export with forced white background (no transparency)
+  if(!transparent){
+    // Create an offscreen canvas to composite
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    // Fill background with white
+    tempCtx.fillStyle = "#fff";
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    // Draw actual canvas on top
+    tempCtx.drawImage(canvas, 0, 0);
+    // Export from offscreen
+    const link=document.createElement('a');
+    link.download=filename+'.png';
+    link.href=tempCanvas.toDataURL('image/png');
+    link.click();
+  }else{
+    // Just export as is (with real transparency)
+    const link=document.createElement('a');
+    link.download=filename+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  }
 });
 document.getElementById('undo-btn').addEventListener('click',()=>{undo();});
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z')undo();});
