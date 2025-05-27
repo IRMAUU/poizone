@@ -56,6 +56,7 @@
       font-variant-ligatures: none;
       font-feature-settings: "liga" 0, "calt" 0;
       unicode-bidi: isolate;
+      color: #000 !important; /* <-- Make glyphs black */
     }
     .force-plain-text {
       font-family: 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif' !important;
@@ -101,10 +102,13 @@
   <div class="tool-settings hidden" id="symbol-settings">
     <label>size: <input type="number" id="symbol-size" min="1" max="150" value="35"></label><br>
     <label>color: <input type="color" id="symbol-color" value="#000000"></label><br>
-    <div style="display:flex;gap:8px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:112px;">
       <button class="symbol-btn symbol-selected force-plain-text" data-symbol="★&#xFE0E;" title="Black Star">★&#xFE0E;</button>
       <button class="symbol-btn force-plain-text" data-symbol="☠&#xFE0E;" title="Skull">☠&#xFE0E;</button>
       <button class="symbol-btn force-plain-text" data-symbol="☣&#xFE0E;" title="Biohazard">☣&#xFE0E;</button>
+      <button class="symbol-btn force-plain-text" data-symbol="✠&#xFE0E;" title="Maltese Cross">✠&#xFE0E;</button>
+      <button class="symbol-btn force-plain-text" data-symbol="☭&#xFE0E;" title="Hammer and Sickle">☭&#xFE0E;</button>
+      <button class="symbol-btn force-plain-text" data-symbol="☮&#xFE0E;" title="Peace">☮&#xFE0E;</button>
     </div>
   </div>
   <div class="tool-option" id="text-option">-text</div>
@@ -208,7 +212,10 @@ let calligraphyBrushType = 0;
 const symbolChars = [
   "★\uFE0E", // Black Star
   "☠\uFE0E", // Skull
-  "☣\uFE0E"  // Biohazard
+  "☣\uFE0E", // Biohazard
+  "✠\uFE0E", // Maltese Cross
+  "☭\uFE0E", // Hammer and Sickle
+  "☮\uFE0E"  // Peace
 ];
 let symbolCharType = 0;
 
