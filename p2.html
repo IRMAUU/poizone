@@ -52,13 +52,11 @@
       justify-content:center;
       font-size:24px;
       cursor:pointer;
-      /* --- Force plain text rendering for unicode, not emoji --- */
       font-family: 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif';
       font-variant-ligatures: none;
       font-feature-settings: "liga" 0, "calt" 0;
       unicode-bidi: isolate;
     }
-    /* --- Force plain text rendering for all unicode on canvas --- */
     .force-plain-text {
       font-family: 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif' !important;
       font-variant-ligatures: none !important;
@@ -94,9 +92,9 @@
     <label>color: <input type="color" id="calligraphy-color" value="#000000"></label><br>
     <label>flow: <input type="range" id="calligraphy-flow" min="1" max="3000" value="2500"></label><br>
     <div style="display:flex;gap:8px;">
-      <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="♥" title="Heart">♥</button>
-      <button class="calligraphy-btn force-plain-text" data-calligraphy="⎸" title="Medium Vertical Bar">⎸</button>
-      <button class="calligraphy-btn force-plain-text" data-calligraphy="✦" title="Four Pointed Star">✦</button>
+      <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="♥&#xFE0E;" title="Heart">♥&#xFE0E;</button>
+      <button class="calligraphy-btn force-plain-text" data-calligraphy="⎸&#xFE0E;" title="Medium Vertical Bar">⎸&#xFE0E;</button>
+      <button class="calligraphy-btn force-plain-text" data-calligraphy="✦&#xFE0E;" title="Four Pointed Star">✦&#xFE0E;</button>
     </div>
   </div>
   <div class="tool-option" id="symbol-option">-symbol</div>
@@ -104,9 +102,9 @@
     <label>size: <input type="number" id="symbol-size" min="1" max="150" value="35"></label><br>
     <label>color: <input type="color" id="symbol-color" value="#000000"></label><br>
     <div style="display:flex;gap:8px;">
-      <button class="symbol-btn symbol-selected force-plain-text" data-symbol="★" title="Black Star">★</button>
-      <button class="symbol-btn force-plain-text" data-symbol="☠" title="Skull">☠</button>
-      <button class="symbol-btn force-plain-text" data-symbol="☣" title="Biohazard">☣</button>
+      <button class="symbol-btn symbol-selected force-plain-text" data-symbol="★&#xFE0E;" title="Black Star">★&#xFE0E;</button>
+      <button class="symbol-btn force-plain-text" data-symbol="☠&#xFE0E;" title="Skull">☠&#xFE0E;</button>
+      <button class="symbol-btn force-plain-text" data-symbol="☣&#xFE0E;" title="Biohazard">☣&#xFE0E;</button>
     </div>
   </div>
   <div class="tool-option" id="text-option">-text</div>
@@ -198,14 +196,20 @@ let drawing=false,
   calligraphyColor="#000000",
   symbolColor="#000000";
 
-// Pattern symbol unicode (for "pattern" buttons)
-const patternSymbols = ["★", "☠", "☣"];
-let patternType = 0;
-// Calligraphy brush unicode
-const calligraphyBrushes = ["♥", "⎸", "✦"];
+// Calligraphy brush unicode (add U+FE0E to force text)
+const calligraphyBrushes = [
+  "♥\uFE0E", // Heart
+  "⎸\uFE0E", // Medium Vertical Bar
+  "✦\uFE0E"  // Black Four Pointed Star
+];
 let calligraphyBrushType = 0;
-// Symbol unicode
-const symbolChars = ["★", "☠", "☣"];
+
+// Symbol unicode (add U+FE0E to force text)
+const symbolChars = [
+  "★\uFE0E", // Black Star
+  "☠\uFE0E", // Skull
+  "☣\uFE0E"  // Biohazard
+];
 let symbolCharType = 0;
 
 // Calligraphy brush buttons
