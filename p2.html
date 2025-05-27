@@ -38,7 +38,33 @@
     .clear-settings button{background:#333;color:#ff0000;border:1px solid #ff0000;padding:4px 8px;cursor:pointer;font-family:'Roboto Mono',monospace;font-weight:700;}
     .pattern-btn.pattern-selected,.symbol-btn.symbol-selected,.calligraphy-btn.calligraphy-selected{border:2px solid #39ff14!important;}
     .pattern-btn:not(.pattern-selected),.symbol-btn:not(.symbol-selected),.calligraphy-btn:not(.calligraphy-selected){border:2px solid #222!important;}
-    .pattern-btn,.symbol-btn,.calligraphy-btn{background:#fff;border-radius:4px;padding:0;margin:0;min-width:28px;min-height:28px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;}
+    .pattern-btn,.symbol-btn,.calligraphy-btn{
+      background:#fff;
+      border-radius:4px;
+      padding:0;
+      margin:0;
+      min-width:28px;
+      min-height:28px;
+      width:32px;
+      height:32px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:24px;
+      cursor:pointer;
+      /* --- Force plain text rendering for unicode, not emoji --- */
+      font-family: 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif';
+      font-variant-ligatures: none;
+      font-feature-settings: "liga" 0, "calt" 0;
+      unicode-bidi: isolate;
+    }
+    /* --- Force plain text rendering for all unicode on canvas --- */
+    .force-plain-text {
+      font-family: 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif' !important;
+      font-variant-ligatures: none !important;
+      font-feature-settings: "liga" 0, "calt" 0 !important;
+      unicode-bidi: isolate;
+    }
     .font-dropdown{position:relative;display:inline-block;min-width:100px;cursor:pointer;background:#222;border:1px solid #39ff14;color:#39ff14;border-radius:4px;font-size:14px;margin-bottom:6px;margin-right:2px;}
     .font-dropdown-selected{padding:3px 8px;background:#222;border-radius:4px;min-width:120px;display:flex;align-items:center;user-select:none;}
     .font-dropdown-list{display:none;position:absolute;background:#222;border:1px solid #222;z-index:9;left:0;right:0;max-height:200px;overflow-y:auto;margin-top:2px;border-radius:4px;}
@@ -68,9 +94,9 @@
     <label>color: <input type="color" id="calligraphy-color" value="#000000"></label><br>
     <label>flow: <input type="range" id="calligraphy-flow" min="1" max="3000" value="2500"></label><br>
     <div style="display:flex;gap:8px;">
-      <button class="calligraphy-btn calligraphy-selected" data-calligraphy="♥" title="Heart">♥</button>
-      <button class="calligraphy-btn" data-calligraphy="⎸" title="Medium Vertical Bar">⎸</button>
-      <button class="calligraphy-btn" data-calligraphy="✦" title="Four Pointed Star">✦</button>
+      <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="♥" title="Heart">♥</button>
+      <button class="calligraphy-btn force-plain-text" data-calligraphy="⎸" title="Medium Vertical Bar">⎸</button>
+      <button class="calligraphy-btn force-plain-text" data-calligraphy="✦" title="Four Pointed Star">✦</button>
     </div>
   </div>
   <div class="tool-option" id="symbol-option">-symbol</div>
@@ -78,9 +104,9 @@
     <label>size: <input type="number" id="symbol-size" min="1" max="150" value="35"></label><br>
     <label>color: <input type="color" id="symbol-color" value="#000000"></label><br>
     <div style="display:flex;gap:8px;">
-      <button class="symbol-btn symbol-selected" data-symbol="★" title="Black Star">★</button>
-      <button class="symbol-btn" data-symbol="☠" title="Skull">☠</button>
-      <button class="symbol-btn" data-symbol="☣" title="Biohazard">☣</button>
+      <button class="symbol-btn symbol-selected force-plain-text" data-symbol="★" title="Black Star">★</button>
+      <button class="symbol-btn force-plain-text" data-symbol="☠" title="Skull">☠</button>
+      <button class="symbol-btn force-plain-text" data-symbol="☣" title="Biohazard">☣</button>
     </div>
   </div>
   <div class="tool-option" id="text-option">-text</div>
@@ -231,7 +257,7 @@ document.getElementById('eraser-size').oninput=e=>eraserSize=+e.target.value;
 // Draw calligraphy brush (unicode)
 function drawCalligraphy(x,y){
   ctx.save();
-  ctx.font = `${calligraphySize}px Arial`;
+  ctx.font = `${calligraphySize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = calligraphyColor;
@@ -252,7 +278,7 @@ function drawCalligraphyFlowLine(x0,y0,x1,y1){
 // Symbol/text
 function drawSymbol(x,y){
   ctx.save();
-  ctx.font = `${symbolSize}px Arial`;
+  ctx.font = `${symbolSize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = symbolColor;
