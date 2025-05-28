@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Domain Parked™"ˢᵗᵃᶠᵗ ᵒⁿˡʏ"</title>
+  <title>Domain Parked™"ˢᵗᵃᶠᵗ ᵒⁿˡʸ"</title>
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <meta name="theme-color" content="#070707">
   <style>
@@ -89,6 +89,7 @@
       color: #ff0000;
       font-size: 14px;
       margin-top: 5px;
+      display: none;
     }
     #subtext {
       font-size: 14px;
@@ -112,7 +113,7 @@
       background-color: #888;
       cursor: not-allowed;
     }
-    #green-link {
+    .green-link {
       font-size: 12px;
       color: #00FF00;
       text-decoration: underline;
@@ -128,8 +129,11 @@
     <div id="car"></div>
     <div id="text-container">
       <div id="text">Domain Parked™<sup>[STAFF ONLY]</sup></div>
-      <div id="score" style="display: none;">Score: 0</div>
-      <div id="green-link" style="display: none;">
+      <div id="score">Score: 0</div>
+      <div id="paint-link" class="green-link">
+        <a href="https://poiz.one/paint" target="_blank" title="poiz.one paint - free paint tool">poiz.one: paint</a>
+      </div>
+      <div id="edex-link" class="green-link">
         <a href="http://poiz.one/edex" target="_blank">poiz.one: e-dex</a>
       </div>
       <div id="subtext"><a href="https://www.instagram.com/poiz.0ne"><i>@poiz.0ne</i></a></div>
@@ -145,7 +149,8 @@
     let engineSound = document.getElementById("engineSound");
     let parkSound = document.getElementById("parkSound");
     let scoreDisplay = document.getElementById("score");
-    let greenLink = document.getElementById("green-link");
+    let edexLink = document.getElementById("edex-link");
+    let paintLink = document.getElementById("paint-link");
     let speed = 5.5;
     let angle = 0;
     let keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
@@ -181,7 +186,6 @@
     function handleGyroData(event) {
       let beta = event.beta;
       let gamma = event.gamma;
-
       let gyroSpeed = 0.5;
 
       carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
@@ -260,13 +264,17 @@
           score++;
           parkSound.play();
 
-          if (score >= 3) {
+          if (score >= 1) {
             scoreDisplay.style.display = "block";
             scoreDisplay.innerText = "< score: " + score + " >";
           }
 
-          if (score === 10) {
-            greenLink.style.display = "block";
+          if (score === 3) {
+            paintLink.style.display = "block";
+          }
+
+          if (score === 5) {
+            edexLink.style.display = "block";
           }
 
           car.style.opacity = 0;
