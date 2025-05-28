@@ -27,9 +27,9 @@
     .lb-row{display:flex;align-items:center;min-height:2.1em;font-size:1.08em;background:none;margin:2px 0;}
     .lb-row.lb-gap{height:7px;min-height:7px;background:none;}
     .lb-cell{padding:0 .2em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:left;height:100%;display:flex;align-items:center;color:#39ff14;}
-    .lb-username { flex:3 1 0; justify-content:flex-start; padding-left: 12px; }
+    .lb-username{flex:3 1 0;justify-content:flex-start;padding-left:12px;}
     .lb-score{flex:1 1 0;justify-content:center;text-align:center;}
-    .lb-rank { flex:1 1 0; justify-content:flex-end; text-align:right; padding-right: 12px; }
+    .lb-rank{flex:1 1 0;justify-content:flex-end;text-align:right;padding-right:12px;}
     .lb-footer{width:100%;display:flex;align-items:flex-end;justify-content:space-between;padding:0 18px 16px 18px;box-sizing:border-box;flex:0 0 20%;}
     .lb-userinput{flex:1 1 70%;display:flex;align-items:flex-end;gap:8px;}
     #lb-username-input{width:110px;padding:3px 7px;font-size:1em;border-radius:7px;border:1px solid #444;background:#111;color:#39ff14;outline:none;}
@@ -38,6 +38,24 @@
     .lb-close{flex:0 0 auto;align-self:flex-end;background:none;border:none;font-size:1.25em;font-weight:bold;color:#39ff14;cursor:pointer;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;margin-left:18px;margin-bottom:2px;transition:background .12s;}
     .lb-close:hover{background:#333;color:#84ff00;}
     #show-leaderboard-link{display:none;margin-top:10px;color:#39ff14;font-size:15px;text-decoration:underline;text-transform:lowercase;font-weight:normal;}
+    #gyro-button {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #5dff00;
+      color: #070707;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #gyro-button:disabled {
+      background-color: #888;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -46,7 +64,7 @@
     <div id="car"></div>
     <div id="text-container">
       <div id="text">Domain Parked™<sup>[STAFF ONLY]</sup></div>
-      <div id="score">Score: 0</div>
+      <div id="score" style="display: none;">Score: 0</div>
       <a id="show-leaderboard-link" href="#">show leaderboard</a>
       <div id="subtext"><a href="https://www.instagram.com/poiz.0ne"><i>@poiz.0ne</i></a></div>
     </div>
@@ -62,6 +80,7 @@
       <button class="lb-close" id="lb-close" title="close leaderboard">✕</button>
     </div>
   </div>
+  <button id="gyro-button" style="display:none;">Enable Gyroscope</button>
   <audio id="engineSound" src="engine.mp3" loop></audio>
   <audio id="parkSound" src="ding.mp3"></audio>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
@@ -80,12 +99,55 @@
       lbUsernameInput=document.getElementById("lb-username-input"),
       lbSubmitBtn=document.getElementById("lb-submit"),
       lbCloseBtn=document.getElementById("lb-close"),
-      leaderboardLink=document.getElementById("show-leaderboard-link");
+      leaderboardLink=document.getElementById("show-leaderboard-link"),
+      gyroButton = document.getElementById("gyro-button");
 
     let speed=5.5,angle=0,
       keys={w:0,a:0,s:0,d:0,ArrowUp:0,ArrowLeft:0,ArrowDown:0,ArrowRight:0},
-      score=0,canScore=1,carX=50,carY=50,gyroEnabled=0,
+      score=0,canScore=1,carX=50,carY=50,gyroEnabled=false,
       userScore=0,userName="",userSubmittedScore=0,userSubmittedName="",userHasSubmitted=false;
+
+    // Gyroscope functionality
+    function requestGyroPermission() {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === "function") {
+        DeviceOrientationEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === "granted") {
+              enableGyro();
+            } else {
+              alert('Permission to use the gyroscope was denied');
+            }
+          })
+          .catch(console.error);
+      } else {
+        enableGyro();
+      }
+    }
+    function enableGyro() {
+      if (!gyroEnabled) {
+        window.addEventListener("deviceorientation", handleGyroData);
+        gyroEnabled = true;
+      }
+    }
+    function handleGyroData(event) {
+      let beta = event.beta;
+      let gamma = event.gamma;
+      let gyroSpeed = 0.5;
+      carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
+      carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
+      car.style.left = carX + "px";
+      car.style.top = carY + "px";
+      let movementAngle = Math.atan2(beta, gamma) * (180 / Math.PI);
+      car.style.transform = `rotate(${movementAngle}deg)`;
+    }
+    // Show gyroscope button for mobile devices
+    if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) {
+      gyroButton.style.display = "block";
+      gyroButton.addEventListener("click", () => {
+        requestGyroPermission();
+        gyroButton.style.display = "none";
+      });
+    }
 
     // Show leaderboard
     function showLeaderboard(latestScore){
@@ -152,10 +214,15 @@
     document.addEventListener("keyup",e=>{if(e.key in keys)keys[e.key]=0;updateEngineSound();});
 
     function moveCar(){
-      let c=document.body.getBoundingClientRect(),dx=0,dy=0;
-      if(keys.w||keys.ArrowUp)dy-=speed;if(keys.s||keys.ArrowDown)dy+=speed;if(keys.a||keys.ArrowLeft)dx-=speed;if(keys.d||keys.ArrowRight)dx+=speed;
-      if(dx||dy){carX=Math.max(0,Math.min(c.width-car.clientWidth,carX+dx));carY=Math.max(0,Math.min(c.height-car.clientHeight,carY+dy));angle=Math.atan2(dy,dx)*180/Math.PI+90;car.style.transform=`rotate(${angle}deg)`;}
-      car.style.left=carX+"px";car.style.top=carY+"px";checkParking();requestAnimationFrame(moveCar);}
+      if (!gyroEnabled) {
+        let c=document.body.getBoundingClientRect(),dx=0,dy=0;
+        if(keys.w||keys.ArrowUp)dy-=speed;if(keys.s||keys.ArrowDown)dy+=speed;if(keys.a||keys.ArrowLeft)dx-=speed;if(keys.d||keys.ArrowRight)dx+=speed;
+        if(dx||dy){carX=Math.max(0,Math.min(c.width-car.clientWidth,carX+dx));carY=Math.max(0,Math.min(c.height-car.clientHeight,carY+dy));angle=Math.atan2(dy,dx)*180/Math.PI+90;car.style.transform=`rotate(${angle}deg)`;}
+        car.style.left=carX+"px";car.style.top=carY+"px";
+      }
+      checkParking();
+      requestAnimationFrame(moveCar);
+    }
     function checkParking(){
       let carRect=car.getBoundingClientRect(),goalRect=goal.getBoundingClientRect();
       if(carRect.top>=goalRect.top&&carRect.bottom<=goalRect.bottom&&carRect.left>=goalRect.left&&carRect.right<=goalRect.right){
