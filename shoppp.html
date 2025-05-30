@@ -14,13 +14,105 @@
     a{color:#84ff00;font-weight:bold;font-family:'Source Code Pro',monospace;font-size:20px;text-decoration:none;margin:0 15px;}
     a:hover{font-weight:bolder;}
     img{max-width:100%;height:auto;}
-    .scroll-left{height:40px;width:90%;max-width:1050px;overflow:hidden;position:relative;background:black;color:#84ff00;margin:0 auto 45px auto;}
-    .scroll-left p{position:absolute;width:200%;height:100%;margin:0;line-height:40px;text-align:center;font-size:16px;animation:scroll-left 15s linear infinite;}
-    @keyframes scroll-left{0%{transform:translateX(100%);}100%{transform:translateX(-100%);}}
-    .nav-links{margin:10px auto 5px auto;text-align:center;padding-bottom:15px;}
+    /* SCROLL TILE BAR */
+    .scroll-tile-bar {
+      width: 60vw; /* 55vw + 5vw */
+      min-width: 320px;
+      max-width: 1050px;
+      overflow: hidden;
+      position: relative;
+      background: black;
+      color: #84ff00;
+      margin: 0 auto 15px auto; /* reduced margin-bottom from 30px to 15px */
+      box-sizing: border-box;
+      padding: 0;
+      height: 32px; /* reduced height */
+      border-bottom: 1.5px solid #1b1b1b;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: width 0.2s;
+    }
+    .scroll-tile-bar .editable-text {
+      outline: none;
+      border: none;
+      background: transparent;
+      color: #84ff00;
+      font-size: 15.75px; /* 21px reduced by 25% */
+      font-family: 'Source Code Pro', monospace;
+      font-weight: bold;
+      white-space: nowrap;
+      display: inline-block;
+      min-width: 150px;
+      margin: 0 0 0 0;
+    }
+    .scroll-tile-bar .tile-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      width: max-content;
+      height: 100%;
+      animation: scroll-infinite 8s linear infinite;
+      will-change: transform;
+    }
+    @keyframes scroll-infinite {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .scroll-tile-bar .tile-text {
+      padding: 2px 30px 2px 0; /* reduced from 40px to 30px for less spacing */
+      font-size: 15.75px; /* 21px reduced by 25% */
+      font-family: 'Source Code Pro', monospace;
+      font-weight: bold;
+      white-space: nowrap;
+      display: inline-block;
+      line-height: 21px;
+      letter-spacing: 0.04em;
+      user-select: none;
+    }
+    /* END SCROLL TILE BAR */
+    .nav-links{
+      margin:10px auto 5px auto;
+      text-align:center;
+      padding-bottom:15px;
+    }
+    .nav-links a {
+      color: #84ff00 !important;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 20px;
+      font-weight: bold;
+      text-decoration: none;
+      margin: 0 15px;
+      transition: color .15s;
+    }
+    .nav-links a:hover {
+      color: #b6ff62 !important;
+      font-weight: bolder;
+    }
     .products{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:10px;}
-    .product{width:20%;max-width:400px;text-align:center;font-size:16px;}
-    .update-section,.art-section{width:90%;max-width:900px;margin:50px auto;display:flex;font-family:'Source Code Pro',monospace;}
+    .product{width:20%;max-width:400px;text-align:center;font-size:12px;}
+    .product .purchase-link {
+      color: #ff0000 !important;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 20px;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      margin: 0 15px;
+      transition: color .15s;
+    }
+    .product .purchase-link:hover {
+      color: #ff5252 !important;
+      font-weight: bolder;
+    }
+    .update-section,.art-section{
+      width:95%;
+      max-width:900px;
+      margin:50px auto;
+      display:flex;
+      font-family:'Source Code Pro',monospace;
+    }
     .update-section img{width:45%;max-width:550px;object-fit:contain;}
     .art-section{flex-direction:row-reverse;}
     .art-section img{width:80%;max-width:550px;object-fit:contain;}
@@ -30,7 +122,22 @@
     .update-para,.art-para{font-size:14.4px;font-weight:normal;text-align:left;padding:5px 0;}
     .footer{text-align:center;padding:10px;background:black;color:#84ff00;font-size:8px;}
     .titleimg{margin:20px;}
+    @media screen and (max-width:1050px) {
+      .scroll-tile-bar { min-width: 0; }
+    }
     @media screen and (max-width:768px){
+      .scroll-tile-bar {
+        width: 90vw !important;
+        min-width: 0;
+        max-width: none;
+        height: 26px;
+      }
+      .scroll-tile-bar .tile-text,
+      .scroll-tile-bar .editable-text {
+        font-size: 11.8px; /* 15.75px reduced 25% */
+        line-height: 16.5px;
+      }
+      .nav-links{margin:10px auto 2.5px auto;}
       .product{width:85%;font-size:16px;}
       .update-section,.art-section{width:85%;flex-direction:column!important;align-items:center;}
       .update-section img,.art-section img{width:100%;max-width:550px;}
@@ -49,7 +156,12 @@
 <body>
 <center>
   <div class="titleimg"><img src="pws.png" width="350px"></div>
-  <div class="scroll-left"><p>POIZ.ONE PAINT - LAST UPDATED 28 MAY 2025 - v2.0 // POIZ.ONE DOMAIN PARKED - LAST UPDATED 29 MAY 2025</p></div>
+  <div class="scroll-tile-bar" id="scrollTileBar">
+    <span style="font-size:0;position:absolute;left:-9999px;" aria-hidden="true">tile-scroll-bar</span>
+    <div class="tile-content" id="tileContent">
+      <span class="tile-text editable-text" id="tileEditable" contenteditable="true">POIZ.ONE PAINT - LAST UPDATED 28 MAY 2025 - v2.0 // POIZ.ONE DOMAIN PARKED - LAST UPDATED 29 MAY 2025</span>
+    </div>
+  </div>
   <div class="nav-links">
     <a href="https://poiz.one/paint">PAINT</a>
     <a href="https://poiz.one/domainparked">PARK</a>
@@ -57,9 +169,21 @@
     <a href="https://instagram.com/poiz.0ne">CONTACT</a>
   </div>
   <div class="products">
-    <div class="product"><a href="http://3h0w.rf.gd/nu-tee.html"><img src="product-gtthk-front.png"></a><p>100% COTTON - PIC: XL<br>S M L XL XXL</p><a href="http://3h0w.rf.gd/nu-tee.html">PURCHASE</a></div>
-    <div class="product"><a href="http://3h0w.rf.gd/nu-tee.html"><img src="product-gtthk-front.png"></a><p>100% COTTON - PIC: XL<br>S M L XL XXL</p><a href="http://3h0w.rf.gd/nu-tee.html">PURCHASE</a></div>
-    <div class="product"><a href="http://3h0w.rf.gd/nu-tee.html"><img src="product-gtthk-front.png"></a><p>100% COTTON - PIC: XL<br>S M L XL XXL</p><a href="http://3h0w.rf.gd/nu-tee.html">PURCHASE</a></div>
+    <div class="product">
+      <a href="http://poiz.one/domainparked"><img src="product-red.png"></a>
+      <p>POIZ.ONE CLASSIC: RED - PIC: XXL<br>S M L XL XXL</p>
+      <a class="purchase-link" href="http://poiz.one/domainparked"><s>PURCHASE</s></a>
+    </div>
+    <div class="product">
+      <a href="http://poiz.one/domainparked"><img src="product-blue.png"></a>
+      <p>POIZ.ONE CLASSIC: BLUE - PIC: XXL<br>S M L XL XXL</p>
+      <a class="purchase-link" href="http://poiz.one/domainparked"><s>PURCHASE</s></a>
+    </div>
+    <div class="product">
+      <a href="http://poiz.one/domainparked"><img src="product-grey.png"></a>
+      <p>POIZ.ONE CLASSIC: GREY - PIC: XXL<br>S M L XL XXL</p>
+      <a class="purchase-link" href="http://poiz.one/domainparked"><s>PURCHASE</s></a>
+    </div>
   </div>
   <div class="update-section">
     <div class="update-image-slider" id="updateImageSlider">
@@ -77,7 +201,7 @@
     <div class="update-text">
       <div class="update-subtitle">update log: v2.0 // poiz.one/paint</div>
       <div class="update-title">YOUR EYES ARE NOT DECIEVEING YOU</div>
-      <div class="update-para">🎋poiz.one paint // v2.0 [link in bio] <br><br> yus, I’m bored and wanted to add more stuff… <br><br> features added ~~~~~<br>
+      <div class="update-para">🎋<strong>poiz.one paint // v2.0 </strong><br><br> yus, I’m bored and wanted to add more stuff… <br><br> features added ~~~~~<br>
         symbols!: For whatever ur Into! | custom text using system fonts | revamped calligraphy tool: changing to symbols allows for smoother lines!</div>
     </div>
   </div>
@@ -95,11 +219,7 @@
     <div class="art-text">
       <div class="art-subtitle">most recent art: shoohedd11</div>
       <div class="art-title">You and Your Future🎋</div>
-      <div class="art-para">[1] just as u wanted 😀 #thanks
-        [2] just as you’ll get 😁💋
-        
-        just a small wait till new products #btw
-        shoohedd is art only, this account will feature exclusive poiz.one related only content as well, I’m tryna archive man gimme a break 🙄</div>
+      <div class="art-para">[1] just as u wanted 😀 #thanks<br>[2] just as you’ll get 😁💋<br><br>just a small wait till new products #btw<br>shoohedd is art only, @poiz0ne will feature exclusive poiz.one related only content as well<br>I’m tryna archive man gimme a break 🙄</div>
     </div>
   </div>
   <div class="footer">@poiz.0ne</div>
@@ -136,6 +256,51 @@ function makeSlider(wrapperId, imagesId, dotsId){
 }
 makeSlider('artImageSlider','artImages','artDots');
 makeSlider('updateImageSlider','updateImages','updateDots');
+
+// --- TILED, INFINTELY LOOPING SCROLL BAR WITH EDITABLE TEXT ---
+(function(){
+  const tileBar = document.getElementById('scrollTileBar');
+  const tileContent = document.getElementById('tileContent');
+  const tileEditable = document.getElementById('tileEditable');
+
+  function updateTiles() {
+    // Remove all but first editable node
+    while (tileContent.children.length > 1) tileContent.removeChild(tileContent.lastChild);
+
+    // Get base text for tile
+    const text = tileEditable.innerText || tileEditable.textContent || '';
+    // Estimate how many tiles needed for a full infinite look
+    const tileCount = Math.ceil(window.innerWidth / tileEditable.offsetWidth) * 3 + 2;
+
+    // Remove old clones if any
+    for(let i=1;i<tileCount;i++){
+      let clone = tileEditable.cloneNode(true);
+      clone.contentEditable = "false";
+      clone.removeAttribute("id");
+      clone.classList.remove('editable-text');
+      tileContent.appendChild(clone);
+    }
+    // Update animation duration based on content width (shorter = faster, more tiles)
+    const totalWidth = tileContent.scrollWidth;
+    let duration = Math.max(6, totalWidth/180); // min 6s, faster if longer
+    tileContent.style.animationDuration = duration+'s';
+  }
+
+  // On edit, update tiles instantly
+  tileEditable.addEventListener('input', updateTiles);
+
+  // On window resize, update tile count
+  window.addEventListener('resize', updateTiles);
+
+  // Remove linebreaks in contenteditable
+  tileEditable.addEventListener('keydown', function(e){
+    if(e.key === "Enter"){e.preventDefault();}
+  });
+
+  // Initial fill
+  setTimeout(updateTiles, 100);
+
+})();
 </script>
 </body>
 </html>
