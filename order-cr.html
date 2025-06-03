@@ -50,7 +50,7 @@
   <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
   <script>
     (function(){
-      emailjs.init('YOUR_EMAILJS_PUBLIC_KEY'); // <-- Replace with your EmailJS public key (starts with "public_")
+      emailjs.init('6JhW8EVSKuBERKhqk'); // <-- Replace with your EmailJS public key (starts with "public_")
     })();
   </script>
 </head>
@@ -236,8 +236,8 @@ document.getElementById('paypalBtn').addEventListener('click',function(){
 
   // EmailJS send
   emailjs.sendForm(
-    'YOUR_SERVICE_ID',    // <-- Replace with your EmailJS service ID
-    'YOUR_TEMPLATE_ID',   // <-- Replace with your EmailJS template ID
+    'service_7y7feqr',    // <-- Replace with your EmailJS service ID
+    'template_i94jxe9',   // <-- Replace with your EmailJS template ID
     document.getElementById('orderForm')
   ).then(function(response) {
     // Success - go to PayPal
@@ -245,7 +245,7 @@ document.getElementById('paypalBtn').addEventListener('click',function(){
     let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)&shipping=${shippingPrice}`;
     window.open(paypalLink,'_blank');
   }, function(error) {
-    alert('Failed to send order email. Please try again or contact support.');
+    alert('Failed to send order email.');
   });
 });
 
