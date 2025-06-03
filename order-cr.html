@@ -50,7 +50,8 @@
   <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
   <script>
     (function(){
-      emailjs.init('public_6JhW8EVSKuBERKhqk'); // <-- Replace with your EmailJS public key (starts with "public_")
+      // Make sure to use the correct public key from your EmailJS dashboard!
+      emailjs.init('public_6JhW8EVSKuBERKhqk');
     })();
   </script>
 </head>
@@ -72,13 +73,13 @@
         <option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>XXXL</option>
       </select>
       <label>Full Name</label>
-      <input type="text" name="Full Name" id="fullName" required>
+      <input type="text" name="Full_Name" id="fullName" required>
       <label>Social Media</label>
-      <input type="text" name="Social Media">
+      <input type="text" name="Social_Media">
       <label>Street Address</label>
       <div class="inline-group" style="gap: 12px; margin-bottom:0;">
-        <input type="text" name="Street Number" id="streetNo" placeholder="No." style="max-width:70px;flex:0 0 70px;" required>
-        <input type="text" name="Street Name" id="streetName" placeholder="Street Name" style="flex:1;" required>
+        <input type="text" name="Street_Number" id="streetNo" placeholder="No." style="max-width:70px;flex:0 0 70px;" required>
+        <input type="text" name="Street_Name" id="streetName" placeholder="Street Name" style="flex:1;" required>
         <select name="Country" id="country" required style="max-width:90px;flex:0 0 90px;margin-top:0;"></select>
       </div>
       <div class="inline-group" style="gap: 12px; margin-top:0.5em;">
@@ -118,7 +119,7 @@
 </div>
 <div class="footer"><a href="https://instagram.com/poiz.0ne" target="_blank">@poiz.0ne</a></div>
 <script>
-const countries=[["🇦🇺","AUS","Australia"],["🇺🇸","USA","United States"],["🇬🇧","GBR","United Kingdom"],["🇨🇦","CAN","Canada"],["🇳🇿","NZL","New Zealand"],["🇩🇪","DEU","Germany"],["🇫🇷","FRA","France"],["🇮🇹","ITA","Italy"],["🇪🇸","ESP","Spain"],["🇯🇵","JPN","Japan"],["🇰🇷","KOR","South Korea"],["🇸🇬","SGP","Singapore"],["🇨🇳","CHN","China"],["🇮🇳","IND","India"],["🇧🇷","BRA","Brazil"],["🇿🇦","ZAF","South Africa"],["🇸🇪","SWE","Sweden"],["🇳\u00F8","NOR","Norway"],["🇩🇰","DNK","Denmark"],["🇫🇮","FIN","Finland"],["🇮🇩","IDN","Indonesia"],["🇲🇾","MYS","Malaysia"],["🇵🇭","PHL","Philippines"],["🇹🇭","THA","Thailand"],["🇻\u00E8","VNM","Vietnam"],["🇷🇺","RUS","Russia"],["🇲🇽","MEX","Mexico"],["🇦🇷","ARG","Argentina"],["🇹🇷","TUR","Turkey"],["🇭🇰","HKG","Hong Kong"],["🇵🇱","POL","Poland"],["🇨🇭","CHE","Switzerland"],["🇦🇹","AUT","Austria"],["🇳🇱","NLD","Netherlands"],["🇧\u00E8","BEL","Belgium"],["🇬\u03C1","GRC","Greece"],["🇭\u03C5","HUN","Hungary"],["🇨\u017E","CZE","Czechia"],["🇸\u03BA","SVK","Slovakia"],["🇸\u03BD","SVN","Slovenia"],["🇵\u03C4","PRT","Portugal"],["🇮\u03C1","IRL","Ireland"],["🇮\u05E9","ISR","Israel"],["🇦\u0625","ARE","UAE"],["🇸\u0639","SAU","Saudi Arabia"],["🇪\u0645","EGY","Egypt"],["🇲\u0627","MAR","Morocco"],["🇳\u062C","NGA","Nigeria"],["🇰\u06A9","KEN","Kenya"],["🇺\u043A","UKR","Ukraine"],["🇷\u043E","ROU","Romania"],["🇧\u0433","BGR","Bulgaria"],["🇷\u0441","SRB","Serbia"],["🇭\u0440","HRV","Croatia"],["🇪\u0441","EST","Estonia"],["🇱\u05D5","LVA","Latvia"],["🇱\u05D8","LTU","Lithuania"],["🇰\u0437","KAZ","Kazakhstan"],["🇸\u064A","SYR","Syria"],["🇶\u062A","QAT","Qatar"],["🇵\u0627","PAK","Pakistan"],["🇧\u06AF","BGD","Bangladesh"],["🇳\u092A","NPL","Nepal"],["🇱\u0915","LKA","Sri Lanka"],["🇲\u1019","MMR","Myanmar"],["🇻\u0907","VEN","Venezuela"],["🇨\u06A9","COL","Colombia"],["🇨\u06A9","CHL","Chile"],["🇵\u06D5","PER","Peru"],["🇺\u072D","URY","Uruguay"],["🇨\u06A1","CRI","Costa Rica"],["🇵\u0627","PAN","Panama"],["🇩\u06A9","DOM","Dominican Republic"],["🇨\u06A9","CUB","Cuba"],["🇯\u03B1","JAM","Jamaica"]];
+const countries=[["🇦🇺","AUS","Australia"],["🇺🇸","USA","United States"],["🇬🇧","GBR","United Kingdom"],["🇨🇦","CAN","Canada"],["🇳🇿","NZL","New Zealand"],["🇩🇪","DEU","Germany"],["🇫🇷","FRA","France"],["🇮🇹","ITA","Italy"],["🇪🇸","ESP","Spain"],["🇯🇵","JPN","Japan"],["🇰🇷","KOR","South Korea"],["🇸🇬","SGP","Singapore"],["🇨🇳","CHN","China"],["🇮🇳","IND","India"],["🇧🇷","BRA","Brazil"],["🇿🇦","ZAF","South Africa"],["🇸🇪","SWE","Sweden"],["🇳\u00F8","NOR","Norway"],["🇩🇰","DNK","Denmark"],["🇫\u00ed","FIN","Finland"],["🇮\u00ED","IDN","Indonesia"],["🇲\u00ED","MYS","Malaysia"],["🇵\u00ED","PHL","Philippines"],["🇹\u00ED","THA","Thailand"],["🇻\u00ED","VNM","Vietnam"],["🇷\u00ED","RUS","Russia"],["🇲\u00ED","MEX","Mexico"],["🇦\u00ED","ARG","Argentina"],["🇹\u00ED","TUR","Turkey"],["🇭\u00ED","HKG","Hong Kong"],["🇵\u00ED","POL","Poland"],["🇨\u00ED","CHE","Switzerland"],["🇦\u00ED","AUT","Austria"],["🇳\u00ED","NLD","Netherlands"],["🇧\u00ED","BEL","Belgium"],["🇬\u00ED","GRC","Greece"],["🇭\u00ED","HUN","Hungary"],["🇨\u00ED","CZE","Czechia"],["🇸\u00ED","SVK","Slovakia"],["🇸\u00ED","SVN","Slovenia"],["🇵\u00ED","PRT","Portugal"],["🇮\u00ED","IRL","Ireland"],["🇮\u00ED","ISR","Israel"],["🇦\u00ED","ARE","UAE"],["🇸\u00ED","SAU","Saudi Arabia"],["🇪\u00ED","EGY","Egypt"],["🇲\u00ED","MAR","Morocco"],["🇳\u00ED","NGA","Nigeria"],["🇰\u00ED","KEN","Kenya"],["🇺\u00ED","UKR","Ukraine"],["🇷\u00ED","ROU","Romania"],["🇧\u00ED","BGR","Bulgaria"],["🇷\u00ED","SRB","Serbia"],["🇭\u00ED","HRV","Croatia"],["🇪\u00ED","EST","Estonia"],["🇱\u00ED","LVA","Latvia"],["🇱\u00ED","LTU","Lithuania"],["🇰\u00ED","KAZ","Kazakhstan"],["🇸\u00ED","SYR","Syria"],["🇶\u00ED","QAT","Qatar"],["🇵\u00ED","PAK","Pakistan"],["🇧\u00ED","BGD","Bangladesh"],["🇳\u00ED","NPL","Nepal"],["🇱\u00ED","LKA","Sri Lanka"],["🇲\u00ED","MMR","Myanmar"],["🇻\u00ED","VEN","Venezuela"],["🇨\u00ED","COL","Colombia"],["🇨\u00ED","CHL","Chile"],["🇵\u00ED","PER","Peru"],["🇺\u00ED","URY","Uruguay"],["🇨\u00ED","CRI","Costa Rica"],["🇵\u00ED","PAN","Panama"],["🇩\u00ED","DOM","Dominican Republic"],["🇨\u00ED","CUB","Cuba"],["🇯\u00ED","JAM","Jamaica"]];
 const countrySelect=document.getElementById('country');
 countries.forEach(([e,t,n])=>{
   const o=document.createElement('option');
@@ -240,12 +241,12 @@ document.getElementById('paypalBtn').addEventListener('click',function(){
     'template_i94jxe9',   // <-- Replace with your EmailJS template ID
     document.getElementById('orderForm')
   ).then(function(response) {
-    // Success - go to PayPal
     alert('Order submitted! You will be redirected to PayPal.');
     let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)&shipping=${shippingPrice}`;
     window.open(paypalLink,'_blank');
   }, function(error) {
-    alert('Failed to send order email.');
+    alert('Failed to send order email.\n\n' + (error.text || JSON.stringify(error)));
+    console.error(error);
   });
 });
 
