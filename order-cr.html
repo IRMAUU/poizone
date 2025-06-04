@@ -64,7 +64,7 @@
     <div class="order-form-wrap">
       <h2>Order: POIZONE CLASSIC - RED</h2>
       <form id="orderForm" autocomplete="off" onsubmit="return false;">
-    <input type="hidden" name="page_name" value="Home Page">
+        <input type="hidden" name="page_name" id="pageNameField">
         <label>Size</label>
         <select name="order_size" id="mainSize" required>
           <option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>XXXL</option>
@@ -117,6 +117,14 @@
   </div>
   <div class="footer"><a href="https://instagram.com/poiz.0ne" target="_blank">@poiz.0ne</a></div>
   <script>
+  // Set the page name dynamically on DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', function() {
+    var pageNameField = document.getElementById('pageNameField');
+    if (pageNameField) {
+      pageNameField.value = document.title; // or window.location.pathname or window.location.href
+    }
+  });
+
   const countries=[["🇦🇺","AUS","Australia"],["🇺🇸","USA","United States"],["🇬🇧","GBR","United Kingdom"],["🇨🇦","CAN","Canada"],["🇳🇿","NZL","New Zealand"],["🇩🇪","DEU","Germany"],["🇫🇷","FRA","France"],["🇮🇹","ITA","Italy"],["🇪🇸","ESP","Spain"],["🇯🇵","JPN","Japan"],["🇰🇷","KOR","South Korea"],["🇸🇬","SGP","Singapore"],["🇨🇳","CHN","China"],["🇮🇳","IND","India"],["🇧🇷","BRA","Brazil"],["🇿🇦","ZAF","South Africa"],["🇸🇪","SWE","Sweden"],["🇳\u00F8","NOR","Norway"],["🇩\u00ED","DNK","Denmark"],["🇫\u00ED","FIN","Finland"],["🇮\u00ED","IDN","Indonesia"],["🇲\u00ED","MYS","Malaysia"],["🇵\u00ED","PHL","Philippines"],["🇹\u00ED","THA","Thailand"],["🇻\u00ED","VNM","Vietnam"],["🇷\u00ED","RUS","Russia"],["🇲\u00ED","MEX","Mexico"],["🇦\u00ED","ARG","Argentina"],["🇹\u00ED","TUR","Turkey"],["🇭\u00ED","HKG","Hong Kong"],["🇵\u00ED","POL","Poland"],["🇨\u00ED","CHE","Switzerland"],["🇦\u00ED","AUT","Austria"],["🇳\u00ED","NLD","Netherlands"],["🇧\u00ED","BEL","Belgium"],["🇬\u00ED","GRC","Greece"],["🇭\u00ED","HUN","Hungary"],["🇨\u00ED","CZE","Czechia"],["🇸\u00ED","SVK","Slovakia"],["🇸\u00ED","SVN","Slovenia"],["🇵\u00ED","PRT","Portugal"],["🇮\u00ED","IRL","Ireland"],["🇮\u00ED","ISR","Israel"],["🇦\u00ED","ARE","UAE"],["🇸\u00ED","SAU","Saudi Arabia"],["🇪\u00ED","EGY","Egypt"],["🇲\u00ED","MAR","Morocco"],["🇳\u00ED","NGA","Nigeria"],["🇰\u00ED","KEN","Kenya"],["🇺\u00ED","UKR","Ukraine"],["🇷\u00ED","ROU","Romania"],["🇧\u00ED","BGR","Bulgaria"],["🇷\u00ED","SRB","Serbia"],["🇭\u00ED","HRV","Croatia"],["🇪\u00ED","EST","Estonia"],["🇱\u00ED","LVA","Latvia"],["🇱\u00ED","LTU","Lithuania"],["🇰\u00ED","KAZ","Kazakhstan"],["🇸\u00ED","SYR","Syria"],["🇶\u00ED","QAT","Qatar"],["🇵\u00ED","PAK","Pakistan"],["🇧\u00ED","BGD","Bangladesh"],["🇳\u00ED","NPL","Nepal"],["🇱\u00ED","LKA","Sri Lanka"],["🇲\u00ED","MMR","Myanmar"],["🇻\u00ED","VEN","Venezuela"],["🇨\u00ED","COL","Colombia"],["🇨\u00ED","CHL","Chile"],["🇵\u00ED","PER","Peru"],["🇺\u00ED","URY","Uruguay"],["🇨\u00ED","CRI","Costa Rica"],["🇵\u00ED","PAN","Panama"],["🇩\u00ED","DOM","Dominican Republic"],["🇨\u00ED","CUB","Cuba"],["🇯\u00ED","JAM","Jamaica"]];
   const countrySelect=document.getElementById('country');
   countries.forEach(([e,t,n])=>{
