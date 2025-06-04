@@ -3,70 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Domain Parked[VALET 01]</title>
+  <title>Domain Parked™"ˢᵗᵃᶠᵗ ᵒⁿˡʸ"</title>
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <meta name="theme-color" content="#070707">
   <style>
     body{margin:0;overflow:hidden;background:#070707 url('bg.png') repeat;background-size:cover;}
-    a{color:#ff0000;text-decoration:underline;font-weight:normal;transition:color .3s;text-transform:lowercase;}
-    a:hover,a:visited{color:#ff0000;text-decoration:underline;font-weight:bold;}
+    a{color:#5dff00;text-decoration:underline;font-weight:normal;transition:color .3s;text-transform:lowercase;}
+    a:hover,a:visited{color:#5dff00;text-decoration:underline;font-weight:bold;}
     @font-face{font-family:'Andale Mono';src:url('andalemono.woff2') format('woff2'),url('andalemono.woff') format('woff'),url('andalemono.ttf') format('truetype');}
     #game-container{width:100vw;height:100vh;position:relative;}
-    #car{width:75px;height:140px;background:url('car-v1.png') no-repeat center/contain;position:absolute;top:50px;left:50px;transform-origin:center;transition:transform .02s linear, opacity .15s;}
-    @media (max-width:768px){#car{background:url('car2-v1.png') no-repeat center/contain;width:100px;height:60px;}}
-    #goal{width:115px;height:210px;background:url('park-v1.png') no-repeat center/contain;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
-    @media (max-width:768px){#goal{width:85px;175px;}}
-    #text-container{position:absolute;width:100%;top:calc(50% + 120px);text-align:center;color:#000;font-family:Andale Mono,monospace;}
-    #text{font-size:16px;color:#ff0000;}
+    #car{width:75px;height:140px;background:url('car.png') no-repeat center/contain;position:absolute;top:50px;left:50px;transform-origin:center;transition:transform .02s linear, opacity .15s;}
+    @media (max-width:768px){#car{background:url('car2.png') no-repeat center/contain;width:100px;height:60px;}}
+    #goal{width:115px;height:210px;background:url('park.png') no-repeat center/contain;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+    @media (max-width:768px){#goal{width:85px;height:175px;}}
+    #text-container{position:absolute;width:100%;top:calc(50% + 120px);text-align:center;color:#5dff00;font-family:Andale Mono,monospace;}
+    #text{font-size:16px;}
     #score{color:#ff0000;font-size:14px;margin-top:5px;display:none;}
-    #subtext{font-size:14px;opacity:.7;margin-top:5px;color:#ff0000;}
-    #leaderboard-modal{
-      display:none;position:fixed;left:50%;top:50%;width:50vw;height:42vh;min-width:300px;min-height:300px;max-width:95vw;max-height:95vh;
-      background: #070707 url('your-leaderboard-bg.png') center center/cover no-repeat;
-      border:3px solid #232323;border-radius:18px;box-shadow:0 0 24px #000a;z-index:9999;transform:translate(-50%,-50%);
-      padding:0;font-family:Andale Mono,monospace;color:#fff;flex-direction:column;overflow:visible;
-      /* background-image: url('your-leaderboard-bg.png'); background-size:cover; background-repeat:no-repeat; */
-    }
+    #subtext{font-size:14px;opacity:.7;margin-top:5px;color:#00ff00;}
+    #leaderboard-modal{display:none;position:fixed;left:50%;top:50%;width:50vw;height:42vh;min-width:300px;min-height:300px;max-width:95vw;max-height:95vh;background:#070707;border:3px solid #232323;border-radius:18px;box-shadow:0 0 24px #000a;z-index:9999;transform:translate(-50%,-50%);padding:0;font-family:Andale Mono,monospace;color:#39ff14;flex-direction:column;overflow:visible;}
     @media (max-width:768px){#leaderboard-modal{width:90vw !important;height:60vw !important;min-width:0;min-height:0;max-height:90vh;padding:0;}}
-    .lb-header{width:100%;text-align:center;font-size:22px;font-weight:bold;margin:13px 0 5px 0;color:#fff;letter-spacing:.04em;}
+    .lb-header{width:100%;text-align:center;font-size:22px;font-weight:bold;margin:13px 0 5px 0;color:#39ff14;letter-spacing:.04em;}
     .lb-table{flex:1 1 80%;width:100%;display:flex;flex-direction:column;align-items:stretch;margin-bottom:6px;min-height:0;overflow-y:auto;}
     .lb-row{display:flex;align-items:center;min-height:2.1em;font-size:1.08em;background:none;margin:2px 0;}
     .lb-row.lb-gap{height:7px;min-height:7px;background:none;}
-    .lb-cell{padding:0 .2em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:left;height:100%;display:flex;align-items:center;color:#fff;}
+    .lb-cell{padding:0 .2em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:left;height:100%;display:flex;align-items:center;color:#39ff14;}
     .lb-username{flex:3 1 0;justify-content:flex-start;padding-left:12px;}
     .lb-score{flex:1 1 0;justify-content:center;text-align:center;}
     .lb-rank{flex:1 1 0;justify-content:flex-end;text-align:right;padding-right:12px;}
-    .lb-footer{
-      width:100%;display:flex;align-items:flex-end;justify-content:space-between;padding:0 18px 16px 18px;box-sizing:border-box;flex:0 0 20%;
-      gap:10px;
-    }
+    .lb-footer{width:100%;display:flex;align-items:flex-end;justify-content:space-between;padding:0 18px 16px 18px;box-sizing:border-box;flex:0 0 20%;}
     .lb-userinput{flex:1 1 70%;display:flex;align-items:flex-end;gap:8px;}
-    #lb-username-input{width:110px;padding:3px 7px;font-size:1em;border-radius:7px;border:1px solid #444;background:#111;color:#fff;outline:none;}
-    #lb-submit{padding:4px 13px;font-size:1em;background:#fff;color:#070707;border:none;border-radius:6px;font-family:inherit;font-weight:bold;cursor:pointer;transition:background .15s;}
+    #lb-username-input{width:110px;padding:3px 7px;font-size:1em;border-radius:7px;border:1px solid #444;background:#111;color:#39ff14;outline:none;}
+    #lb-submit{padding:4px 13px;font-size:1em;background:#39ff14;color:#070707;border:none;border-radius:6px;font-family:inherit;font-weight:bold;cursor:pointer;transition:background .15s;}
     #lb-submit:disabled{background:#444;color:#111;cursor:not-allowed;}
-    .lb-close{flex:0 0 auto;align-self:flex-end;background:none;border:none;font-size:1.25em;font-weight:bold;color:#fff;cursor:pointer;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;margin-left:18px;margin-bottom:2px;transition:background .12s;}
-    .lb-close:hover{background:#333;color:#fff;}
-    .lb-competition {
-      flex:0 0 auto;
-      align-self:flex-end;
-      font-family:Andale Mono,monospace;
-      font-weight:bold;
-      color:#ff2222;
-      font-size:1em;
-      letter-spacing:.03em;
-      margin-left:18px;
-      margin-right:0;
-      white-space:nowrap;
-      text-align:right;
-    }
-    @media (max-width:768px) {
-      .lb-competition {
-        font-size:0.85em;
-        margin-left:8px;
-        padding-left:3px;
-      }
-    }
-    #show-leaderboard-link{display:none;margin-top:10px;color:#fff;font-size:15px;text-decoration:underline;text-transform:lowercase;font-weight:normal;}
+    .lb-close{flex:0 0 auto;align-self:flex-end;background:none;border:none;font-size:1.25em;font-weight:bold;color:#39ff14;cursor:pointer;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;margin-left:18px;margin-bottom:2px;transition:background .12s;}
+    .lb-close:hover{background:#333;color:#84ff00;}
+    #show-leaderboard-link{display:none;margin-top:10px;color:#39ff14;font-size:15px;text-decoration:underline;text-transform:lowercase;font-weight:normal;}
     #gyro-button {
       position: absolute;
       top: 10px;
@@ -75,7 +46,7 @@
       z-index: 10;
       padding: 10px;
       font-size: 16px;
-      background-color: #fff;
+      background-color: #5dff00;
       color: #070707;
       border: none;
       border-radius: 6px;
@@ -85,10 +56,6 @@
       background-color: #888;
       cursor: not-allowed;
     }
-sup {
-  color: #ff0000;
-}
-
   </style>
 </head>
 <body>
@@ -96,7 +63,7 @@ sup {
     <div id="goal"></div>
     <div id="car"></div>
     <div id="text-container">
-      <div id="text">Domain Parked™<sup>[VALET 01]</sup></div>
+      <div id="text">Domain Parked™<sup>[STAFF ONLY]</sup></div>
       <div id="score" style="display: none;">Score: 0</div>
       <a id="show-leaderboard-link" href="#">show leaderboard</a>
       <div id="subtext"><a href="https://www.instagram.com/poiz.0ne"><i>@poiz.0ne</i></a></div>
@@ -110,7 +77,6 @@ sup {
         <input id="lb-username-input" type="text" maxlength="18" placeholder="username">
         <button id="lb-submit">submit</button>
       </div>
-      <div class="lb-competition"><b style="color:#ff2222;">ENDS THUR 19 2025 8AM AEST</b></div>
       <button class="lb-close" id="lb-close" title="close leaderboard">✕</button>
     </div>
   </div>
