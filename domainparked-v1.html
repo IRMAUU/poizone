@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domain Parked[VALET 01]</title>
+  <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+  <meta name="theme-color" content="#070707">
+  <style>
+    body{margin:0;overflow:hidden;background:#070707 url('bg.png') repeat;background-size:cover;}
+    a{color:#ff0000;text-decoration:underline;font-weight:normal;transition:color .3s;text-transform:lowercase;}
+    a:hover,a:visited{color:#ff0000;text-decoration:underline;font-weight:bold;}
+    @font-face{font-family:'Andale Mono';src:url('andalemono.woff2') format('woff2'),url('andalemono.woff') format('woff'),url('andalemono.ttf') format('truetype');}
+    #game-container{width:100vw;height:100vh;position:relative;}
+    #car{width:75px;height:140px;background:url('car-v1.png') no-repeat center/contain;position:absolute;top:50px;left:50px;transform-origin:center;transition:transform .02s linear, opacity .15s;}
+    @media (max-width:768px){#car{background:url('car2-v1.png') no-repeat center/contain;width:100px;height:60px;}}
+    #goal{width:115px;height:210px;background:url('park-v1.png') no-repeat center/contain;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+    @media (max-width:768px){#goal{width:85px;175px;}}
+    #text-container{position:absolute;width:100%;top:calc(50% + 120px);text-align:center;color:#000;font-family:Andale Mono,monospace;}
+    #text{font-size:16px;color:#ff0000;}
+    #score{color:#ff0000;font-size:14px;margin-top:5px;display:none;}
+    #subtext{font-size:14px;opacity:.7;margin-top:5px;color:#ff0000;}
+    #leaderboard-modal{
+      display:none;position:fixed;left:50%;top:50%;width:50vw;height:42vh;min-width:300px;min-height:300px;max-width:95vw;max-height:95vh;
+      background: #070707 url('your-leaderboard-bg.png') center center/cover no-repeat;
+      border:3px solid #232323;border-radius:18px;box-shadow:0 0 24px #000a;z-index:9999;transform:translate(-50%,-50%);
+      padding:0;font-family:Andale Mono,monospace;color:#fff;flex-direction:column;overflow:visible;
+      /* background-image: url('your-leaderboard-bg.png'); background-size:cover; background-repeat:no-repeat; */
+    }
+    @media (max-width:768px){#leaderboard-modal{width:90vw !important;height:60vw !important;min-width:0;min-height:0;max-height:90vh;padding:0;}}
+    .lb-header{width:100%;text-align:center;font-size:22px;font-weight:bold;margin:13px 0 5px 0;color:#fff;letter-spacing:.04em;}
+    .lb-table{flex:1 1 80%;width:100%;display:flex;flex-direction:column;align-items:stretch;margin-bottom:6px;min-height:0;overflow-y:auto;}
+    .lb-row{display:flex;align-items:center;min-height:2.1em;font-size:1.08em;background:none;margin:2px 0;}
+    .lb-row.lb-gap{height:7px;min-height:7px;background:none;}
+    .lb-cell{padding:0 .2em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:left;height:100%;display:flex;align-items:center;color:#fff;}
+    .lb-username{flex:3 1 0;justify-content:flex-start;padding-left:12px;}
+    .lb-score{flex:1 1 0;justify-content:center;text-align:center;}
+    .lb-rank{flex:1 1 0;justify-content:flex-end;text-align:right;padding-right:12px;}
+    .lb-footer{
+      width:100%;display:flex;align-items:flex-end;justify-content:space-between;padding:0 18px 16px 18px;box-sizing:border-box;flex:0 0 20%;
+      gap:10px;
+    }
+    .lb-userinput{flex:1 1 70%;display:flex;align-items:flex-end;gap:8px;}
+    #lb-username-input{width:110px;padding:3px 7px;font-size:1em;border-radius:7px;border:1px solid #444;background:#111;color:#fff;outline:none;}
+    #lb-submit{padding:4px 13px;font-size:1em;background:#fff;color:#070707;border:none;border-radius:6px;font-family:inherit;font-weight:bold;cursor:pointer;transition:background .15s;}
+    #lb-submit:disabled{background:#444;color:#111;cursor:not-allowed;}
+    .lb-close{flex:0 0 auto;align-self:flex-end;background:none;border:none;font-size:1.25em;font-weight:bold;color:#fff;cursor:pointer;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;margin-left:18px;margin-bottom:2px;transition:background .12s;}
+    .lb-close:hover{background:#333;color:#fff;}
+    .lb-competition {
+      flex:0 0 auto;
+      align-self:flex-end;
+      font-family:Andale Mono,monospace;
+      font-weight:bold;
+      color:#ff2222;
+      font-size:1em;
+      letter-spacing:.03em;
+      margin-left:18px;
+      margin-right:0;
+      white-space:nowrap;
+      text-align:right;
+    }
+    @media (max-width:768px) {
+      .lb-competition {
+        font-size:0.85em;
+        margin-left:8px;
+        padding-left:3px;
+      }
+    }
+    #show-leaderboard-link{display:none;margin-top:10px;color:#fff;font-size:15px;text-decoration:underline;text-transform:lowercase;font-weight:normal;}
+    #gyro-button {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #fff;
+      color: #070707;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #gyro-button:disabled {
+      background-color: #888;
+      cursor: not-allowed;
+    }
+sup {
+  color: #ff0000;
+}
+
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="goal"></div>
+    <div id="car"></div>
+    <div id="text-container">
+      <div id="text">Domain Parked™<sup>[VALET 01]</sup></div>
+      <div id="score" style="display: none;">Score: 0</div>
+      <a id="show-leaderboard-link" href="#">show leaderboard</a>
+      <div id="subtext"><a href="https://www.instagram.com/poiz.0ne"><i>@poiz.0ne</i></a></div>
+    </div>
+  </div>
+  <div id="leaderboard-modal">
+    <div class="lb-header">LEADERBOARD</div>
+    <div class="lb-table" id="lb-table"></div>
+    <div class="lb-footer">
+      <div class="lb-userinput">
+        <input id="lb-username-input" type="text" maxlength="18" placeholder="username">
+        <button id="lb-submit">submit</button>
+      </div>
+      <div class="lb-competition"><b style="color:#ff2222;">ENDS THUR 19 2025 8AM AEST</b></div>
+      <button class="lb-close" id="lb-close" title="close leaderboard">✕</button>
+    </div>
+  </div>
+  <button id="gyro-button" style="display:none;">Enable Gyroscope</button>
+  <audio id="engineSound" src="engine.mp3" loop></audio>
+  <audio id="parkSound" src="ding.mp3"></audio>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL="https://repxiczfifktmqcpmdub.supabase.co";
+    const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlcHhpY3pmaWZrdG1xY3BtZHViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NDA2ODYsImV4cCI6MjA2NDAxNjY4Nn0.0RT8jSYMqgAZG5-l6sB-qAxjwPVgVF5vCO1oOsCSdJE";
+    const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+    let car=document.getElementById("car"),
+      goal=document.getElementById("goal"),
+      engineSound=document.getElementById("engineSound"),
+      parkSound=document.getElementById("parkSound"),
+      scoreDisplay=document.getElementById("score"),
+      leaderboardModal=document.getElementById("leaderboard-modal"),
+      lbTable=document.getElementById("lb-table"),
+      lbUsernameInput=document.getElementById("lb-username-input"),
+      lbSubmitBtn=document.getElementById("lb-submit"),
+      lbCloseBtn=document.getElementById("lb-close"),
+      leaderboardLink=document.getElementById("show-leaderboard-link"),
+      gyroButton = document.getElementById("gyro-button");
+
+    let speed=5.5,angle=0,
+      keys={w:0,a:0,s:0,d:0,ArrowUp:0,ArrowLeft:0,ArrowDown:0,ArrowRight:0},
+      score=0,canScore=1,carX=50,carY=50,gyroEnabled=false,
+      userScore=0,userName="",userSubmittedScore=0,userSubmittedName="",userHasSubmitted=false;
+
+    // Gyroscope functionality
+    function requestGyroPermission() {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === "function") {
+        DeviceOrientationEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === "granted") {
+              enableGyro();
+            } else {
+              alert('Permission to use the gyroscope was denied');
+            }
+          })
+          .catch(console.error);
+      } else {
+        enableGyro();
+      }
+    }
+    function enableGyro() {
+      if (!gyroEnabled) {
+        window.addEventListener("deviceorientation", handleGyroData);
+        gyroEnabled = true;
+      }
+    }
+    function handleGyroData(event) {
+      let beta = event.beta;
+      let gamma = event.gamma;
+      let gyroSpeed = 0.5;
+      carX = Math.max(0, Math.min(window.innerWidth - car.clientWidth, carX + gamma * gyroSpeed));
+      carY = Math.max(0, Math.min(window.innerHeight - car.clientHeight, carY + beta * gyroSpeed));
+      car.style.left = carX + "px";
+      car.style.top = carY + "px";
+      let movementAngle = Math.atan2(beta, gamma) * (180 / Math.PI);
+      car.style.transform = `rotate(${movementAngle}deg)`;
+    }
+    // Show gyroscope button for mobile devices
+    if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) {
+      gyroButton.style.display = "block";
+      gyroButton.addEventListener("click", () => {
+        requestGyroPermission();
+        gyroButton.style.display = "none";
+      });
+    }
+
+    // Show leaderboard
+    function showLeaderboard(latestScore){
+      leaderboardModal.style.display="flex";
+      lbUsernameInput.value=userName;
+      userScore=latestScore;
+      updateLeaderboard();
+    }
+    function hideLeaderboard(){leaderboardModal.style.display="none";}
+
+    // Always show user row at bottom, global scores top down
+    async function updateLeaderboard(){
+      lbTable.innerHTML=`<div class="lb-row"><div class="lb-cell lb-username">username</div><div class="lb-cell lb-score">score</div><div class="lb-cell lb-rank">rank</div></div>`;
+      // Fetch global top 5
+      const {data:top5} = await supabase
+        .from('leaderboard')
+        .select('username,score')
+        .order('score',{ascending:false})
+        .order('inserted_at',{ascending:true})
+        .limit(5);
+      // Render global scores top-down
+      if(top5 && top5.length){
+        top5.forEach((row,i)=>{
+          lbTable.innerHTML += `<div class="lb-row"><div class="lb-cell lb-username">${row.username?escapeHtml(row.username):"anon"}</div><div class="lb-cell lb-score">${row.score}</div><div class="lb-cell lb-rank">${i+1}</div></div>`;
+        });
+      }
+      // Fill with blanks if less than 5
+      for(let i=(top5?top5.length:0);i<5;i++){
+        lbTable.innerHTML += `<div class="lb-row"><div class="lb-cell lb-username">&nbsp;</div><div class="lb-cell lb-score"></div><div class="lb-cell lb-rank"></div></div>`;
+      }
+      // Gap
+      lbTable.innerHTML += `<div class="lb-row lb-gap"></div>`;
+      // User row at bottom: always show current score, and indicate "not submitted" if needed
+      if(userName && userScore>0){
+        let label = userHasSubmitted && userSubmittedScore===userScore && userSubmittedName===userName ? userName : (userName+" (not submitted)");
+        lbTable.innerHTML += `<div class="lb-row" style="color:#84ff00;font-weight:bold;"><div class="lb-cell lb-username">${escapeHtml(label)}</div><div class="lb-cell lb-score">${userScore}</div><div class="lb-cell lb-rank"></div></div>`;
+      }
+    }
+
+    // Submit button: disables double submission, shows user's row as 'submitted', then reloads leaderboard
+    lbSubmitBtn.onclick=async()=>{
+      let uname = lbUsernameInput.value.trim().substring(0,18);
+      if(!uname){lbUsernameInput.focus();return;}
+      userName = uname;
+      lbSubmitBtn.disabled = true;
+      userHasSubmitted = false; // Will only set true after successful insert
+      await updateLeaderboard(); // Update with not submitted label
+      const {error} = await supabase.from('leaderboard').insert([{username:uname,score:userScore}]);
+      if(error) alert('Insert error: '+error.message);
+      else {
+        userHasSubmitted = true;
+        userSubmittedScore = userScore;
+        userSubmittedName = uname;
+      }
+      await updateLeaderboard();
+      lbSubmitBtn.disabled = false;
+    };
+
+    lbCloseBtn.onclick=hideLeaderboard;
+    leaderboardLink.onclick=(e)=>{e.preventDefault();showLeaderboard(score);};
+    function escapeHtml(str){return String(str).replace(/[&<>"'`=\/]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'}[s]));}
+
+    document.addEventListener("keydown",e=>{if(e.key in keys)keys[e.key]=1;updateEngineSound();});
+    document.addEventListener("keyup",e=>{if(e.key in keys)keys[e.key]=0;updateEngineSound();});
+
+    function moveCar(){
+      if (!gyroEnabled) {
+        let c=document.body.getBoundingClientRect(),dx=0,dy=0;
+        if(keys.w||keys.ArrowUp)dy-=speed;if(keys.s||keys.ArrowDown)dy+=speed;if(keys.a||keys.ArrowLeft)dx-=speed;if(keys.d||keys.ArrowRight)dx+=speed;
+        if(dx||dy){carX=Math.max(0,Math.min(c.width-car.clientWidth,carX+dx));carY=Math.max(0,Math.min(c.height-car.clientHeight,carY+dy));angle=Math.atan2(dy,dx)*180/Math.PI+90;car.style.transform=`rotate(${angle}deg)`;}
+        car.style.left=carX+"px";car.style.top=carY+"px";
+      }
+      checkParking();
+      requestAnimationFrame(moveCar);
+    }
+    function checkParking(){
+      let carRect=car.getBoundingClientRect(),goalRect=goal.getBoundingClientRect();
+      if(carRect.top>=goalRect.top&&carRect.bottom<=goalRect.bottom&&carRect.left>=goalRect.left&&carRect.right<=goalRect.right){
+        if(canScore){canScore=0;score++;parkSound.play();
+          if(score>=1){scoreDisplay.style.display="block";scoreDisplay.innerText="< score: "+score+" >";}
+          if(score===5){leaderboardLink.style.display="inline";}
+          car.style.opacity=0;setTimeout(respawnCar,90);}
+      }}
+    function respawnCar(){
+      let maxWidth=window.innerWidth-car.clientWidth,maxHeight=window.innerHeight-car.clientHeight;
+      carX=Math.random()*maxWidth;carY=Math.random()*maxHeight;car.style.left=carX+"px";car.style.top=carY+"px";
+      setTimeout(()=>{car.style.opacity=1;canScore=1;},150);}
+    function updateEngineSound(){
+      let isMoving=Object.values(keys).some(v=>v);
+      engineSound.volume=isMoving?Math.min(1,speed/10):0;
+      isMoving?engineSound.play():engineSound.pause();}
+    moveCar();
+  </script>
+</body>
+</html>
