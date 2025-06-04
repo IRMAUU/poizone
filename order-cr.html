@@ -153,25 +153,29 @@
   setTimeout(checkShippingFields,500);
   function x(a,c,s,i){return btoa(a+"-"+c+"-"+s)==i}
   function generateOrderId(){return 'POIZONE-'+Date.now();}
+
   document.getElementById('paypalBtn').addEventListener('click',function(){
     if(this.style.pointerEvents==="none")return;
-    const c=countrySelect.value,t=basePrice+shippingPrice+getAddedItemsPrice(),v=this.getAttribute('data-v'),s=addedItems.map(i=>i.product+i.count+i.size).join("");
+    const c=countrySelect.value,
+      t=basePrice+shippingPrice+getAddedItemsPrice(),
+      v=this.getAttribute('data-v'),
+      s=addedItems.map(i=>i.product+i.count+i.size).join("");
     if(!x(t,c,s,v)){return;}
     updateExtrasField();
     document.getElementById('orderTotalField').value = t;
     document.getElementById('orderShippingField').value = shippingPrice;
     let orderId = generateOrderId();
     document.getElementById('orderIdField').value = orderId;
-    emailjs.sendForm('service_7y7feqr','template_i94jxe9',document.getElementById('orderForm')).then(function(){
-      let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)&shipping=${shippingPrice}`;
-      window.open(paypalLink,'_blank');
-    },function(error){
-      alert('Failed to send order email.\n\n'+(error.text||JSON.stringify(error)));
-      console.error(error);
-    });
+    // Open PayPal first, as a direct result of click
+    let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)&shipping=${shippingPrice}`;
+    window.open(paypalLink,'_blank');
+    // Now send the email in the background (user may navigate away, but this maximizes popup reliability)
+    emailjs.sendForm('service_7y7feqr','template_i94jxe9',document.getElementById('orderForm'));
   });
+
   document.getElementById('orderForm').addEventListener('submit',function(e){e.preventDefault();});
   updatePrice();
+
   (function(){const t=document.getElementById('scrollTileBar'),n=document.getElementById('tileContent'),e=document.getElementById('tileEditable');function i(){while(n.children.length>1)n.removeChild(n.lastChild);const r=e.innerText||e.textContent||'';const c=Math.ceil(window.innerWidth/e.offsetWidth)*3+2;for(let u=1;u<c;u++){let a=e.cloneNode(true);a.contentEditable="false";a.removeAttribute("id");a.classList.remove('editable-text');n.appendChild(a);}const l=n.scrollWidth;let d=Math.max(6,l/180);n.style.animationDuration=d+'s';}e.addEventListener('input',i);window.addEventListener('resize',i);e.addEventListener('keydown',function(r){if(r.key==="Enter"){r.preventDefault();}});setTimeout(i,100);})();
   window.removeItem=removeItem;
   </script>
