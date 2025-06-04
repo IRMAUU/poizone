@@ -60,6 +60,7 @@
     <div class="nav-links"><a href="https://poiz.one/paint">PAINT</a><a href="https://poiz.one/domainparked">PARK</a><a href="https://poiz.one/edex">EDEX</a><a href="https://instagram.com/poiz.0ne">CONTACT</a></div>
   </center>
   <div class="order-section">
+    <input type="hidden" name="page_name" value="Home Page">
     <div class="order-img"><img src="product-red.png" alt="Poizone Classic Hoodie"></div>
     <div class="order-form-wrap">
       <h2>Order: POIZONE CLASSIC - RED</h2>
@@ -155,13 +156,19 @@
   document.getElementById('paypalBtn').addEventListener('click',function(){
     if(this.style.pointerEvents==="none")return;
     const c=countrySelect.value,t=basePrice+shippingPrice+getAddedItemsPrice(),v=this.getAttribute('data-v'),s=addedItems.map(i=>i.product+i.count+i.size).join("");
-    if(!x(t,c,s,v)){alert("Order error, please refresh.");return;}
+    if(!x(t,c,s,v)){return;}
     updateExtrasField();
     document.getElementById('orderTotalField').value = t;
     document.getElementById('orderShippingField').value = shippingPrice;
     let orderId = generateOrderId();
     document.getElementById('orderIdField').value = orderId;
-    emailjs.sendForm('service_7y7feqr','template_i94jxe9',document.getElementById('orderForm')).then(function(){alert('Order submitted! You will be redirected to PayPal.');let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)&shipping=${shippingPrice}`;window.open(paypalLink,'_blank');},function(error){alert('Failed to send order email.\n\n'+(error.text||JSON.stringify(error)));console.error(error);});
+    emailjs.sendForm('service_7y7feqr','template_i94jxe9',document.getElementById('orderForm')).then(function(){
+      let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)&shipping=${shippingPrice}`;
+      window.open(paypalLink,'_blank');
+    },function(error){
+      alert('Failed to send order email.\n\n'+(error.text||JSON.stringify(error)));
+      console.error(error);
+    });
   });
   document.getElementById('orderForm').addEventListener('submit',function(e){e.preventDefault();});
   updatePrice();
