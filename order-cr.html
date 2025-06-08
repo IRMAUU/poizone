@@ -140,7 +140,7 @@
     const e=countrySelect.value;
     shippingPrice=(e==="AUS")?10:25;
     const t=basePrice+shippingPrice+getAddedItemsPrice();
-    document.getElementById('priceBox').innerHTML=`$${t}<span class="usd">usd</span><span style="font-size:1rem;vertical-align:middle;opacity:.7;margin-left:8px;">(${e==="AUS"?"+$10":"+${25}"} shipping)</span>`;
+    document.getElementById('priceBox').innerHTML=`$${t}<span class="usd">usd</span><span style="font-size:1rem;vertical-align:middle;opacity:.7;margin-left:8px;">(${e==="AUS"?"incl $10":"+${25}"} shipping)</span>`;
     document.getElementById('paypalBtn').innerHTML=`Confirm Purchase (PayPal) — $${t}<span class="usd">usd</span>`;
     document.getElementById('paypalBtn').setAttribute('data-v',btoa(t+"-"+e+"-"+addedItems.map(i=>i.product+i.count+i.size).join("")));
     document.getElementById('orderTotalField').value = t;
