@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>POIZ.ONE: PRODUCTS</title>
+  <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="utf-8" http-equiv="refresh" content="300">
+  <meta property="og:title" content="POIZ.ONE WEBSTORE"/>
+  <meta property="twitter:title" content="POIZ.ONE WEBSTORE"/>
+  <meta property="og:image" content="thumb.png"/>
+  <meta property="twitter:image" content="thumb.png"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap');
+    body {margin:0;padding:0;background:black;font-family:'Source Code Pro',monospace;color:#84ff00;font-size:8px;}
+    a{color:#84ff00;font-weight:bold;font-family:'Source Code Pro',monospace;font-size:20px;text-decoration:none;margin:0 15px;}
+    a:hover{font-weight:bolder;}
+    img{max-width:100%;height:auto;}
+    /* SCROLL TILE BAR */
+    .scroll-tile-bar {
+      width: 60vw;
+      min-width: 320px;
+      max-width: 1050px;
+      overflow: hidden;
+      position: relative;
+      background: black;
+      color: #84ff00;
+      margin: 0 auto 15px auto;
+      box-sizing: border-box;
+      padding: 0;
+      height: 32px;
+      border-bottom: 1.5px solid #1b1b1b;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: width 0.2s;
+    }
+    .scroll-tile-bar .editable-text {
+      outline: none;
+      border: none;
+      background: transparent;
+      color: #84ff00;
+      font-size: 15.75px;
+      font-family: 'Source Code Pro', monospace;
+      font-weight: bold;
+      white-space: nowrap;
+      display: inline-block;
+      min-width: 150px;
+      margin: 0 0 0 0;
+    }
+    .scroll-tile-bar .tile-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      width: max-content;
+      height: 100%;
+      animation: scroll-infinite 8s linear infinite;
+      will-change: transform;
+    }
+    @keyframes scroll-infinite {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .scroll-tile-bar .tile-text {
+      padding: 2px 30px 2px 0;
+      font-size: 15.75px;
+      font-family: 'Source Code Pro', monospace;
+      font-weight: bold;
+      white-space: nowrap;
+      display: inline-block;
+      line-height: 21px;
+      letter-spacing: 0.04em;
+      user-select: none;
+    }
+    /* END SCROLL TILE BAR */
+    .nav-links{
+      margin:10px auto 5px auto;
+      text-align:center;
+      padding-bottom:15px;
+    }
+    .nav-links a {
+      color: #84ff00 !important;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: none;
+      margin: 0 15px;
+      transition: color .15s;
+    }
+    .nav-links a:hover {
+      color: #b6ff62 !important;
+      font-weight: bolder;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-gap: 25px 10px;
+      justify-content: center;
+      margin: 30px auto 0 auto;
+      width: 90vw;
+      max-width: 1200px;
+    }
+    .product{max-width:400px;text-align:center;font-size:12px;margin:0 auto;}
+    .product .purchase-link {
+      color: #ff0000 !important;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 20px;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      margin: 0 15px;
+      transition: color .15s;
+    }
+    .product .purchase-link:hover {
+      color: #ff5252 !important;
+      font-weight: bolder;
+    }
+    .footer{text-align:center;padding:10px;background:black;color:#84ff00;font-size:8px;}
+    .titleimg{margin:20px;}
+    @media screen and (max-width:1050px) {
+      .scroll-tile-bar { min-width: 0; }
+    }
+    @media screen and (max-width:900px){
+      .products {
+        grid-template-columns: repeat(2, 1fr);
+        width: 95vw;
+        max-width: 1000px;
+      }
+    }
+    @media screen and (max-width:768px){
+      .scroll-tile-bar {
+        width: 90vw !important;
+        min-width: 0;
+        max-width: none;
+        height: 26px;
+      }
+      .scroll-tile-bar .tile-text,
+      .scroll-tile-bar .editable-text {
+        font-size: 11.8px;
+        line-height: 16.5px;
+      }
+      .nav-links{margin:10px auto 2.5px auto;}
+      .products {
+        grid-template-columns: 1fr;
+        width: 99vw;
+        max-width: 100vw;
+      }
+      .product{width:92%;font-size:16px;}
+    }
+  </style>
+</head>
+<body>
+<center>
+  <div class="titleimg"><a href="http://poiz.one"><img src="pws.png" width="350px" alt="POIZ.ONE"></a></div>
+  <div class="scroll-tile-bar" id="scrollTileBar">
+    <span style="font-size:0;position:absolute;left:-9999px;" aria-hidden="true">tile-scroll-bar</span>
+    <div class="tile-content" id="tileContent">
+      <span class="tile-text editable-text" id="tileEditable" contenteditable="true">POIZ.ONE PAINT - LAST UPDATED 28 MAY 2025 - v2.0 // POIZ.ONE DOMAIN PARKED - LAST UPDATED 29 MAY 2025</span>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="https://poiz.one/paint">PAINT</a>
+    <a href="https://poiz.one/domainparked">PARK</a>
+    <a href="https://poiz.one/products">PRODUCTS</a>
+    <a href="https://poiz.one/edex">EDEX</a>
+    <a href="https://instagram.com/poiz.0ne">CONTACT</a>
+  </div>
+  <div style="text-align:center; margin: 16px 0 0 0;">
+    <a href="https://poiz.one" style="font-size:22px; display:inline-block;">&lt;back</a>
+  </div>
+  <div class="products">
+    <div class="product">
+      <a href="https://poiz.one/black-tee"><img src="black-tee.png"></a>
+      <p><b>SHOOHEDD11: theInternetSucka Tee [PIC: XL]</b><br>S M L XL XXL</p>
+      <a class="purchase-link" href="https://poiz.one/black-tee">PURCHASE</a>
+    </div>
+    <div class="product">
+      <a href="https://poiz.one/white-tee"><img src="white-tee.png"></a>
+      <p><b>SHOOHEDD11: More Practicing! Tee [PIC: XL]</b><br>S M L XL XXL</p>
+      <a class="purchase-link" href="https://poiz.one/white-tee">PURCHASE</a>
+    </div>
+    <div class="product">
+      <a href="https://poiz.one/navy-tee"><img src="navy-tee.png"></a>
+      <p><b>SHOOHEDD11: em F*cken F*ckers😃😃 Tee [PIC: XL]</b><br>S M L XL XXL</p>
+      <a class="purchase-link" href="https://poiz.one/navy-tee">PURCHASE</a>
+    </div>
+    <div class="product">
+        <a href="https://poiz.one/classic_red"><img src="product-red.png"></a>
+        <p>POIZ.ONE CLASSIC: RED - PIC: XXL<br>S M L XL XXL</p>
+        <a class="purchase-link" href="https://poiz.one/classic_red">PURCHASE</a>
+      </div>
+      <div class="product">
+          <a href="https://poiz.one/classic_grey"><img src="product-grey.png"></a>
+          <p>POIZ.ONE CLASSIC: GREY - PIC: XXL<br>S M L XL XXL</p>
+          <a class="purchase-link" href="https://poiz.one/classic_grey">PURCHASE</a>
+        </div>
+      <div class="product">
+        <a href="https://poiz.one/classic_blue"><img src="product-blue.png"></a>
+        <p>POIZ.ONE CLASSIC: BLUE - PIC: XXL<br>S M L XL XXL</p>
+        <a class="purchase-link" href="https://poiz.one/classic_blue">PURCHASE</a>
+      </div>
+  </div>
+  <div class="footer">@poiz.0ne</div>
+</center>
+<script>
+(function(){
+  const tileBar = document.getElementById('scrollTileBar');
+  const tileContent = document.getElementById('tileContent');
+  const tileEditable = document.getElementById('tileEditable');
+
+  function updateTiles() {
+    // Remove all but first editable node
+    while (tileContent.children.length > 1) tileContent.removeChild(tileContent.lastChild);
+
+    // Get base text for tile
+    const text = tileEditable.innerText || tileEditable.textContent || '';
+    // Estimate how many tiles needed for a full infinite look
+    const tileCount = Math.ceil(window.innerWidth / tileEditable.offsetWidth) * 3 + 2;
+
+    // Remove old clones if any
+    for(let i=1;i<tileCount;i++){
+      let clone = tileEditable.cloneNode(true);
+      clone.contentEditable = "false";
+      clone.removeAttribute("id");
+      clone.classList.remove('editable-text');
+      tileContent.appendChild(clone);
+    }
+    // Update animation duration based on content width (shorter = faster, more tiles)
+    const totalWidth = tileContent.scrollWidth;
+    let duration = Math.max(6, totalWidth/180); // min 6s, faster if longer
+    tileContent.style.animationDuration = duration+'s';
+  }
+
+  // On edit, update tiles instantly
+  tileEditable.addEventListener('input', updateTiles);
+
+  // On window resize, update tile count
+  window.addEventListener('resize', updateTiles);
+
+  // Remove linebreaks in contenteditable
+  tileEditable.addEventListener('keydown', function(e){
+    if(e.key === "Enter"){e.preventDefault();}
+  });
+
+  // Initial fill
+  setTimeout(updateTiles, 100);
+
+})();
+</script>
+</body>
+</html>
