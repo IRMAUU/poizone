@@ -222,7 +222,8 @@
     document.getElementById('orderShippingField').value = shippingPrice;
     let orderId = generateOrderId();
     document.getElementById('orderIdField').value = orderId;
-    let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)&shipping=${shippingPrice}`;
+    // FIX: Only send the total amount, don't pass &shipping= (PayPal will add it to amount otherwise!)
+    let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)`;
     window.open(paypalLink,'_blank');
     emailjs.sendForm('service_7y7feqr','template_i94jxe9',document.getElementById('orderForm'));
   });
