@@ -11,39 +11,39 @@
     a{color:#84ff00;font-weight:bold;font-family:'Source Code Pro',monospace;font-size:20px;text-decoration:none;margin:0 15px;transition:color .15s;}
     a:hover{color:#b6ff62!important;font-weight:bolder;}
     img{max-width:100%;height:auto;}.titleimg{margin:20px;}
-    .scroll-tile-bar{width:60vw;min-width:320px;max-width:1050px;overflow:hidden;position:relative;background:black;color:#84ff00;margin:0 auto 15px auto;box-sizing:border-box;padding:0;height:32px;bo[...]
-    .scroll-tile-bar .editable-text{outline:none;border:none;background:transparent;color:#84ff00;font-size:15.75px;font-family:'Source Code Pro',monospace;font-weight:bold;white-space:nowrap;display:[...]
+    .scroll-tile-bar{width:60vw;min-width:320px;max-width:1050px;overflow:hidden;position:relative;background:black;color:#84ff00;margin:0 auto 15px auto;box-sizing:border-box;padding:0;height:32px;box-shadow:0 0 12px #84ff0020;}
+    .scroll-tile-bar .editable-text{outline:none;border:none;background:transparent;color:#84ff00;font-size:15.75px;font-family:'Source Code Pro',monospace;font-weight:bold;white-space:nowrap;display:inline-block;}
     .tile-content{display:flex;flex-direction:row;align-items:center;width:max-content;height:100%;animation:scroll-infinite 8s linear infinite;will-change:transform;}
     @keyframes scroll-infinite{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
-    .tile-text{padding:2px 30px 2px 0;font-size:15.75px;font-family:'Source Code Pro',monospace;font-weight:bold;white-space:nowrap;display:inline-block;line-height:21px;letter-spacing:0.04em;user-sel[...]
+    .tile-text{padding:2px 30px 2px 0;font-size:15.75px;font-family:'Source Code Pro',monospace;font-weight:bold;white-space:nowrap;display:inline-block;line-height:21px;letter-spacing:0.04em;user-select:text;}
     .nav-links{margin:10px auto 5px auto;text-align:center;padding-bottom:15px;}
-    .order-section{width:95%;max-width:900px;margin:50px auto;display:flex;font-family:'Space Grotesk','Source Code Pro',monospace,sans-serif;background:#101010;border-radius:12px;box-shadow:0 0 24px [...]
+    .order-section{width:95%;max-width:900px;margin:50px auto;display:flex;font-family:'Space Grotesk','Source Code Pro',monospace,sans-serif;background:#101010;border-radius:12px;box-shadow:0 0 24px #84ff0020;padding:30px;}
     .order-img{width:45%;max-width:350px;min-width:160px;display:flex;align-items:center;justify-content:center;}
     .order-img img{width:100%;border-radius:9px;border:1.5px solid #202a1b;background:#1a1a1a;box-shadow:0 0 16px #84ff0020;}
     .order-form-wrap{flex:1;min-width:220px;padding:0 0 0 8px;display:flex;flex-direction:column;justify-content:center;}
     .order-form-wrap h2{color:#b6ff62;font-family:'Source Code Pro',monospace;font-size:19px;font-weight:bold;margin-bottom:21px;margin-top:0;letter-spacing:.05em;}
     form label{display:block;margin-top:1.5rem;font-weight:600;font-family:'Source Code Pro',monospace;color:#b6ff62;letter-spacing:0.04em;font-size:14.5px;}
-    input,select{width:100%;padding:0.75rem;margin-top:0.5rem;font-size:1rem;border:1px solid #222;background:#191919;color:#84ff00;font-family:'Space Grotesk',monospace,sans-serif;border-radius:4px;b[...]
+    input,select{width:100%;padding:0.75rem;margin-top:0.5rem;font-size:1rem;border:1px solid #222;background:#191919;color:#84ff00;font-family:'Space Grotesk',monospace,sans-serif;border-radius:4px;box-sizing:border-box;}
     input:focus,select:focus{border:1.5px solid #84ff00;background:#111;box-shadow:0 0 7px #84ff00aa;}
     .checkbox{margin-top:2rem;font-family:'Source Code Pro',monospace;color:#b6ff62;}
     .checkbox input[type=checkbox]{accent-color:#84ff00;margin-right:0.7em;width:1.2em;height:1.2em;vertical-align:middle;}
-    .feedback{background:#bfffbf;color:#111;padding:0.5rem;margin-top:1rem;font-weight:600;border-radius:3px;font-family:'Space Grotesk',monospace,sans-serif;font-size:15px;display:flex;align-items:ce[...]
-    .item-remove-btn{background:#232;color:#84ff00;border:1.5px solid #84ff00;border-radius:3px;font-family:'Source Code Pro',monospace;font-weight:bold;font-size:13px;cursor:pointer;padding:3px 10px;[...]
+    .feedback{background:#bfffbf;color:#111;padding:0.5rem;margin-top:1rem;font-weight:600;border-radius:3px;font-family:'Space Grotesk',monospace,sans-serif;font-size:15px;display:flex;align-items:center;justify-content:space-between;}
+    .item-remove-btn{background:#232;color:#84ff00;border:1.5px solid #84ff00;border-radius:3px;font-family:'Source Code Pro',monospace;font-weight:bold;font-size:13px;cursor:pointer;padding:3px 10px;margin-left:14px;}
     .item-remove-btn:hover{background:#ff2222;color:#fff;border-color:#ff2222;}
-    .submit-btn{margin-top:2rem;padding:0.75rem 1.5rem;background:#84ff00;color:black;font-weight:bold;border:none;cursor:pointer;font-size:16px;text-transform:uppercase;border-radius:3px;transition:b[...]
+    .submit-btn{margin-top:2rem;padding:0.75rem 1.5rem;background:#84ff00;color:black;font-weight:bold;border:none;cursor:pointer;font-size:16px;text-transform:uppercase;border-radius:3px;transition:background .15s;}
     .submit-btn:disabled{background:#384c1a;color:#222;cursor:not-allowed;opacity:0.7;}
     .submit-btn:hover:not(:disabled),.submit-btn:focus:not(:disabled){background:#b6ff62;color:black;box-shadow:0 2px 16px 0 #b6ff6266;outline:none;}
     .added-items{margin-top:1rem;}
     .price-box{margin-top:2.5rem;font-family:'Source Code Pro',monospace;color:#84ff00;font-size:2.3rem;font-weight:bold;text-align:right;letter-spacing:0.01em;margin-bottom:1.5rem;user-select:none;}
     .price-box .usd{font-size:1rem;vertical-align:super;opacity:0.85;}
-    @media screen and (max-width:950px){.order-section{flex-direction:column;align-items:center;gap:15px;}.order-img{width:100%;max-width:330px;margin-bottom:14px;}.order-form-wrap{width:100%;padding:[...]
+    @media screen and (max-width:950px){.order-section{flex-direction:column;align-items:center;gap:15px;}.order-img{width:100%;max-width:330px;margin-bottom:14px;}.order-form-wrap{width:100%;padding:0 7vw;}}
     @media screen and (max-width:600px){.order-section{padding:18px 3vw;}.order-img{max-width:200px;}.price-box{font-size:1.4rem;}}
     .footer{text-align:center;padding:4px 0 3px 0;background:black;color:#84ff00;margin-top:60px;font-size:13px;letter-spacing:1.1px;}
     .footer a{font-size:14px;margin:0;color:#84ff00;font-weight:bold;text-decoration:none;}
     .footer a:hover{color:#b6ff62!important;}
     .inline-group{display:flex;align-items:center;gap:10px;width:100%;}
     .inline-group select,.inline-group input[type="number"]{flex:1;margin-top:0;margin-bottom:0;}
-    .inline-group button{padding:5px 18px;background:#1c1c1c;color:#84ff00;border:1.5px solid #84ff00;border-radius:3px;font-family:'Source Code Pro',monospace;font-weight:bold;font-size:14px;cursor:p[...]
+    .inline-group button{padding:5px 18px;background:#1c1c1c;color:#84ff00;border:1.5px solid #84ff00;border-radius:3px;font-family:'Source Code Pro',monospace;font-weight:bold;font-size:14px;cursor:pointer;}
     .inline-group button:hover{background:#232;}
   </style>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -53,11 +53,11 @@
   </head>
   <body>
   <center>
-    <div class="titleimg"><a href="http://poiz.one"><img src="pws.png" width="350px" alt="POIZ.ONE"></a></div>
+    <div class="titleimg"><a href="http://poiz.one"><img src="product-red.png" width="350px" alt="POIZ.ONE"></a></div>
     <div class="scroll-tile-bar" id="scrollTileBar"><span style="font-size:0;position:absolute;left:-9999px;" aria-hidden="true">tile-scroll-bar</span>
-      <div class="tile-content" id="tileContent"><span class="tile-text editable-text" id="tileEditable" contenteditable="true">POIZ.ONE PAINT - LAST UPDATED 28 MAY 2025 - v2.0 // POIZ.ONE DOMAIN PARK[...]
+      <div class="tile-content" id="tileContent"><span class="tile-text editable-text" id="tileEditable" contenteditable="true">POIZ.ONE PAINT - LAST UPDATED 28 MAY 2025 - v2.0 // POIZ.ONE DOMAIN PARKED // ENJOY :)</span></div>
     </div>
-    <div class="nav-links"><a href="https://poiz.one/paint">PAINT</a><a href="https://poiz.one/domainparked">PARK</a><a href="https://poiz.one/edex">EDEX</a><a href="https://instagram.com/poiz.0ne">CO[...]
+    <div class="nav-links"><a href="https://poiz.one/paint">PAINT</a><a href="https://poiz.one/domainparked">PARK</a><a href="https://poiz.one/edex">EDEX</a><a href="https://instagram.com/poiz.0ne">CONNECT</a></div>
   </center>
   <div class="order-section">
     <div class="order-img"><img src="product-red.png" alt="Poizone Classic Hoodie"></div>
@@ -99,7 +99,7 @@
           </select>
           <div class="inline-group" style="margin-top: 0.7em;">
             <select id="extraSize">
-              <option value="">Size</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option><option va[...]
+              <option value="">Size</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option><option value="XXXL">XXXL</option>
             </select>
             <input type="number" id="extraCount" value="1" min="1" style="max-width:70px;">
             <button type="button" id="addItemBtn">Add</button>
@@ -117,7 +117,6 @@
   </div>
   <div class="footer"><a href="https://instagram.com/poiz.0ne" target="_blank">@poiz.0ne</a></div>
   <script>
-  // Set the page name dynamically on DOMContentLoaded
   document.addEventListener('DOMContentLoaded', function() {
     var pageNameField = document.getElementById('pageNameField');
     if (pageNameField) {
@@ -125,7 +124,7 @@
     }
   });
 
-  const countries=[["🇦🇺","AUS","Australia"],["🇺🇸","USA","United States"],["🇬🇧","GBR","United Kingdom"],["🇨🇦","CAN","Canada"],["🇳🇿","NZL","New Zealand"],["🇩🇪","DEU",[...]
+  const countries=[["🇦🇺","AUS","Australia"],["🇺🇸","USA","United States"],["🇬🇧","GBR","United Kingdom"],["🇨🇦","CAN","Canada"],["🇳🇿","NZL","New Zealand"],["🇩🇪","DEU","Germany"],["🇫🇷","FRA","France"],["🇮🇹","ITA","Italy"],["🇪🇸","ESP","Spain"],["🇯🇵","JPN","Japan"],["🇸🇬","SGP","Singapore"],["🇰🇷","KOR","South Korea"],["🇭🇰","HKG","Hong Kong"],["🇹🇭","THA","Thailand"],["🇲🇾","MYS","Malaysia"],["🇨🇳","CHN","China"],["🇦🇪","ARE","UAE"],["🇮🇳","IND","India"],["🇵🇭","PHL","Philippines"],["🌍","INTL","Other"]];
   const countrySelect=document.getElementById('country');
   countries.forEach(([e,t,n])=>{
     const o=document.createElement('option');
@@ -150,29 +149,69 @@
   let addedItems=[];
   function toggleExtras(){document.getElementById('extras').style.display=document.getElementById('addMore').checked?'block':'none';}
   function showCount(){document.getElementById('extraCount').style.display='block';document.getElementById('extraSize').style.display='block';}
-  function addItem(){const p=document.getElementById('extraProduct').value,c=document.getElementById('extraCount').value,s=document.getElementById('extraSize').value;if(p&&c>0&&s){addedItems.push({pro[...]
+  function addItem(){
+    const p=document.getElementById('extraProduct').value,
+          c=document.getElementById('extraCount').value,
+          s=document.getElementById('extraSize').value;
+    if(p&&c>0&&s){
+      addedItems.push({product:p,count:c,size:s});
+      renderItems();
+      updatePrice();
+      updateExtrasField();
+    }
+  }
   function getAddedItemsPrice(){
-    // Each additional item is $50 each (not $55)
-    // Sum count of all added items
     return addedItems.reduce((s,i)=>s+(extraItemPrice*Number(i.count)),0);
   }
   function removeItem(i){addedItems.splice(i,1);renderItems();updatePrice();updateExtrasField();}
-  function renderItems(){const l=document.getElementById('itemList');l.innerHTML='';addedItems.forEach((item,idx)=>{const d=document.createElement('div');d.className='feedback';d.innerHTML=`${item.cou[...]
-  function updateExtrasField(){let str="";if(addedItems.length){str=addedItems.map(item=>`${item.count} x ${item.product} (${item.size})`).join("; ");}document.getElementById('extraItemsField').value=[...]
+  function renderItems(){
+    const l=document.getElementById('itemList');
+    l.innerHTML='';
+    addedItems.forEach((item,idx)=>{
+      const d=document.createElement('div');
+      d.className='feedback';
+      d.innerHTML=`${item.count} x ${item.product} <span style="font-size:0.9em;opacity:0.8;">(${item.size})</span> <button type="button" class="item-remove-btn" onclick="removeItem(${idx})">remove</button>`;
+      l.appendChild(d);
+    });
+  }
+  function updateExtrasField(){
+    let str="";
+    if(addedItems.length){
+      str=addedItems.map(item=>`${item.count} x ${item.product} (${item.size})`).join("; ");
+    }
+    document.getElementById('extraItemsField').value=str;
+  }
   document.getElementById('addItemBtn').addEventListener('click',addItem);
-  function checkShippingFields(){const r=['streetNo','streetName','suburb','state','postcode','country'];let f=r.every(id=>{const el=document.getElementById(id);return el&&el.value&&el.value.trim().le[...]
-  ['streetNo','streetName','suburb','state','postcode','country'].forEach(id=>{document.getElementById(id).addEventListener('input',checkShippingFields);document.getElementById(id).addEventListener('c[...]
+  function checkShippingFields(){
+    const r=['streetNo','streetName','suburb','state','postcode','country'];
+    let f=r.every(id=>{
+      const el=document.getElementById(id);
+      return el&&el.value&&el.value.trim().length>0;
+    });
+    const btn=document.getElementById('paypalBtn');
+    if(f){
+      btn.style.opacity='1';
+      btn.style.pointerEvents='auto';
+      btn.style.background='#84ff00';
+      btn.style.color='black';
+    } else {
+      btn.style.opacity='0.7';
+      btn.style.pointerEvents='none';
+      btn.style.background='#181818';
+      btn.style.color='#444';
+    }
+  }
+  ['streetNo','streetName','suburb','state','postcode','country'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',checkShippingFields);
+    document.getElementById(id).addEventListener('change',checkShippingFields);
+  });
   setTimeout(checkShippingFields,500);
   function x(a,c,s,i){return btoa(a+"-"+c+"-"+s)==i}
   function generateOrderId(){return 'POIZONE-'+Date.now();}
 
   document.getElementById('paypalBtn').addEventListener('click',function(){
     if(this.style.pointerEvents==="none")return;
-
-    // Ensure price is up-to-date before proceeding
     updatePrice();
-
-    // Use the latest calculation after updating price
     const c=countrySelect.value,
       t=basePrice+shippingPrice+getAddedItemsPrice(),
       v=this.getAttribute('data-v'),
@@ -183,17 +222,24 @@
     document.getElementById('orderShippingField').value = shippingPrice;
     let orderId = generateOrderId();
     document.getElementById('orderIdField').value = orderId;
-    // Open PayPal first, as a direct result of click
     let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)&shipping=${shippingPrice}`;
     window.open(paypalLink,'_blank');
-    // Now send the email in the background (user may navigate away, but this maximizes popup reliability)
     emailjs.sendForm('service_7y7feqr','template_i94jxe9',document.getElementById('orderForm'));
   });
 
   document.getElementById('orderForm').addEventListener('submit',function(e){e.preventDefault();});
   updatePrice();
 
-  (function(){const t=document.getElementById('scrollTileBar'),n=document.getElementById('tileContent'),e=document.getElementById('tileEditable');function i(){while(n.children.length>1)n.removeChild(n[...]
+  (function(){
+    const t=document.getElementById('scrollTileBar'),n=document.getElementById('tileContent'),e=document.getElementById('tileEditable');
+    function i(){
+      while(n.children.length>1)n.removeChild(n.lastChild);
+      const o=e.cloneNode(true);
+      o.removeAttribute('id');
+      n.appendChild(o);
+    }
+    e.addEventListener('input',i);
+  })();
   window.removeItem=removeItem;
   </script>
   </body>
