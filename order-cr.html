@@ -106,7 +106,7 @@
           </div>
         </div>
         <div class="added-items" id="itemList"></div>
-        <div class="price-box" id="priceBox">$65<span class="usd">usd</span></div>
+        <div class="price-box" id="priceBox">$55<span class="usd">usd</span></div>
         <button type="button" class="submit-btn" id="paypalBtn" style="margin-left:1em;opacity:0.7;pointer-events:none;background:#181818;color:#444;">Confirm Purchase (PayPal)</button>
         <input type="hidden" name="extra_items" id="extraItemsField" value="">
         <input type="hidden" name="cost_total" id="orderTotalField" value="">
@@ -135,7 +135,7 @@
     countrySelect.appendChild(o);
   });
   countrySelect.value="AUS";
-  let basePrice=65,shippingPrice=10;
+  let basePrice=55,shippingPrice=10, extraItemPrice=50;
   function updatePrice(){
     const e=countrySelect.value;
     shippingPrice=(e==="AUS")?10:25;
@@ -151,7 +151,11 @@
   function toggleExtras(){document.getElementById('extras').style.display=document.getElementById('addMore').checked?'block':'none';}
   function showCount(){document.getElementById('extraCount').style.display='block';document.getElementById('extraSize').style.display='block';}
   function addItem(){const p=document.getElementById('extraProduct').value,c=document.getElementById('extraCount').value,s=document.getElementById('extraSize').value;if(p&&c>0&&s){addedItems.push({product:p,count:c,size:s});renderItems();updatePrice();updateExtrasField();}}
-  function getAddedItemsPrice(){return addedItems.reduce((s,i)=>s+(65*Number(i.count)),0);}
+  function getAddedItemsPrice(){
+    // Each additional item is $50 each (not $55)
+    // Sum count of all added items
+    return addedItems.reduce((s,i)=>s+(extraItemPrice*Number(i.count)),0);
+  }
   function removeItem(i){addedItems.splice(i,1);renderItems();updatePrice();updateExtrasField();}
   function renderItems(){const l=document.getElementById('itemList');l.innerHTML='';addedItems.forEach((item,idx)=>{const d=document.createElement('div');d.className='feedback';d.innerHTML=`${item.count} x ${item.product} — Size: ${item.size}<button type="button" class="item-remove-btn" onclick="removeItem(${idx})">Remove</button>`;l.appendChild(d);});}
   function updateExtrasField(){let str="";if(addedItems.length){str=addedItems.map(item=>`${item.count} x ${item.product} (${item.size})`).join("; ");}document.getElementById('extraItemsField').value=str;}
