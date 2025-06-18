@@ -46,82 +46,81 @@
     .inline-group button{padding:5px 18px;background:#1c1c1c;color:#84ff00;border:1.5px solid #84ff00;border-radius:3px;font-family:'Source Code Pro',monospace;font-weight:bold;font-size:14px;cursor:pointer;transition:background .2s;margin-top:0;}
     .inline-group button:hover{background:#232;}
   </style>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script>
-      emailjs.init({ publicKey: '6JhW8EVSKuBERKhqk' });
-    </script>
-  </head>
-  <body>
-  <center>
-    <div class="titleimg"><a href="http://poiz.one"><img src="pws.png" width="350px" alt="POIZ.ONE"></a></div>
-    <div class="scroll-tile-bar" id="scrollTileBar"><span style="font-size:0;position:absolute;left:-9999px;" aria-hidden="true">tile-scroll-bar</span>
-      <div class="tile-content" id="tileContent"><span class="tile-text editable-text" id="tileEditable" contenteditable="true">POIZ.ONE PAINT - LAST UPDATED 28 MAY 2025 - v2.0 // POIZ.ONE DOMAIN PARKED - LAST UPDATED 8 JUNE 2025</span></div>
-    </div>
-    <div class="nav-links"><a href="https://poiz.one/paint">PAINT</a><a href="https://poiz.one/domainparked">PARK</a><a href="https://poiz.one/edex">EDEX</a><a href="https://instagram.com/poiz.0ne">CONTACT</a></div>
-  </center>
-  <div class="order-section">
-    <div class="order-img"><img src="product-grey.png" alt="Poizone Classic Hoodie"></div>
-    <div class="order-form-wrap">
-      <h2>Order: POIZONE CLASSIC - GREY</h2>
-      <form id="orderForm" autocomplete="off" onsubmit="return false;">
-        <input type="hidden" name="page_name" id="pageNameField">
-        <label>Size</label>
-        <select name="order_size" id="mainSize" required>
-          <option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>XXXL</option>
-        </select>
-        <label>Full Name</label>
-        <input type="text" name="order_name" id="fullName" required>
-        <label>Social Media</label>
-        <input type="text" name="order_social">
-        <label>Street Address</label>
-        <div class="inline-group" style="gap: 12px; margin-bottom:0;">
-          <input type="text" name="order_street_no" id="streetNo" placeholder="No." style="max-width:70px;flex:0 0 70px;" required>
-          <input type="text" name="order_street_name" id="streetName" placeholder="Street Name" style="flex:1;" required>
-          <select name="order_country" id="country" required style="max-width:90px;flex:0 0 90px;margin-top:0;"></select>
-        </div>
-        <div class="inline-group" style="gap: 12px; margin-top:0.5em;">
-          <input type="text" name="order_suburb" id="suburb" placeholder="Suburb" style="flex:1;" required>
-          <input type="text" name="order_state" id="state" placeholder="State" style="flex:1;" required>
-          <input type="text" name="order_postcode" id="postcode" placeholder="Postcode" style="flex:1;" required>
-        </div>
-        <label>Email</label>
-        <input type="email" name="order_email" id="email" required>
-        <label>Phone Number</label>
-        <input type="text" name="order_phone" required>
-        <div class="checkbox"><input type="checkbox" id="addMore" onchange="toggleExtras()"> - add more items</div>
-        <div id="extras" style="display:none;">
-          <label>Additional Product</label>
-          <select id="extraProduct" onchange="showCount()">
-            <option value="">Select</option>
-            <option value="Poizone Classic Hood - Grey">Poizone Classic Hood - Grey</option>
-            <option value="Poizone Classic Hood - Blue">Poizone Classic Hood - Blue</option>
-            <option value="Poizone Classic Hood - Red">Poizone Classic Hood - Red</option>
-          </select>
-          <div class="inline-group" style="margin-top: 0.7em;">
-            <select id="extraSize">
-              <option value="">Size</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option><option value="XXXL">3XL</option>
-            </select>
-            <input type="number" id="extraCount" value="1" min="1" style="max-width:70px;">
-            <button type="button" id="addItemBtn">Add</button>
-          </div>
-        </div>
-        <div class="added-items" id="itemList"></div>
-        <div class="price-box" id="priceBox">$65<span class="usd">usd</span></div>
-        <button type="button" class="submit-btn" id="paypalBtn" style="margin-left:1em;opacity:0.7;pointer-events:none;background:#181818;color:#444;">Confirm Purchase (PayPal)</button>
-        <input type="hidden" name="extra_items" id="extraItemsField" value="">
-        <input type="hidden" name="cost_total" id="orderTotalField" value="">
-        <input type="hidden" name="cost_shipping" id="orderShippingField" value="">
-        <input type="hidden" name="order_id" id="orderIdField" value="">
-      </form>
-    </div>
-  </div>
-  <div class="footer"><a href="https://instagram.com/poiz.0ne" target="_blank">@poiz.0ne</a></div>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
-  // Set the page name dynamically on DOMContentLoaded
+    emailjs.init({ publicKey: '6JhW8EVSKuBERKhqk' });
+  </script>
+</head>
+<body>
+<center>
+  <div class="titleimg"><a href="http://poiz.one"><img src="pws.png" width="350px" alt="POIZ.ONE"></a></div>
+  <div class="scroll-tile-bar" id="scrollTileBar"><span style="font-size:0;position:absolute;left:-9999px;" aria-hidden="true">tile-scroll-bar</span>
+    <div class="tile-content" id="tileContent"><span class="tile-text editable-text" id="tileEditable" contenteditable="true">POIZ.ONE PAINT - LAST UPDATED 28 MAY 2025 - v2.0 // POIZ.ONE DOMAIN PARKED - LAST UPDATED 8 JUNE 2025</span></div>
+  </div>
+  <div class="nav-links"><a href="https://poiz.one/paint">PAINT</a><a href="https://poiz.one/domainparked">PARK</a><a href="https://poiz.one/edex">EDEX</a><a href="https://instagram.com/poiz.0ne">CONTACT</a></div>
+</center>
+<div class="order-section">
+  <div class="order-img"><img src="product-grey.png" alt="Poizone Classic Hoodie"></div>
+  <div class="order-form-wrap">
+    <h2>Order: POIZONE CLASSIC - GREY</h2>
+    <form id="orderForm" autocomplete="off" onsubmit="return false;">
+      <input type="hidden" name="page_name" id="pageNameField">
+      <label>Size</label>
+      <select name="order_size" id="mainSize" required>
+        <option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>XXXL</option>
+      </select>
+      <label>Full Name</label>
+      <input type="text" name="order_name" id="fullName" required>
+      <label>Social Media</label>
+      <input type="text" name="order_social">
+      <label>Street Address</label>
+      <div class="inline-group" style="gap: 12px; margin-bottom:0;">
+        <input type="text" name="order_street_no" id="streetNo" placeholder="No." style="max-width:70px;flex:0 0 70px;" required>
+        <input type="text" name="order_street_name" id="streetName" placeholder="Street Name" style="flex:1;" required>
+        <select name="order_country" id="country" required style="max-width:90px;flex:0 0 90px;margin-top:0;"></select>
+      </div>
+      <div class="inline-group" style="gap: 12px; margin-top:0.5em;">
+        <input type="text" name="order_suburb" id="suburb" placeholder="Suburb" style="flex:1;" required>
+        <input type="text" name="order_state" id="state" placeholder="State" style="flex:1;" required>
+        <input type="text" name="order_postcode" id="postcode" placeholder="Postcode" style="flex:1;" required>
+      </div>
+      <label>Email</label>
+      <input type="email" name="order_email" id="email" required>
+      <label>Phone Number</label>
+      <input type="text" name="order_phone" required>
+      <div class="checkbox"><input type="checkbox" id="addMore" onchange="toggleExtras()"> - add more items</div>
+      <div id="extras" style="display:none;">
+        <label>Additional Product</label>
+        <select id="extraProduct" onchange="showCount()">
+          <option value="">Select</option>
+          <option value="Poizone Classic Hood - Grey">Poizone Classic Hood - Grey</option>
+          <option value="Poizone Classic Hood - Blue">Poizone Classic Hood - Blue</option>
+          <option value="Poizone Classic Hood - Red">Poizone Classic Hood - Red</option>
+        </select>
+        <div class="inline-group" style="margin-top: 0.7em;">
+          <select id="extraSize">
+            <option value="">Size</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="XXL">XXL</option><option value="XXXL">3XL</option>
+          </select>
+          <input type="number" id="extraCount" value="1" min="1" style="max-width:70px;">
+          <button type="button" id="addItemBtn">Add</button>
+        </div>
+      </div>
+      <div class="added-items" id="itemList"></div>
+      <div class="price-box" id="priceBox">$55<span class="usd">usd</span></div>
+      <button type="button" class="submit-btn" id="paypalBtn" style="margin-left:1em;opacity:0.7;pointer-events:none;background:#181818;color:#444;">Confirm Purchase (PayPal)</button>
+      <input type="hidden" name="extra_items" id="extraItemsField" value="">
+      <input type="hidden" name="cost_total" id="orderTotalField" value="">
+      <input type="hidden" name="cost_shipping" id="orderShippingField" value="">
+      <input type="hidden" name="order_id" id="orderIdField" value="">
+    </form>
+  </div>
+</div>
+<div class="footer"><a href="https://instagram.com/poiz.0ne" target="_blank">@poiz.0ne</a></div>
+<script>
   document.addEventListener('DOMContentLoaded', function() {
     var pageNameField = document.getElementById('pageNameField');
     if (pageNameField) {
-      pageNameField.value = document.title; // or window.location.pathname or window.location.href
+      pageNameField.value = document.title;
     }
   });
 
@@ -135,7 +134,7 @@
     countrySelect.appendChild(o);
   });
   countrySelect.value="AUS";
-  let basePrice=65,shippingPrice=10;
+  let basePrice=55,shippingPrice=10, extraItemPrice=50;
   function updatePrice(){
     const e=countrySelect.value;
     shippingPrice=(e==="AUS")?10:25;
@@ -151,7 +150,9 @@
   function toggleExtras(){document.getElementById('extras').style.display=document.getElementById('addMore').checked?'block':'none';}
   function showCount(){document.getElementById('extraCount').style.display='block';document.getElementById('extraSize').style.display='block';}
   function addItem(){const p=document.getElementById('extraProduct').value,c=document.getElementById('extraCount').value,s=document.getElementById('extraSize').value;if(p&&c>0&&s){addedItems.push({product:p,count:c,size:s});renderItems();updatePrice();updateExtrasField();}}
-  function getAddedItemsPrice(){return addedItems.reduce((s,i)=>s+(65*Number(i.count)),0);}
+  function getAddedItemsPrice(){
+    return addedItems.reduce((s,i)=>s+(extraItemPrice*Number(i.count)),0);
+  }
   function removeItem(i){addedItems.splice(i,1);renderItems();updatePrice();updateExtrasField();}
   function renderItems(){const l=document.getElementById('itemList');l.innerHTML='';addedItems.forEach((item,idx)=>{const d=document.createElement('div');d.className='feedback';d.innerHTML=`${item.count} x ${item.product} — Size: ${item.size}<button type="button" class="item-remove-btn" onclick="removeItem(${idx})">Remove</button>`;l.appendChild(d);});}
   function updateExtrasField(){let str="";if(addedItems.length){str=addedItems.map(item=>`${item.count} x ${item.product} (${item.size})`).join("; ");}document.getElementById('extraItemsField').value=str;}
@@ -174,10 +175,8 @@
     document.getElementById('orderShippingField').value = shippingPrice;
     let orderId = generateOrderId();
     document.getElementById('orderIdField').value = orderId;
-    // Open PayPal first, as a direct result of click
     let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=POIZONE%20CLASSIC%20(+extras)&shipping=${shippingPrice}`;
     window.open(paypalLink,'_blank');
-    // Now send the email in the background (user may navigate away, but this maximizes popup reliability)
     emailjs.sendForm('service_7y7feqr','template_i94jxe9',document.getElementById('orderForm'));
   });
 
@@ -186,6 +185,6 @@
 
   (function(){const t=document.getElementById('scrollTileBar'),n=document.getElementById('tileContent'),e=document.getElementById('tileEditable');function i(){while(n.children.length>1)n.removeChild(n.lastChild);const r=e.innerText||e.textContent||'';const c=Math.ceil(window.innerWidth/e.offsetWidth)*3+2;for(let u=1;u<c;u++){let a=e.cloneNode(true);a.contentEditable="false";a.removeAttribute("id");a.classList.remove('editable-text');n.appendChild(a);}const l=n.scrollWidth;let d=Math.max(6,l/180);n.style.animationDuration=d+'s';}e.addEventListener('input',i);window.addEventListener('resize',i);e.addEventListener('keydown',function(r){if(r.key==="Enter"){r.preventDefault();}});setTimeout(i,100);})();
   window.removeItem=removeItem;
-  </script>
-  </body>
-  </html>
+</script>
+</body>
+</html>
