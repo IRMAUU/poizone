@@ -236,7 +236,7 @@
     </div><br>
     <label>size: <input type="number" id="text-size" min="8" max="150" value="32" style="width:48px;"></label><br>
     <label>color: <input type="color" id="text-color" value="#000000"></label><br>
-    <input type="text" id="text-string" value="your text">
+    <textarea id="text-string" rows="2" style="width:95%;resize:vertical;background-color: #000;">your text</textarea>
     <div id="text-toolbox-controls">
       <button id="text-submit-btn">submit</button>
       <button id="text-cancel-btn">cancel</button>
@@ -267,16 +267,16 @@
 </div>
 <div class="menu-title" data-menu="import">-import</div>
 <div class="dropdown hidden" id="import-dropdown">
-  <label class="import-label" for="import-image-file">choose image: <input type="file" id="import-image-file" accept="image/*"></label>
+  <label class="import-label" for="import-image-file">upload<input type="file" id="import-image-file" accept="image/*"></label>
   <div id="import-settings" class="hidden" style="margin-top:6px;">
     <label>size: <input type="range" id="import-size" min="10" max="400" value="100" style="width:90px;"> <span id="import-size-value">100</span>%</label><br>
-    <label>opacity: <input type="range" id="import-opacity" min="10" max="100" value="50" style="width:90px;"> <span id="import-opacity-value">50</span>%</label><br>
+    <label>opacity: <input type="range" id="import-opacity" min="10" max="100" value="75" style="width:90px;"> <span id="import-opacity-value">50</span>%</label><br>
     <label>rotation: <input type="range" id="import-rotation" min="0" max="360" value="0" style="width:90px;"> <span id="import-rotation-value">0</span>°</label><br>
     <div class="flip-btns">
       <button id="import-flip-h">flip horizontal</button>
       <button id="import-flip-v">flip vertical</button>
     </div>
-    <button id="import-stamp-btn">stamp</button>
+    <button id="import-stamp-btn">submit</button>
     <button id="import-cancel-btn">cancel</button>
     <div style="font-size:11px;color:#aaa;margin-top:3px;">drag image to position, then stamp</div>
   </div>
