@@ -56,6 +56,7 @@
       font-variant-ligatures: none;
       font-feature-settings: "liga" 0, "calt" 0;
       unicode-bidi: isolate;
+      color: #000 !important; /* <-- Make glyphs black */
     }
     .force-plain-text {
       font-family: 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif' !important;
@@ -71,6 +72,68 @@
     .font-dropdown-option:last-child{border-bottom:none;}
     .font-dropdown-option:hover,.font-dropdown-option.selected{background:#39ff14;color:#222;}
     .font-dropdown-arrow{margin-left:auto;margin-right:2px;font-size:12px;color:#39ff14;}
+
+    /* Import dropdown */
+    #import-dropdown label,
+    #import-dropdown input,
+    #import-dropdown button {
+      font-size:14px;
+      color:#39ff14;
+      font-family:'Roboto Mono',monospace;
+      font-weight:700;
+    }
+    #import-preview-img {
+      position:absolute;
+      pointer-events:auto;
+      z-index:1500;
+      user-select:none;
+      transition:box-shadow 0.2s;
+      box-shadow: 0 0 0 2px #f00;
+      border: 2px solid #f00;
+      opacity: 0.5;
+      touch-action: none;
+      background: transparent;
+      will-change: transform;
+      /* outline: 2px solid #f00; */
+    }
+    #import-preview-img.stamping {
+      pointer-events:none;
+      opacity:1;
+      border:none;
+      box-shadow:none;
+      transition: none;
+    }
+    .flip-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top:7px;
+      margin-bottom:7px;
+    }
+    .flip-btns button {
+      width: 100%;
+      padding: 5px 0;
+      margin: 0;
+      background: #111;
+      color: #39ff14;
+      border: 1px solid #39ff14;
+      border-radius: 3px;
+      font-size: 13px;
+      cursor:pointer;
+    }
+    .flip-btns button:active {
+      background:#333;
+    }
+    #import-cancel-btn, #import-stamp-btn {
+      margin-right: 10px;
+      margin-top: 7px;
+      margin-bottom: 7px;
+    }
+
+    /* Responsive for import preview image */
+    @media (max-width:900px){
+      #import-preview-img{max-width:90vw;max-height:60vh;}
+    }
   </style>
 </head>
 <body>
@@ -95,16 +158,22 @@
       <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="♥&#xFE0E;" title="Heart">♥&#xFE0E;</button>
       <button class="calligraphy-btn force-plain-text" data-calligraphy="⎸&#xFE0E;" title="Medium Vertical Bar">⎸&#xFE0E;</button>
       <button class="calligraphy-btn force-plain-text" data-calligraphy="✦&#xFE0E;" title="Four Pointed Star">✦&#xFE0E;</button>
+      <button class="calligraphy-btn force-plain-text" data-calligraphy="♥&#xFE0E;" title="Heart 2">♥&#xFE0E;</button>
+      <button class="calligraphy-btn force-plain-text" data-calligraphy="⎸&#xFE0E;" title="Medium Vertical Bar 2">⎸&#xFE0E;</button>
+      <button class="calligraphy-btn force-plain-text" data-calligraphy="✦&#xFE0E;" title="Four Pointed Star 2">✦&#xFE0E;</button>
     </div>
   </div>
   <div class="tool-option" id="symbol-option">-symbol</div>
   <div class="tool-settings hidden" id="symbol-settings">
     <label>size: <input type="number" id="symbol-size" min="1" max="150" value="35"></label><br>
     <label>color: <input type="color" id="symbol-color" value="#000000"></label><br>
-    <div style="display:flex;gap:8px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:112px;">
       <button class="symbol-btn symbol-selected force-plain-text" data-symbol="★&#xFE0E;" title="Black Star">★&#xFE0E;</button>
       <button class="symbol-btn force-plain-text" data-symbol="☠&#xFE0E;" title="Skull">☠&#xFE0E;</button>
       <button class="symbol-btn force-plain-text" data-symbol="☣&#xFE0E;" title="Biohazard">☣&#xFE0E;</button>
+      <button class="symbol-btn force-plain-text" data-symbol="✠&#xFE0E;" title="Maltese Cross">✠&#xFE0E;</button>
+      <button class="symbol-btn force-plain-text" data-symbol="☭&#xFE0E;" title="Hammer and Sickle">☭&#xFE0E;</button>
+      <button class="symbol-btn force-plain-text" data-symbol="☮&#xFE0E;" title="Peace">☮&#xFE0E;</button>
     </div>
   </div>
   <div class="tool-option" id="text-option">-text</div>
@@ -154,6 +223,26 @@
     </div>
   </div>
 </div>
+
+<!-- ===== IMPORT DROPDOWN ===== -->
+<div class="menu-title" data-menu="import">-import</div>
+<div class="dropdown hidden" id="import-dropdown">
+  <label class="import-label" for="import-image-file">choose image: <input type="file" id="import-image-file" accept="image/*"></label>
+  <div id="import-settings" class="hidden" style="margin-top:6px;">
+    <label>size: <input type="range" id="import-size" min="10" max="400" value="100" style="width:90px;"> <span id="import-size-value">100</span>%</label><br>
+    <label>opacity: <input type="range" id="import-opacity" min="10" max="100" value="50" style="width:90px;"> <span id="import-opacity-value">50</span>%</label><br>
+    <label>rotation: <input type="range" id="import-rotation" min="0" max="360" value="0" style="width:90px;"> <span id="import-rotation-value">0</span>°</label><br>
+    <div class="flip-btns">
+      <button id="import-flip-h">flip horizontal</button>
+      <button id="import-flip-v">flip vertical</button>
+    </div>
+    <button id="import-stamp-btn">stamp</button>
+    <button id="import-cancel-btn">cancel</button>
+    <div style="font-size:11px;color:#aaa;margin-top:3px;">drag image to position, then stamp</div>
+  </div>
+</div>
+<!-- ===== END IMPORT DROPDOWN ===== -->
+
 <div class="menu-title" data-menu="export">-export</div>
 <div class="dropdown hidden" id="export-dropdown">
   <label class="export-settings">file name: <input type="text" id="file-name" value="pixel-art"></label><br>
@@ -197,10 +286,14 @@ let drawing=false,
   symbolColor="#000000";
 
 // Calligraphy brush unicode (add U+FE0E to force text)
+// Now 6 options (duplicates for now)
 const calligraphyBrushes = [
   "♥\uFE0E", // Heart
   "⎸\uFE0E", // Medium Vertical Bar
-  "✦\uFE0E"  // Black Four Pointed Star
+  "✦\uFE0E", // Black Four Pointed Star
+  "♥\uFE0E", // Heart 2
+  "⎸\uFE0E", // Medium Vertical Bar 2
+  "✦\uFE0E"  // Black Four Pointed Star 2
 ];
 let calligraphyBrushType = 0;
 
@@ -208,7 +301,10 @@ let calligraphyBrushType = 0;
 const symbolChars = [
   "★\uFE0E", // Black Star
   "☠\uFE0E", // Skull
-  "☣\uFE0E"  // Biohazard
+  "☣\uFE0E", // Biohazard
+  "✠\uFE0E", // Maltese Cross
+  "☭\uFE0E", // Hammer and Sickle
+  "☮\uFE0E"  // Peace
 ];
 let symbolCharType = 0;
 
@@ -326,7 +422,301 @@ function floodFill(x,y,fillHex){
   ctx.putImageData(imgData,0,0);
 }
 
-// Mouse events
+// ========== IMAGE IMPORT STAMP LOGIC ==========
+let importImg = null,
+    importImgNaturalWidth = 0,
+    importImgNaturalHeight = 0,
+    importPreview = null,
+    importDragging = false,
+    importOffsetX = 0,
+    importOffsetY = 0,
+    importPosX = 0,
+    importPosY = 0,
+    importScale = 1,
+    importRotation = 0,
+    importOpacity = 0.5,
+    importFlipH = 1,
+    importFlipV = 1;
+
+const importSettingsDiv = document.getElementById('import-settings');
+const importFileInput = document.getElementById('import-image-file');
+const importSizeSlider = document.getElementById('import-size');
+const importSizeValue = document.getElementById('import-size-value');
+const importOpacitySlider = document.getElementById('import-opacity');
+const importOpacityValue = document.getElementById('import-opacity-value');
+const importRotationSlider = document.getElementById('import-rotation');
+const importRotationValue = document.getElementById('import-rotation-value');
+const importFlipHBtn = document.getElementById('import-flip-h');
+const importFlipVBtn = document.getElementById('import-flip-v');
+const importStampBtn = document.getElementById('import-stamp-btn');
+const importCancelBtn = document.getElementById('import-cancel-btn');
+const importDropdown = document.getElementById('import-dropdown');
+
+function hideImportPreview() {
+  if(importPreview && importPreview.parentNode) {
+    importPreview.parentNode.removeChild(importPreview);
+    importPreview = null;
+  }
+}
+
+function showImportPreview() {
+  hideImportPreview();
+  if(!importImg) return;
+  importPreview = document.createElement('img');
+  importPreview.id = 'import-preview-img';
+  importPreview.src = importImg.src;
+  importPreview.draggable = false;
+  importPreview.style.position = 'absolute';
+  importPreview.style.opacity = importOpacity.toString();
+  importPreview.style.pointerEvents = 'auto';
+  importPreview.style.cursor = 'grab';
+  importPreview.style.zIndex = 1500;
+  updateImportPreviewTransform();
+  document.body.appendChild(importPreview);
+
+  // Drag logic (mouse)
+  importPreview.onmousedown = function(e) {
+    e.preventDefault();
+    importDragging = true;
+    importPreview.style.cursor = 'grabbing';
+    let rect = importPreview.getBoundingClientRect();
+    importOffsetX = e.clientX - rect.left;
+    importOffsetY = e.clientY - rect.top;
+  };
+  document.addEventListener('mousemove', imagePreviewDragMove);
+  document.addEventListener('mouseup', imagePreviewDragEnd);
+
+  // Drag logic (touch)
+  importPreview.ontouchstart = function(e) {
+    if(e.touches.length !== 1) return;
+    e.preventDefault();
+    importDragging = true;
+    importPreview.style.cursor = 'grabbing';
+    let rect = importPreview.getBoundingClientRect();
+    let t = e.touches[0];
+    importOffsetX = t.clientX - rect.left;
+    importOffsetY = t.clientY - rect.top;
+  };
+  document.addEventListener('touchmove', imagePreviewDragMove, {passive:false});
+  document.addEventListener('touchend', imagePreviewDragEnd);
+
+  // Click or tap to stamp
+  importPreview.onclick = function(e) {
+    e.preventDefault();
+    stampImageToCanvas();
+  };
+  importPreview.ontouchend = function(e) {
+    e.preventDefault();
+    if(importDragging) { importDragging = false; return; }
+    stampImageToCanvas();
+  };
+}
+
+function imagePreviewDragMove(e) {
+  if(!importDragging || !importPreview) return;
+  let clientX, clientY;
+  if(e.touches && e.touches.length) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  importPosX = clientX - importOffsetX;
+  importPosY = clientY - importOffsetY;
+  updateImportPreviewTransform();
+  if(e.cancelable) e.preventDefault();
+}
+function imagePreviewDragEnd(e) {
+  if(importDragging) {
+    importDragging = false;
+    if(importPreview) importPreview.style.cursor='grab';
+  }
+}
+
+function updateImportPreviewTransform() {
+  if(!importPreview) return;
+  // Calculate width/height based on scale
+  let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
+  let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+  importPreview.style.width = w+'px';
+  importPreview.style.height = h+'px';
+  importPreview.style.left = importPosX+'px';
+  importPreview.style.top = importPosY+'px';
+  // Rotation + flip
+  let rot = importRotation;
+  let scaleX = importFlipH;
+  let scaleY = importFlipV;
+  importPreview.style.transform = `rotate(${rot}deg) scale(${scaleX},${scaleY})`;
+  importPreview.style.opacity = importOpacity;
+}
+
+function stampImageToCanvas() {
+  if(!importImg) return;
+  // Prep offscreen canvas
+  saveState();
+  let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
+  let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+  // Convert page coordinates to canvas coordinates
+  let mainRect = canvas.getBoundingClientRect();
+  let px = (importPosX - mainRect.left) * (canvas.width / mainRect.width);
+  let py = (importPosY - mainRect.top) * (canvas.height / mainRect.height);
+
+  // Draw image with transforms
+  ctx.save();
+  ctx.globalAlpha = importOpacity;
+  ctx.translate(px + w/2, py + h/2);
+  ctx.rotate(importRotation * Math.PI / 180);
+  ctx.scale(importFlipH, importFlipV);
+  ctx.drawImage(importImg, -w/2, -h/2, w, h);
+  ctx.restore();
+  // Clean up
+  hideImportPreview();
+  importImg = null;
+  importSettingsDiv.classList.add('hidden');
+  importFileInput.value='';
+}
+
+function importResetState() {
+  importImg = null;
+  importImgNaturalWidth = 0;
+  importImgNaturalHeight = 0;
+  importPosX = window.innerWidth/2-50;
+  importPosY = window.innerHeight/2-50;
+  importScale = 1;
+  importRotation = 0;
+  importOpacity = 0.5;
+  importFlipH = 1;
+  importFlipV = 1;
+  hideImportPreview();
+  importSettingsDiv.classList.add('hidden');
+  importFileInput.value='';
+}
+
+importFileInput.addEventListener('change', function(e){
+  importResetState();
+  let file = this.files[0];
+  if(!file) return;
+  let reader = new FileReader();
+  reader.onload = function(evt){
+    let img = new window.Image();
+    img.onload = function(){
+      importImg = img;
+      importImgNaturalWidth = img.naturalWidth;
+      importImgNaturalHeight = img.naturalHeight;
+      importScale = parseInt(importSizeSlider.value,10) / 100.0;
+      importOpacity = parseInt(importOpacitySlider.value,10) / 100.0;
+      importRotation = parseInt(importRotationSlider.value,10);
+      importFlipH = 1;
+      importFlipV = 1;
+      // Center preview
+      let mainRect = canvas.getBoundingClientRect();
+      let defW = Math.max(10, Math.round(importImgNaturalWidth * importScale));
+      let defH = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+      importPosX = mainRect.left + (mainRect.width-defW)/2;
+      importPosY = mainRect.top + (mainRect.height-defH)/2;
+      importSizeValue.textContent = importSizeSlider.value;
+      importOpacityValue.textContent = importOpacitySlider.value;
+      importRotationValue.textContent = importRotationSlider.value;
+      importSettingsDiv.classList.remove('hidden');
+      showImportPreview();
+    };
+    img.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+importSizeSlider.addEventListener('input', function() {
+  importScale = parseInt(this.value,10)/100.0;
+  importSizeValue.textContent = this.value;
+  updateImportPreviewTransform();
+});
+importOpacitySlider.addEventListener('input', function() {
+  importOpacity = parseInt(this.value,10)/100.0;
+  importOpacityValue.textContent = this.value;
+  if(importPreview) importPreview.style.opacity = importOpacity;
+});
+importRotationSlider.addEventListener('input', function() {
+  importRotation = parseInt(this.value,10);
+  importRotationValue.textContent = this.value;
+  updateImportPreviewTransform();
+});
+importFlipHBtn.addEventListener('click', function() { importFlipH *= -1; updateImportPreviewTransform(); });
+importFlipVBtn.addEventListener('click', function() { importFlipV *= -1; updateImportPreviewTransform(); });
+importStampBtn.addEventListener('click', function() { stampImageToCanvas(); });
+importCancelBtn.addEventListener('click', function() { importResetState(); });
+
+// Hide preview on dropdown close
+document.querySelectorAll('.menu-title').forEach(title=>{
+  title.addEventListener('click',()=>{
+    if(title.id==="undo-btn")return;
+    const menu=title.dataset.menu,dropdown=document.getElementById(`${menu}-dropdown`),isAlreadyOpen=!dropdown.classList.contains('hidden');
+    document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
+    if(!isAlreadyOpen)dropdown.classList.remove('hidden');
+    // On closing import dropdown, hide preview
+    if(menu!=='import') importResetState();
+  });
+});
+document.getElementById('export-back').addEventListener('click',()=>{document.getElementById('export-dropdown').classList.add('hidden');});
+document.getElementById('undo-btn').addEventListener('click',()=>{undo();});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z')undo();});
+
+// ========== END IMAGE IMPORT STAMP LOGIC ==========
+
+// ========== REST OF YOUR PAINT LOGIC ==========
+document.querySelectorAll('.tool-option').forEach(opt=>{
+  opt.addEventListener('click',()=>{
+    const tool=opt.id.split('-')[0],settings=document.getElementById(`${tool}-settings`);
+    if(currentTool===tool){if(settings)settings.classList.toggle('hidden');return;}
+    currentTool=tool;setToolHighlight(currentTool);
+  });
+});
+function setToolHighlight(tool){
+  ['marker','calligraphy','symbol','text','spray','eraser','bucket','clear'].forEach(t=>{
+    const settings=document.getElementById(`${t}-settings`),option=document.getElementById(`${t}-option`);
+    if(settings)settings.classList.add('hidden');
+    if(option)option.classList.remove('selected');
+  });
+  const settings=document.getElementById(`${tool}-settings`),option=document.getElementById(`${tool}-option`);
+  if(settings)settings.classList.remove('hidden');
+  if(option)option.classList.add('selected');
+}
+const panel=document.getElementById('tool-panel');let isDraggingPanel=false,offsetX=0,offsetY=0;
+document.getElementById('tool-panel-header').addEventListener('mousedown',e=>{isDraggingPanel=true;offsetX=e.offsetX;offsetY=e.offsetY;});
+document.addEventListener('mousemove',e=>{
+  if(!isDraggingPanel)return;
+  const container=document.getElementById('app-container').getBoundingClientRect();
+  let x=e.clientX-offsetX-container.left,y=e.clientY-offsetY-container.top;
+  panel.style.left=Math.max(0,Math.min(container.width-panel.offsetWidth,x))+'px';
+  panel.style.top=Math.max(0,Math.min(container.height-panel.offsetHeight,y))+'px';
+});
+document.addEventListener('mouseup',()=>isDraggingPanel=false);
+document.getElementById('clear-yes').addEventListener('click',()=>{saveState();ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('clear-settings').classList.add('hidden');});
+document.getElementById('clear-back').addEventListener('click',()=>{document.getElementById('clear-settings').classList.add('hidden');});
+
+document.getElementById('export-btn').addEventListener('click',()=>{
+  const filename=document.getElementById('file-name').value||'pixel-art',transparent=document.getElementById('transparent-bg').checked;
+  if(!transparent){
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.fillStyle = "#fff";
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.drawImage(canvas, 0, 0);
+    const link=document.createElement('a');
+    link.download=filename+'.png';
+    link.href=tempCanvas.toDataURL('image/png');
+    link.click();
+  }else{
+    const link=document.createElement('a');
+    link.download=filename+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  }
+});
+
+// Canvas events (drawing, painting, etc.)
 canvas.addEventListener('mousedown',e=>{
   const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
   if(currentTool==='bucket'){
@@ -441,51 +831,6 @@ canvas.addEventListener('touchmove',e=>{
 });
 canvas.addEventListener('touchend',()=>{drawing=false;});
 canvas.addEventListener('mouseout',()=>{drawing=false;});
-document.querySelectorAll('.menu-title').forEach(title=>{
-  title.addEventListener('click',()=>{
-    if(title.id==="undo-btn")return;
-    const menu=title.dataset.menu,dropdown=document.getElementById(`${menu}-dropdown`),isAlreadyOpen=!dropdown.classList.contains('hidden');
-    document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
-    if(!isAlreadyOpen)dropdown.classList.remove('hidden');
-  });
-});
-document.querySelectorAll('.tool-option').forEach(opt=>{
-  opt.addEventListener('click',()=>{
-    const tool=opt.id.split('-')[0],settings=document.getElementById(`${tool}-settings`);
-    if(currentTool===tool){if(settings)settings.classList.toggle('hidden');return;}
-    currentTool=tool;setToolHighlight(currentTool);
-  });
-});
-function setToolHighlight(tool){
-  ['marker','calligraphy','symbol','text','spray','eraser','bucket','clear'].forEach(t=>{
-    const settings=document.getElementById(`${t}-settings`),option=document.getElementById(`${t}-option`);
-    if(settings)settings.classList.add('hidden');
-    if(option)option.classList.remove('selected');
-  });
-  const settings=document.getElementById(`${tool}-settings`),option=document.getElementById(`${tool}-option`);
-  if(settings)settings.classList.remove('hidden');
-  if(option)option.classList.add('selected');
-}
-const panel=document.getElementById('tool-panel');let isDraggingPanel=false,offsetX=0,offsetY=0;
-document.getElementById('tool-panel-header').addEventListener('mousedown',e=>{isDraggingPanel=true;offsetX=e.offsetX;offsetY=e.offsetY;});
-document.addEventListener('mousemove',e=>{
-  if(!isDraggingPanel)return;
-  const container=document.getElementById('app-container').getBoundingClientRect();
-  let x=e.clientX-offsetX-container.left,y=e.clientY-offsetY-container.top;
-  panel.style.left=Math.max(0,Math.min(container.width-panel.offsetWidth,x))+'px';
-  panel.style.top=Math.max(0,Math.min(container.height-panel.offsetHeight,y))+'px';
-});
-document.addEventListener('mouseup',()=>isDraggingPanel=false);
-document.getElementById('clear-yes').addEventListener('click',()=>{saveState();ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('clear-settings').classList.add('hidden');});
-document.getElementById('clear-back').addEventListener('click',()=>{document.getElementById('clear-settings').classList.add('hidden');});
-document.getElementById('export-back').addEventListener('click',()=>{document.getElementById('export-dropdown').classList.add('hidden');});
-document.getElementById('export-btn').addEventListener('click',()=>{
-  const filename=document.getElementById('file-name').value||'pixel-art',transparent=document.getElementById('transparent-bg').checked;
-  if(!transparent)ctx.fillStyle='#fff',ctx.fillRect(0,0,canvas.width,canvas.height);
-  const link=document.createElement('a');link.download=filename+'.png';link.href=canvas.toDataURL('image/png');link.click();
-});
-document.getElementById('undo-btn').addEventListener('click',()=>{undo();});
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z')undo();});
 </script>
 <div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
 </body>
