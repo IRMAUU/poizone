@@ -717,8 +717,8 @@ const textPreviewContent = document.getElementById('text-preview-content');
 const textSubmitBtn = document.getElementById('text-submit-btn');
 const textCancelBtn = document.getElementById('text-cancel-btn');
 const textToolboxControls = document.getElementById('text-toolbox-controls');
-// Set z-index so tool panel (z:20) is above overlay (z:10)
 textPreviewOverlay.style.zIndex = "10";
+
 function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   let container = document.getElementById('app-container');
   textPreviewActive = true;
@@ -733,8 +733,14 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   let w = textPreviewOverlay.offsetWidth || 100;
   let h = textPreviewOverlay.offsetHeight || 30;
   if(forceCenter || !textPreviewInit){
-    textPreviewPosX = (container.offsetWidth-w)/2;
-    textPreviewPosY = (container.offsetHeight-h)/2;
+    // Center inside canvas area, not whole container!
+    const canvasRect = canvas.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const left = canvasRect.left - containerRect.left;
+    const top = canvasRect.top - containerRect.top;
+    const width = canvasRect.width, height = canvasRect.height;
+    textPreviewPosX = left + (width - w)/2;
+    textPreviewPosY = top + (height - h)/2;
     textPreviewInitX = textPreviewPosX;
     textPreviewInitY = textPreviewPosY;
     textPreviewInit = true;
@@ -743,18 +749,19 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   textPreviewOverlay.style.top = textPreviewPosY + "px";
   textToolboxControls.style.display = "flex";
 }
-// Use full app-container as draggable area, not just canvas
+
+// Drag bounds: restrict dragging to canvas area within app-container
 function getDraggableBounds() {
-  const container = document.getElementById('app-container');
+  const canvasRect = canvas.getBoundingClientRect();
+  const containerRect = document.getElementById('app-container').getBoundingClientRect();
   return {
-    left: 0,
-    top: 0,
-    right: container.offsetWidth,
-    bottom: container.offsetHeight,
-    width: container.offsetWidth,
-    height: container.offsetHeight,
+    left: canvasRect.left - containerRect.left,
+    top: canvasRect.top - containerRect.top,
+    width: canvasRect.width,
+    height: canvasRect.height
   };
 }
+
 function updateTextPreviewContent(text, font, size, color) {
   textPreviewContent.textContent = text.replace(/\\n/g,"\n");
   textPreviewOverlay.style.fontFamily = font;
@@ -768,6 +775,7 @@ function updateTextPreviewContent(text, font, size, color) {
   textPreviewOverlay.style.left = textPreviewPosX + "px";
   textPreviewOverlay.style.top = textPreviewPosY + "px";
 }
+
 function hideTextPreviewOverlay() {
   textPreviewActive = false;
   textPreviewOverlay.style.display = "none";
@@ -781,18 +789,15 @@ textPreviewOverlay.onmousedown = function(e) {
   textPreviewDragging = true;
   textPreviewOverlay.style.cursor='grabbing';
   let rect = textPreviewOverlay.getBoundingClientRect();
-  let containerRect = document.getElementById('app-container').getBoundingClientRect();
   textPreviewOffsetX = e.clientX - rect.left;
   textPreviewOffsetY = e.clientY - rect.top;
 };
-// Touch support for mobile: drag text overlay
 textPreviewOverlay.ontouchstart = function(e) {
   if(e.touches.length !== 1) return;
   e.preventDefault();
   textPreviewDragging = true;
   textPreviewOverlay.style.cursor='grabbing';
   let rect = textPreviewOverlay.getBoundingClientRect();
-  let containerRect = document.getElementById('app-container').getBoundingClientRect();
   let t = e.touches[0];
   textPreviewOffsetX = t.clientX - rect.left;
   textPreviewOffsetY = t.clientY - rect.top;
@@ -801,76 +806,40 @@ document.addEventListener('mousemove', function(e){
   if(!textPreviewDragging || !textPreviewActive) return;
   let bounds = getDraggableBounds();
   let w = textPreviewOverlay.offsetWidth, h = textPreviewOverlay.offsetHeight;
-  let posX = e.clientX - bounds.left - textPreviewOffsetX;
-  let posY = e.clientY - bounds.top - textPreviewOffsetY;
-  posX = Math.max(0, Math.min(bounds.width - w, posX));
-  posY = Math.max(0, Math.min(bounds.height - h, posY));
+  const containerRect = document.getElementById('app-container').getBoundingClientRect();
+  let mouseX = e.clientX - containerRect.left;
+  let mouseY = e.clientY - containerRect.top;
+  let posX = mouseX - textPreviewOffsetX;
+  let posY = mouseY - textPreviewOffsetY;
+  // Clamp to canvas bounds
+  posX = Math.max(bounds.left, Math.min(bounds.left + bounds.width - w, posX));
+  posY = Math.max(bounds.top, Math.min(bounds.top + bounds.height - h, posY));
   textPreviewPosX = posX;
   textPreviewPosY = posY;
   textPreviewOverlay.style.left = textPreviewPosX + "px";
   textPreviewOverlay.style.top = textPreviewPosY + "px";
 });
 document.addEventListener('mouseup', function(){ textPreviewDragging=false;textPreviewOverlay.style.cursor='grab'; });
-// Touch move for text overlay
 document.addEventListener('touchmove', function(e){
   if(!textPreviewDragging || !textPreviewActive) return;
   let bounds = getDraggableBounds();
   let w = textPreviewOverlay.offsetWidth, h = textPreviewOverlay.offsetHeight;
+  const containerRect = document.getElementById('app-container').getBoundingClientRect();
   let t = e.touches[0];
-  let posX = t.clientX - bounds.left - textPreviewOffsetX;
-  let posY = t.clientY - bounds.top - textPreviewOffsetY;
-  posX = Math.max(0, Math.min(bounds.width - w, posX));
-  posY = Math.max(0, Math.min(bounds.height - h, posY));
+  let touchX = t.clientX - containerRect.left;
+  let touchY = t.clientY - containerRect.top;
+  let posX = touchX - textPreviewOffsetX;
+  let posY = touchY - textPreviewOffsetY;
+  posX = Math.max(bounds.left, Math.min(bounds.left + bounds.width - w, posX));
+  posY = Math.max(bounds.top, Math.min(bounds.top + bounds.height - h, posY));
   textPreviewPosX = posX;
   textPreviewPosY = posY;
   textPreviewOverlay.style.left = textPreviewPosX + "px";
   textPreviewOverlay.style.top = textPreviewPosY + "px";
   if(e.cancelable) e.preventDefault();
 }, {passive:false});
-// Touch end for text overlay
 document.addEventListener('touchend', function(){ textPreviewDragging=false;textPreviewOverlay.style.cursor='grab'; });
 
-textSubmitBtn.onclick = function() {
-  if(!textPreviewActive) return;
-  saveState();
-  let container = document.getElementById('app-container');
-  let overlayRect = textPreviewOverlay.getBoundingClientRect();
-  let containerRect = container.getBoundingClientRect();
-  let px = (overlayRect.left - containerRect.left) * (canvas.width / container.offsetWidth);
-  let py = (overlayRect.top - containerRect.top) * (canvas.height / container.offsetHeight);
-  drawTextMultiline(document.getElementById('text-string').value.replace(/\\n/g,"\n"), px, py, textFont, textSize, textColor);
-  showTextPreviewOverlay(document.getElementById('text-string').value, textFont, textSize, textColor, false);
-  // Respawn at the original spot
-  textPreviewPosX = textPreviewInitX;
-  textPreviewPosY = textPreviewInitY;
-  textPreviewOverlay.style.left = textPreviewPosX + "px";
-  textPreviewOverlay.style.top = textPreviewPosY + "px";
-};
-textCancelBtn.onclick = hideTextPreviewOverlay;
-document.getElementById('text-string').oninput = e => {
-  textString = e.target.value;
-  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-};
-document.getElementById('text-size').oninput = e => {
-  textSize = +e.target.value;
-  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-};
-document.getElementById('text-color').oninput = e => {
-  textColor = e.target.value;
-  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-};
-// Font dropdown option handler -- ensures label & font updates
-Array.from(document.getElementsByClassName("font-dropdown-option")).forEach(opt=>{
-  opt.onclick=function(){
-    Array.from(fontDropdownList.children).forEach(o=>o.classList.remove("selected"));
-    this.classList.add("selected");
-    textFont = this.getAttribute("data-font");
-    fontDropdownSelectedName.textContent = this.textContent;
-    fontDropdownSelectedName.style.fontFamily = textFont;
-    fontDropdown.classList.remove("open");
-    if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-  };
-});
 canvas.addEventListener('mousedown',e=>{
   const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
   if(currentTool==='bucket'){
