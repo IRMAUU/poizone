@@ -710,7 +710,6 @@ document.getElementById('export-btn').addEventListener('click',()=>{
   }
 });
 
-// --- TEXT TOOL PREVIEW LOGIC with canvas-only drag bounds and correct stamping ---
 let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0, textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0;
 const textPreviewOverlay = document.getElementById('text-preview-overlay');
 const textPreviewContent = document.getElementById('text-preview-content');
@@ -723,7 +722,7 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   let container = document.getElementById('app-container');
   textPreviewActive = true;
   textPreviewOverlay.style.display = "block";
-  textPreviewContent.textContent = text.replace(/\\n/g,"\n");
+  textPreviewContent.textContent = text.replace(/\n/g,"\n");
   textPreviewOverlay.style.fontFamily = font;
   textPreviewOverlay.style.fontSize = size + "px";
   textPreviewOverlay.style.color = color;
@@ -733,13 +732,9 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   let w = textPreviewOverlay.offsetWidth || 100;
   let h = textPreviewOverlay.offsetHeight || 30;
   if(forceCenter || !textPreviewInit){
-    const canvasRect = canvas.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    const left = canvasRect.left - containerRect.left;
-    const top = canvasRect.top - containerRect.top;
-    const width = canvasRect.width, height = canvasRect.height;
-    textPreviewPosX = left + (width - w)/2;
-    textPreviewPosY = top + (height - h)/2;
+    let container = document.getElementById('app-container');
+    textPreviewPosX = (container.offsetWidth-w)/2;
+    textPreviewPosY = (container.offsetHeight-h)/2;
     textPreviewInitX = textPreviewPosX;
     textPreviewInitY = textPreviewPosY;
     textPreviewInit = true;
@@ -750,17 +745,16 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
 }
 
 function getDraggableBounds() {
-  const canvasRect = canvas.getBoundingClientRect();
-  const containerRect = document.getElementById('app-container').getBoundingClientRect();
+  const container = document.getElementById('app-container');
   return {
-    left: canvasRect.left - containerRect.left,
-    top: canvasRect.top - containerRect.top,
-    width: canvasRect.width,
-    height: canvasRect.height
+    left: 0,
+    top: 0,
+    width: container.offsetWidth,
+    height: container.offsetHeight
   };
 }
 function updateTextPreviewContent(text, font, size, color) {
-  textPreviewContent.textContent = text.replace(/\\n/g,"\n");
+  textPreviewContent.textContent = text.replace(/\n/g,"\n");
   textPreviewOverlay.style.fontFamily = font;
   textPreviewOverlay.style.fontSize = size + "px";
   textPreviewOverlay.style.color = color;
@@ -840,12 +834,10 @@ textSubmitBtn.onclick = function() {
   saveState();
   let overlayRect = textPreviewOverlay.getBoundingClientRect();
   let canvasRect = canvas.getBoundingClientRect();
-  // Overlay is now clamped to canvas, so use canvas-relative math
   let px = (overlayRect.left - canvasRect.left) * (canvas.width / canvasRect.width);
   let py = (overlayRect.top - canvasRect.top) * (canvas.height / canvasRect.height);
-  drawTextMultiline(document.getElementById('text-string').value.replace(/\\n/g,"\n"), px, py, textFont, textSize, textColor);
+  drawTextMultiline(document.getElementById('text-string').value, px, py, textFont, textSize, textColor);
   showTextPreviewOverlay(document.getElementById('text-string').value, textFont, textSize, textColor, false);
-  // Respawn at the original spot
   textPreviewPosX = textPreviewInitX;
   textPreviewPosY = textPreviewInitY;
   textPreviewOverlay.style.left = textPreviewPosX + "px";
@@ -875,7 +867,6 @@ Array.from(document.getElementsByClassName("font-dropdown-option")).forEach(opt=
     if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
   };
 });
-// --- END TEXT TOOL PREVIEW LOGIC ---
 
 canvas.addEventListener('mousedown',e=>{
   const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
@@ -889,7 +880,6 @@ canvas.addEventListener('mousedown',e=>{
     }else if(currentTool==='symbol'){
       drawSymbol(x,y);
     }else if(currentTool==='text'){
-      // handled by overlay
     }else{
       drawing=true;lastPos={x,y};
       if(currentTool==='spray'){sprayAt(x,y);}else{drawAt(x,y);}
@@ -943,7 +933,6 @@ canvas.addEventListener('touchstart',e=>{
     }else if(currentTool==='symbol'){
       drawSymbol(x,y);
     }else if(currentTool==='text'){
-      // handled by overlay
     }else{
       drawing=true;lastPos={x,y};
       if(currentTool==='spray')sprayAt(x,y);else drawAt(x,y);
