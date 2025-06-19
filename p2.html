@@ -17,7 +17,7 @@
     button{background:#000;color:#39ff14;border:1px solid #39ff14;padding:4px 8px;cursor:pointer;font-family:'Roboto Mono',monospace;font-weight:700;}
     #app-container{width:80vw;height:80vh;margin:auto;position:relative;top:1vh;background:#fff;display:flex;justify-content:center;align-items:center;}
     canvas#paint-canvas{width:100%;height:100%;background:#fff;image-rendering:pixelated;border:1px solid #000;cursor:crosshair;}
-    #tool-panel{position:absolute;top:10px;left:10px;background:#222;color:#39ff14;padding:8px;border:1px solid #555;z-index:10;user-select:none;border-radius:6px;}
+    #tool-panel{position:absolute;top:10px;left:10px;background:#222;color:#39ff14;padding:8px;border:1px solid #555;z-index:20;user-select:none;border-radius:6px;}
     .menu-title{cursor:move;padding:4px;text-transform:lowercase;}
     .menu-title#undo-btn{cursor:pointer;color:#39ff14;}
     .dropdown{margin-top:5px;background:#444;padding:5px;border:1px solid #666;border-radius:6px;}
@@ -56,7 +56,7 @@
       font-variant-ligatures: none;
       font-feature-settings: "liga" 0, "calt" 0;
       unicode-bidi: isolate;
-      color: #000 !important; /* <-- Make glyphs black */
+      color: #000 !important;
     }
     .force-plain-text {
       font-family: 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif' !important;
@@ -85,7 +85,7 @@
     #import-preview-img {
       position:absolute;
       pointer-events:auto;
-      z-index:1500;
+      z-index:5;
       user-select:none;
       transition:box-shadow 0.2s;
       box-shadow: 0 0 0 2px #f00;
@@ -94,7 +94,6 @@
       touch-action: none;
       background: transparent;
       will-change: transform;
-      /* outline: 2px solid #f00; */
     }
     #import-preview-img.stamping {
       pointer-events:none;
@@ -130,7 +129,6 @@
       margin-bottom: 7px;
     }
 
-    /* Responsive for import preview image */
     @media (max-width:900px){
       #import-preview-img{max-width:90vw;max-height:60vh;}
     }
@@ -285,30 +283,16 @@ let drawing=false,
   calligraphyColor="#000000",
   symbolColor="#000000";
 
-// Calligraphy brush unicode (add U+FE0E to force text)
-// Now 6 options (duplicates for now)
 const calligraphyBrushes = [
-  "♥\uFE0E", // Heart
-  "⎸\uFE0E", // Medium Vertical Bar
-  "✦\uFE0E", // Black Four Pointed Star
-  "♥\uFE0E", // Heart 2
-  "⎸\uFE0E", // Medium Vertical Bar 2
-  "✦\uFE0E"  // Black Four Pointed Star 2
+  "♥\uFE0E", "⎸\uFE0E", "✦\uFE0E", "♥\uFE0E", "⎸\uFE0E", "✦\uFE0E"
 ];
 let calligraphyBrushType = 0;
 
-// Symbol unicode (add U+FE0E to force text)
 const symbolChars = [
-  "★\uFE0E", // Black Star
-  "☠\uFE0E", // Skull
-  "☣\uFE0E", // Biohazard
-  "✠\uFE0E", // Maltese Cross
-  "☭\uFE0E", // Hammer and Sickle
-  "☮\uFE0E"  // Peace
+  "★\uFE0E", "☠\uFE0E", "☣\uFE0E", "✠\uFE0E", "☭\uFE0E", "☮\uFE0E"
 ];
 let symbolCharType = 0;
 
-// Calligraphy brush buttons
 document.querySelectorAll('.calligraphy-btn').forEach((btn,i)=>{
   btn.onclick=()=>{
     document.querySelectorAll('.calligraphy-btn').forEach(b=>b.classList.remove('calligraphy-selected'));
@@ -316,8 +300,6 @@ document.querySelectorAll('.calligraphy-btn').forEach((btn,i)=>{
     calligraphyBrushType=i;
   };
 });
-
-// Symbol buttons
 document.querySelectorAll('.symbol-btn').forEach((btn,i)=>{
   btn.onclick=()=>{
     document.querySelectorAll('.symbol-btn').forEach(b=>b.classList.remove('symbol-selected'));
@@ -325,36 +307,23 @@ document.querySelectorAll('.symbol-btn').forEach((btn,i)=>{
     symbolCharType=i;
   };
 });
-
-// Marker tool events
 document.getElementById('marker-size').oninput=e=>{markerSize=+e.target.value;};
 document.getElementById('marker-flow').oninput=e=>{flow=+e.target.value;};
 document.getElementById('color-picker').oninput=e=>color=e.target.value;
-
-// Calligraphy tool events
 document.getElementById('calligraphy-size').oninput=e=>{calligraphySize=+e.target.value;};
 document.getElementById('calligraphy-flow').oninput=e=>{calligraphyFlow=+e.target.value;};
 document.getElementById('calligraphy-color').oninput=e=>{calligraphyColor=e.target.value;};
-
-// Symbol tool
 document.getElementById('symbol-size').oninput=e=>symbolSize=+e.target.value;
 document.getElementById('symbol-color').oninput=e=>{symbolColor=e.target.value;};
-
-// Text tool
 const fontDropdown=document.getElementById("font-dropdown"),fontDropdownList=document.getElementById("font-dropdown-list"),fontDropdownSelected=document.getElementById("font-dropdown-selected"),fontDropdownSelectedName=document.getElementById("font-dropdown-selected-name");
 Array.from(fontDropdownList.children).forEach(opt=>{opt.onclick=function(){Array.from(fontDropdownList.children).forEach(o=>o.classList.remove("selected"));this.classList.add("selected");textFont=this.getAttribute("data-font");fontDropdownSelectedName.textContent=this.textContent;fontDropdownSelectedName.style.fontFamily=textFont;fontDropdown.classList.remove("open");}});
 fontDropdownSelected.onclick=function(e){fontDropdown.classList.toggle("open");};fontDropdown.onblur=function(){fontDropdown.classList.remove("open");};
 document.getElementById('text-size').oninput=e=>textSize=+e.target.value;
 document.getElementById('text-color').oninput=e=>textColor=e.target.value;document.getElementById('text-string').oninput=e=>textString=e.target.value;
-
-// Spray
 document.getElementById('spray-size').oninput=e=>spraySize=+e.target.value;document.getElementById('spray-spread').oninput=e=>spraySpread=+e.target.value;document.getElementById('spray-flow').oninput=e=>sprayFlow=+e.target.value;document.getElementById('spray-color').oninput=e=>sprayColor=e.target.value;
-
-// Bucket/Eraser
 document.getElementById('bucket-color').oninput=e=>bucketColor=e.target.value;
 document.getElementById('eraser-size').oninput=e=>eraserSize=+e.target.value;
-
-// Draw calligraphy brush (unicode)
+function debugLog(...args) { try { console.log("[DEBUG]", ...args); } catch (e) {} }
 function drawCalligraphy(x,y){
   ctx.save();
   ctx.font = `${calligraphySize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
@@ -374,8 +343,6 @@ function drawCalligraphyFlowLine(x0,y0,x1,y1){
     if(e2<dx){err+=dx;y0+=sy;}
   }
 }
-
-// Symbol/text
 function drawSymbol(x,y){
   ctx.save();
   ctx.font = `${symbolSize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
@@ -386,16 +353,10 @@ function drawSymbol(x,y){
   ctx.restore();
 }
 function drawText(x,y){ctx.save();ctx.font=`${textSize}px ${textFont}`;ctx.fillStyle=textColor;ctx.textBaseline="top";ctx.fillText(textString,x,y);ctx.restore();}
-
-// Marker/eraser
 function getBrushSettings(){if(currentTool==='marker')return{size:markerSize,color:color,flow:flow};if(currentTool==='eraser')return{size:eraserSize,color:"#fff",flow:flow};if(currentTool==='calligraphy')return{size:calligraphySize,flow:calligraphyFlow};return{size:markerSize,color:color,flow:flow};}
 function drawAt(x,y){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;ctx.fillRect(x,y,size,size);}
 function drawLine(x0,y0,x1,y1,customDraw){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;while(true){if(customDraw)customDraw(x0,y0);else ctx.fillRect(x0,y0,size,size);if(x0===x1&&y0===y1)break;let e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}}}
-
-// Spray
 function sprayAt(x,y){ctx.fillStyle=(currentTool==='spray')?sprayColor:color;for(let i=0;i<sprayFlow;i++){const a=Math.random()*2*Math.PI,r=Math.random()*spraySpread,ox=Math.cos(a)*r,oy=Math.sin(a)*r;ctx.fillRect(x+ox,y+oy,spraySize,spraySize);}}
-
-// Flood fill
 function hexToRgb(hex){const b=parseInt(hex.slice(1),16);return[(b>>16)&255,(b>>8)&255,b&255];}
 function getPixelColor(x,y,imgData){const i=(y*imgData.width+x)*4;return[imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]];}
 function colorsMatch(a,b){return a.every((v,i)=>v===b[i]);}
@@ -421,23 +382,9 @@ function floodFill(x,y,fillHex){
   }
   ctx.putImageData(imgData,0,0);
 }
-
-// ========== IMAGE IMPORT STAMP LOGIC ==========
-let importImg = null,
-    importImgNaturalWidth = 0,
-    importImgNaturalHeight = 0,
-    importPreview = null,
-    importDragging = false,
-    importOffsetX = 0,
-    importOffsetY = 0,
-    importPosX = 0,
-    importPosY = 0,
-    importScale = 1,
-    importRotation = 0,
-    importOpacity = 0.5,
-    importFlipH = 1,
-    importFlipV = 1;
-
+let importImg = null, importImgNaturalWidth = 0, importImgNaturalHeight = 0,
+    importPreview = null, importDragging = false, importOffsetX = 0, importOffsetY = 0,
+    importPosX = 0, importPosY = 0, importScale = 1, importRotation = 0, importOpacity = 0.5, importFlipH = 1, importFlipV = 1;
 const importSettingsDiv = document.getElementById('import-settings');
 const importFileInput = document.getElementById('import-image-file');
 const importSizeSlider = document.getElementById('import-size');
@@ -451,14 +398,12 @@ const importFlipVBtn = document.getElementById('import-flip-v');
 const importStampBtn = document.getElementById('import-stamp-btn');
 const importCancelBtn = document.getElementById('import-cancel-btn');
 const importDropdown = document.getElementById('import-dropdown');
-
 function hideImportPreview() {
   if(importPreview && importPreview.parentNode) {
     importPreview.parentNode.removeChild(importPreview);
     importPreview = null;
   }
 }
-
 function showImportPreview() {
   hideImportPreview();
   if(!importImg) return;
@@ -470,50 +415,40 @@ function showImportPreview() {
   importPreview.style.opacity = importOpacity.toString();
   importPreview.style.pointerEvents = 'auto';
   importPreview.style.cursor = 'grab';
-  importPreview.style.zIndex = 1500;
+  importPreview.style.zIndex = 5;
+  // Position absolutely inside app-container
+  let container = document.getElementById('app-container');
+  container.appendChild(importPreview);
   updateImportPreviewTransform();
-  document.body.appendChild(importPreview);
-
-  // Drag logic (mouse)
   importPreview.onmousedown = function(e) {
     e.preventDefault();
     importDragging = true;
-    importPreview.style.cursor = 'grabbing';
     let rect = importPreview.getBoundingClientRect();
+    let containerRect = container.getBoundingClientRect();
     importOffsetX = e.clientX - rect.left;
     importOffsetY = e.clientY - rect.top;
   };
   document.addEventListener('mousemove', imagePreviewDragMove);
   document.addEventListener('mouseup', imagePreviewDragEnd);
-
-  // Drag logic (touch)
   importPreview.ontouchstart = function(e) {
     if(e.touches.length !== 1) return;
     e.preventDefault();
     importDragging = true;
-    importPreview.style.cursor = 'grabbing';
     let rect = importPreview.getBoundingClientRect();
+    let containerRect = container.getBoundingClientRect();
     let t = e.touches[0];
     importOffsetX = t.clientX - rect.left;
     importOffsetY = t.clientY - rect.top;
   };
   document.addEventListener('touchmove', imagePreviewDragMove, {passive:false});
   document.addEventListener('touchend', imagePreviewDragEnd);
-
-  // Click or tap to stamp
-  importPreview.onclick = function(e) {
-    e.preventDefault();
-    stampImageToCanvas();
-  };
-  importPreview.ontouchend = function(e) {
-    e.preventDefault();
-    if(importDragging) { importDragging = false; return; }
-    stampImageToCanvas();
-  };
+  importPreview.onclick = null;
+  importPreview.ontouchend = null;
 }
-
 function imagePreviewDragMove(e) {
   if(!importDragging || !importPreview) return;
+  let container = document.getElementById('app-container');
+  let containerRect = container.getBoundingClientRect();
   let clientX, clientY;
   if(e.touches && e.touches.length) {
     clientX = e.touches[0].clientX;
@@ -522,8 +457,13 @@ function imagePreviewDragMove(e) {
     clientX = e.clientX;
     clientY = e.clientY;
   }
-  importPosX = clientX - importOffsetX;
-  importPosY = clientY - importOffsetY;
+  let w = importPreview.offsetWidth, h = importPreview.offsetHeight;
+  let posX = clientX - containerRect.left - importOffsetX;
+  let posY = clientY - containerRect.top - importOffsetY;
+  posX = Math.max(0, Math.min(container.offsetWidth - w, posX));
+  posY = Math.max(0, Math.min(container.offsetHeight - h, posY));
+  importPosX = posX;
+  importPosY = posY;
   updateImportPreviewTransform();
   if(e.cancelable) e.preventDefault();
 }
@@ -533,36 +473,29 @@ function imagePreviewDragEnd(e) {
     if(importPreview) importPreview.style.cursor='grab';
   }
 }
-
 function updateImportPreviewTransform() {
   if(!importPreview) return;
-  // Calculate width/height based on scale
   let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
   let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
   importPreview.style.width = w+'px';
   importPreview.style.height = h+'px';
   importPreview.style.left = importPosX+'px';
   importPreview.style.top = importPosY+'px';
-  // Rotation + flip
   let rot = importRotation;
   let scaleX = importFlipH;
   let scaleY = importFlipV;
   importPreview.style.transform = `rotate(${rot}deg) scale(${scaleX},${scaleY})`;
   importPreview.style.opacity = importOpacity;
 }
-
 function stampImageToCanvas() {
   if(!importImg) return;
-  // Prep offscreen canvas
   saveState();
-  let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
-  let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
-  // Convert page coordinates to canvas coordinates
-  let mainRect = canvas.getBoundingClientRect();
-  let px = (importPosX - mainRect.left) * (canvas.width / mainRect.width);
-  let py = (importPosY - mainRect.top) * (canvas.height / mainRect.height);
-
-  // Draw image with transforms
+  let container = document.getElementById('app-container');
+  let w = importPreview.offsetWidth;
+  let h = importPreview.offsetHeight;
+  // Use importPosX/importPosY relative to app-container
+  let px = (importPosX) * (canvas.width / container.offsetWidth);
+  let py = (importPosY) * (canvas.height / container.offsetHeight);
   ctx.save();
   ctx.globalAlpha = importOpacity;
   ctx.translate(px + w/2, py + h/2);
@@ -570,33 +503,30 @@ function stampImageToCanvas() {
   ctx.scale(importFlipH, importFlipV);
   ctx.drawImage(importImg, -w/2, -h/2, w, h);
   ctx.restore();
-  // Clean up
   hideImportPreview();
   importImg = null;
   importSettingsDiv.classList.add('hidden');
   importFileInput.value='';
 }
-
 function importResetState() {
   importImg = null;
   importImgNaturalWidth = 0;
   importImgNaturalHeight = 0;
-  importPosX = window.innerWidth/2-50;
-  importPosY = window.innerHeight/2-50;
   importScale = 1;
   importRotation = 0;
   importOpacity = 0.5;
   importFlipH = 1;
   importFlipV = 1;
+  let container = document.getElementById('app-container');
+  importPosX = (container.offsetWidth/2)-50;
+  importPosY = (container.offsetHeight/2)-50;
   hideImportPreview();
   importSettingsDiv.classList.add('hidden');
-  importFileInput.value='';
 }
-
 importFileInput.addEventListener('change', function(e){
-  importResetState();
   let file = this.files[0];
   if(!file) return;
+  importResetState();
   let reader = new FileReader();
   reader.onload = function(evt){
     let img = new window.Image();
@@ -604,18 +534,20 @@ importFileInput.addEventListener('change', function(e){
       importImg = img;
       importImgNaturalWidth = img.naturalWidth;
       importImgNaturalHeight = img.naturalHeight;
-      importScale = parseInt(importSizeSlider.value,10) / 100.0;
+      let container = document.getElementById('app-container');
+      let scaleX = container.offsetWidth / img.naturalWidth;
+      let scaleY = container.offsetHeight / img.naturalHeight;
+      let fitScale = Math.min(1, scaleX, scaleY);
+      importScale = fitScale;
+      importSizeSlider.value = Math.round(importScale * 100);
+      importSizeValue.textContent = importSizeSlider.value;
       importOpacity = parseInt(importOpacitySlider.value,10) / 100.0;
       importRotation = parseInt(importRotationSlider.value,10);
-      importFlipH = 1;
-      importFlipV = 1;
-      // Center preview
-      let mainRect = canvas.getBoundingClientRect();
-      let defW = Math.max(10, Math.round(importImgNaturalWidth * importScale));
-      let defH = Math.max(10, Math.round(importImgNaturalHeight * importScale));
-      importPosX = mainRect.left + (mainRect.width-defW)/2;
-      importPosY = mainRect.top + (mainRect.height-defH)/2;
-      importSizeValue.textContent = importSizeSlider.value;
+      importFlipH = 1; importFlipV = 1;
+      let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
+      let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+      importPosX = (container.offsetWidth-w)/2;
+      importPosY = (container.offsetHeight-h)/2;
       importOpacityValue.textContent = importOpacitySlider.value;
       importRotationValue.textContent = importRotationSlider.value;
       importSettingsDiv.classList.remove('hidden');
@@ -625,10 +557,15 @@ importFileInput.addEventListener('change', function(e){
   };
   reader.readAsDataURL(file);
 });
-
 importSizeSlider.addEventListener('input', function() {
   importScale = parseInt(this.value,10)/100.0;
   importSizeValue.textContent = this.value;
+  // Re-center image after resizing
+  let container = document.getElementById('app-container');
+  let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
+  let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+  importPosX = (container.offsetWidth-w)/2;
+  importPosY = (container.offsetHeight-h)/2;
   updateImportPreviewTransform();
 });
 importOpacitySlider.addEventListener('input', function() {
@@ -645,25 +582,18 @@ importFlipHBtn.addEventListener('click', function() { importFlipH *= -1; updateI
 importFlipVBtn.addEventListener('click', function() { importFlipV *= -1; updateImportPreviewTransform(); });
 importStampBtn.addEventListener('click', function() { stampImageToCanvas(); });
 importCancelBtn.addEventListener('click', function() { importResetState(); });
-
-// Hide preview on dropdown close
 document.querySelectorAll('.menu-title').forEach(title=>{
   title.addEventListener('click',()=>{
     if(title.id==="undo-btn")return;
     const menu=title.dataset.menu,dropdown=document.getElementById(`${menu}-dropdown`),isAlreadyOpen=!dropdown.classList.contains('hidden');
     document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
     if(!isAlreadyOpen)dropdown.classList.remove('hidden');
-    // On closing import dropdown, hide preview
     if(menu!=='import') importResetState();
   });
 });
 document.getElementById('export-back').addEventListener('click',()=>{document.getElementById('export-dropdown').classList.add('hidden');});
 document.getElementById('undo-btn').addEventListener('click',()=>{undo();});
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z')undo();});
-
-// ========== END IMAGE IMPORT STAMP LOGIC ==========
-
-// ========== REST OF YOUR PAINT LOGIC ==========
 document.querySelectorAll('.tool-option').forEach(opt=>{
   opt.addEventListener('click',()=>{
     const tool=opt.id.split('-')[0],settings=document.getElementById(`${tool}-settings`);
@@ -693,7 +623,6 @@ document.addEventListener('mousemove',e=>{
 document.addEventListener('mouseup',()=>isDraggingPanel=false);
 document.getElementById('clear-yes').addEventListener('click',()=>{saveState();ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('clear-settings').classList.add('hidden');});
 document.getElementById('clear-back').addEventListener('click',()=>{document.getElementById('clear-settings').classList.add('hidden');});
-
 document.getElementById('export-btn').addEventListener('click',()=>{
   const filename=document.getElementById('file-name').value||'pixel-art',transparent=document.getElementById('transparent-bg').checked;
   if(!transparent){
@@ -715,8 +644,6 @@ document.getElementById('export-btn').addEventListener('click',()=>{
     link.click();
   }
 });
-
-// Canvas events (drawing, painting, etc.)
 canvas.addEventListener('mousedown',e=>{
   const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
   if(currentTool==='bucket'){
@@ -732,11 +659,7 @@ canvas.addEventListener('mousedown',e=>{
       drawText(x,y);
     }else{
       drawing=true;lastPos={x,y};
-      if(currentTool==='spray'){
-        sprayAt(x,y);
-      }else{
-        drawAt(x,y);
-      }
+      if(currentTool==='spray'){sprayAt(x,y);}else{drawAt(x,y);}
     }
   }
 });
@@ -764,9 +687,8 @@ canvas.addEventListener('mousemove',e=>{
     }else{
       drawCalligraphy(x,y);
     }
-  }else if(currentTool==='spray'){
-    sprayAt(x,y);
-  }else if(flow>=1000&&lastPos){
+  }else if(currentTool==='spray'){sprayAt(x,y);}
+  else if(flow>=1000&&lastPos){
     drawLine(lastPos.x,lastPos.y,x,y);
   }else{
     drawAt(x,y);
