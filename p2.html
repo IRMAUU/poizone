@@ -746,12 +746,14 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
 
 function getDraggableBounds() {
   const container = document.getElementById('app-container');
+  let multiplier = (window.innerWidth <= 900) ? 2 : 1; // double area on mobile
   return {
     left: 0,
     top: 0,
-    width: container.offsetWidth,
-    height: container.offsetHeight
+    width: container.offsetWidth * multiplier,
+    height: container.offsetHeight * multiplier
   };
+
 }
 function updateTextPreviewContent(text, font, size, color) {
   textPreviewContent.textContent = text.replace(/\n/g,"\n");
