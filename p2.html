@@ -710,7 +710,7 @@ document.getElementById('export-btn').addEventListener('click',()=>{
   }
 });
 
-// TEXT TOOL PREVIEW LOGIC with precise DOM mapping and touch support, improved z-index and canvas-wide drag
+// --- TEXT TOOL PREVIEW LOGIC with canvas-only drag bounds and correct stamping ---
 let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0, textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0;
 const textPreviewOverlay = document.getElementById('text-preview-overlay');
 const textPreviewContent = document.getElementById('text-preview-content');
@@ -733,7 +733,6 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   let w = textPreviewOverlay.offsetWidth || 100;
   let h = textPreviewOverlay.offsetHeight || 30;
   if(forceCenter || !textPreviewInit){
-    // Center inside canvas area, not whole container!
     const canvasRect = canvas.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
     const left = canvasRect.left - containerRect.left;
@@ -750,7 +749,6 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   textToolboxControls.style.display = "flex";
 }
 
-// Drag bounds: restrict dragging to canvas area within app-container
 function getDraggableBounds() {
   const canvasRect = canvas.getBoundingClientRect();
   const containerRect = document.getElementById('app-container').getBoundingClientRect();
@@ -761,7 +759,6 @@ function getDraggableBounds() {
     height: canvasRect.height
   };
 }
-
 function updateTextPreviewContent(text, font, size, color) {
   textPreviewContent.textContent = text.replace(/\\n/g,"\n");
   textPreviewOverlay.style.fontFamily = font;
@@ -775,7 +772,6 @@ function updateTextPreviewContent(text, font, size, color) {
   textPreviewOverlay.style.left = textPreviewPosX + "px";
   textPreviewOverlay.style.top = textPreviewPosY + "px";
 }
-
 function hideTextPreviewOverlay() {
   textPreviewActive = false;
   textPreviewOverlay.style.display = "none";
@@ -811,7 +807,6 @@ document.addEventListener('mousemove', function(e){
   let mouseY = e.clientY - containerRect.top;
   let posX = mouseX - textPreviewOffsetX;
   let posY = mouseY - textPreviewOffsetY;
-  // Clamp to canvas bounds
   posX = Math.max(bounds.left, Math.min(bounds.left + bounds.width - w, posX));
   posY = Math.max(bounds.top, Math.min(bounds.top + bounds.height - h, posY));
   textPreviewPosX = posX;
@@ -839,6 +834,48 @@ document.addEventListener('touchmove', function(e){
   if(e.cancelable) e.preventDefault();
 }, {passive:false});
 document.addEventListener('touchend', function(){ textPreviewDragging=false;textPreviewOverlay.style.cursor='grab'; });
+
+textSubmitBtn.onclick = function() {
+  if(!textPreviewActive) return;
+  saveState();
+  let overlayRect = textPreviewOverlay.getBoundingClientRect();
+  let canvasRect = canvas.getBoundingClientRect();
+  // Overlay is now clamped to canvas, so use canvas-relative math
+  let px = (overlayRect.left - canvasRect.left) * (canvas.width / canvasRect.width);
+  let py = (overlayRect.top - canvasRect.top) * (canvas.height / canvasRect.height);
+  drawTextMultiline(document.getElementById('text-string').value.replace(/\\n/g,"\n"), px, py, textFont, textSize, textColor);
+  showTextPreviewOverlay(document.getElementById('text-string').value, textFont, textSize, textColor, false);
+  // Respawn at the original spot
+  textPreviewPosX = textPreviewInitX;
+  textPreviewPosY = textPreviewInitY;
+  textPreviewOverlay.style.left = textPreviewPosX + "px";
+  textPreviewOverlay.style.top = textPreviewPosY + "px";
+};
+textCancelBtn.onclick = hideTextPreviewOverlay;
+document.getElementById('text-string').oninput = e => {
+  textString = e.target.value;
+  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+};
+document.getElementById('text-size').oninput = e => {
+  textSize = +e.target.value;
+  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+};
+document.getElementById('text-color').oninput = e => {
+  textColor = e.target.value;
+  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+};
+Array.from(document.getElementsByClassName("font-dropdown-option")).forEach(opt=>{
+  opt.onclick=function(){
+    Array.from(fontDropdownList.children).forEach(o=>o.classList.remove("selected"));
+    this.classList.add("selected");
+    textFont = this.getAttribute("data-font");
+    fontDropdownSelectedName.textContent = this.textContent;
+    fontDropdownSelectedName.style.fontFamily = textFont;
+    fontDropdown.classList.remove("open");
+    if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+  };
+});
+// --- END TEXT TOOL PREVIEW LOGIC ---
 
 canvas.addEventListener('mousedown',e=>{
   const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
