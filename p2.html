@@ -294,674 +294,687 @@
 <div class="menu-title" id="undo-btn">-undo</div>
 </div>
 </div>
-<script>const canvas = document.getElementById('paint-canvas'), ctx = canvas.getContext('2d');
-    canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; ctx.imageSmoothingEnabled = false;
-    let undoStack=[],MAX_UNDO=20;
-    function saveState(){if(undoStack.length>=MAX_UNDO)undoStack.shift();try{undoStack.push(ctx.getImageData(0,0,canvas.width,canvas.height));}catch(e){}}
-    function undo(){if(undoStack.length>0){let imgData=undoStack.pop();ctx.putImageData(imgData,0,0);}}
-    function resizeCanvas(){const r=canvas.getBoundingClientRect(),img=ctx.getImageData(0,0,canvas.width,canvas.height);canvas.width=r.width;canvas.height=r.height;ctx.imageSmoothingEnabled=false;ctx.putImageData(img,0,0);}
-    resizeCanvas();window.addEventListener('resize',resizeCanvas);
-    let drawing=false,
-      currentTool='marker',
-      markerSize=3,
-      eraserSize=3,
-      color='#000000',
-      bucketColor='#000000',
-      flow=2500,
-      lastPos=null,
-      spraySize=3,
-      spraySpread=16,
-      sprayFlow=50,
-      sprayColor='#000000',
-      calligraphySize=20,
-      calligraphyFlow=2500,
-      calligraphyType=0,
-      symbolSize=35,
-      symbolType=0,
-      textFont="Arial",
-      textSize=32,
-      textColor="#000000",
-      textString="your text",
-      calligraphyColor="#000000",
-      symbolColor="#000000";
-    const calligraphyBrushes = [
-      "♥\uFE0E", "⎸\uFE0E", "✦\uFE0E", "♥\uFE0E", "⎸\uFE0E", "✦\uFE0E"
-    ];
-    let calligraphyBrushType = 0;
-    const symbolChars = [
-      "★\uFE0E", "☠\uFE0E", "☣\uFE0E", "✠\uFE0E", "☭\uFE0E", "☮\uFE0E"
-    ];
-    let symbolCharType = 0;
-    document.querySelectorAll('.calligraphy-btn').forEach((btn,i)=>{
-      btn.onclick=()=>{
-        document.querySelectorAll('.calligraphy-btn').forEach(b=>b.classList.remove('calligraphy-selected'));
-        btn.classList.add('calligraphy-selected');
-        calligraphyBrushType=i;
-      };
-    });
-    document.querySelectorAll('.symbol-btn').forEach((btn,i)=>{
-      btn.onclick=()=>{
-        document.querySelectorAll('.symbol-btn').forEach(b=>b.classList.remove('symbol-selected'));
-        btn.classList.add('symbol-selected');
-        symbolCharType=i;
-      };
-    });
-    document.getElementById('marker-size').oninput=e=>{markerSize=+e.target.value;};
-    document.getElementById('marker-flow').oninput=e=>{flow=+e.target.value;};
-    document.getElementById('color-picker').oninput=e=>color=e.target.value;
-    document.getElementById('calligraphy-size').oninput=e=>{calligraphySize=+e.target.value;};
-    document.getElementById('calligraphy-flow').oninput=e=>{calligraphyFlow=+e.target.value;};
-    document.getElementById('calligraphy-color').oninput=e=>{calligraphyColor=e.target.value;};
-    document.getElementById('symbol-size').oninput=e=>symbolSize=+e.target.value;
-    document.getElementById('symbol-color').oninput=e=>{symbolColor=e.target.value;};
-    const fontDropdown=document.getElementById("font-dropdown"),fontDropdownList=document.getElementById("font-dropdown-list"),fontDropdownSelected=document.getElementById("font-dropdown-selected"),fontDropdownSelectedName=document.getElementById("font-dropdown-selected-name");
-    Array.from(fontDropdownList.children).forEach(opt=>{
-      opt.onclick=function(){
-        Array.from(fontDropdownList.children).forEach(o=>o.classList.remove("selected"));
-        this.classList.add("selected");
-        textFont = this.getAttribute("data-font");
-        fontDropdownSelectedName.textContent = this.textContent;
-        fontDropdownSelectedName.style.fontFamily = textFont;
-        fontDropdown.classList.remove("open");
-        if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-      };
-    });
-    fontDropdownSelected.onclick=function(e){fontDropdown.classList.toggle("open");};fontDropdown.onblur=function(){fontDropdown.classList.remove("open");};
-    document.getElementById('text-size').oninput=e=>{textSize=+e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
-    document.getElementById('text-color').oninput=e=>{textColor=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
-    document.getElementById('text-string').oninput=e=>{textString=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
-    document.getElementById('spray-size').oninput=e=>spraySize=+e.target.value;document.getElementById('spray-spread').oninput=e=>spraySpread=+e.target.value;document.getElementById('spray-flow').oninput=e=>sprayFlow=+e.target.value;document.getElementById('spray-color').oninput=e=>sprayColor=e.target.value;
-    document.getElementById('bucket-color').oninput=e=>bucketColor=e.target.value;
-    document.getElementById('eraser-size').oninput=e=>eraserSize=+e.target.value;
-    function drawCalligraphy(x,y){
-      ctx.save();
-      ctx.font = `${calligraphySize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = calligraphyColor;
-      ctx.fillText(calligraphyBrushes[calligraphyBrushType], x, y);
-      ctx.restore();
-    }
-    function drawCalligraphyFlowLine(x0,y0,x1,y1){
-      let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;
-      while(true){
-        drawCalligraphy(x0,y0);
-        if(x0===x1&&y0===y1)break;
-        let e2=2*err;
-        if(e2>-dy){err-=dy;x0+=sx;}
-        if(e2<dx){err+=dx;y0+=sy;}
-      }
-    }
-    function drawSymbol(x,y){
-      ctx.save();
-      ctx.font = `${symbolSize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = symbolColor;
-      ctx.fillText(symbolChars[symbolCharType], x, y);
-      ctx.restore();
-    }
-    function drawTextMultiline(str, x, y, font, size, color) {
-      ctx.save();
-      ctx.font = `${size}px ${font}`;
-      ctx.fillStyle = color;
-      ctx.textBaseline = "top";
-      ctx.textAlign = "left";
-      const lines = str.split('\n');
-      for(let i=0;i<lines.length;i++){
-        ctx.fillText(lines[i], x, y + i * size * 1.15);
-      }
-      ctx.restore();
-    }
-    function getBrushSettings(){if(currentTool==='marker')return{size:markerSize,color:color,flow:flow};if(currentTool==='eraser')return{size:eraserSize,color:"#fff",flow:flow};if(currentTool==='calligraphy')return{size:calligraphySize,flow:calligraphyFlow};return{size:markerSize,color:color,flow:flow};}
-    function drawAt(x,y){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;ctx.fillRect(x,y,size,size);}
-    function drawLine(x0,y0,x1,y1,customDraw){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;while(true){if(customDraw)customDraw(x0,y0);else ctx.fillRect(x0,y0,size,size);if(x0===x1&&y0===y1)break;let e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}}}
-    function sprayAt(x,y){ctx.fillStyle=(currentTool==='spray')?sprayColor:color;for(let i=0;i<sprayFlow;i++){const a=Math.random()*2*Math.PI,r=Math.random()*spraySpread,ox=Math.cos(a)*r,oy=Math.sin(a)*r;ctx.fillRect(x+ox,y+oy,spraySize,spraySize);}}
-    function hexToRgb(hex){const b=parseInt(hex.slice(1),16);return[(b>>16)&255,(b>>8)&255,b&255];}
-    function getPixelColor(x,y,imgData){const i=(y*imgData.width+x)*4;return[imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]];}
-    function colorsMatch(a,b){return a.every((v,i)=>v===b[i]);}
-    function floodFill(x,y,fillHex){
-      let imgData;
-      try {
-        imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
-      } catch (e) {
-        alert("Bucket fill unavailable: Canvas is tainted (see console). Only use local or CORS-enabled assets.");
-        return;
-      }
-      const targetColor=getPixelColor(x,y,imgData),fillColor=hexToRgb(fillHex).concat(255);
-      if(colorsMatch(targetColor,fillColor))return;
-      const stack=[[x,y]];
-      while(stack.length){
-        const[cx,cy]=stack.pop();
-        if(cx<0||cy<0||cx>=canvas.width||cy>=canvas.height)continue;
-        const currentColor=getPixelColor(cx,cy,imgData);
-        if(!colorsMatch(currentColor,targetColor))continue;
-        const i=(cy*canvas.width+cx)*4;
-        imgData.data.set(fillColor,i);
-        stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
-      }
-      ctx.putImageData(imgData,0,0);
-    }
-    let importImg = null, importImgNaturalWidth = 0, importImgNaturalHeight = 0,
-        importPreview = null, importDragging = false, importOffsetX = 0, importOffsetY = 0,
-        importPosX = 0, importPosY = 0, importScale = 1, importRotation = 0, importOpacity = 0.5, importFlipH = 1, importFlipV = 1;
-    const importSettingsDiv = document.getElementById('import-settings');
-    const importFileInput = document.getElementById('import-image-file');
-    const importSizeSlider = document.getElementById('import-size');
-    const importSizeValue = document.getElementById('import-size-value');
-    const importOpacitySlider = document.getElementById('import-opacity');
-    const importOpacityValue = document.getElementById('import-opacity-value');
-    const importRotationSlider = document.getElementById('import-rotation');
-    const importRotationValue = document.getElementById('import-rotation-value');
-    const importFlipHBtn = document.getElementById('import-flip-h');
-    const importFlipVBtn = document.getElementById('import-flip-v');
-    const importStampBtn = document.getElementById('import-stamp-btn');
-    const importCancelBtn = document.getElementById('import-cancel-btn');
-    const importDropdown = document.getElementById('import-dropdown');
-    function hideImportPreview() {
-      if(importPreview && importPreview.parentNode) {
-        importPreview.parentNode.removeChild(importPreview);
-        importPreview = null;
-      }
-    }
-    function showImportPreview() {
-      hideImportPreview();
-      if(!importImg) return;
-      importPreview = document.createElement('img');
-      importPreview.id = 'import-preview-img';
-      importPreview.src = importImg.src;
-      importPreview.draggable = false;
-      importPreview.style.position = 'absolute';
-      importPreview.style.opacity = importOpacity.toString();
-      importPreview.style.pointerEvents = 'auto';
-      importPreview.style.cursor = 'grab';
-      importPreview.style.zIndex = 5;
+<script>
+    const canvas = document.getElementById('paint-canvas'), ctx = canvas.getContext('2d');
+canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; ctx.imageSmoothingEnabled = false;
+let undoStack=[],MAX_UNDO=20;
+function saveState(){if(undoStack.length>=MAX_UNDO)undoStack.shift();try{undoStack.push(ctx.getImageData(0,0,canvas.width,canvas.height));}catch(e){}}
+function undo(){if(undoStack.length>0){let imgData=undoStack.pop();ctx.putImageData(imgData,0,0);}}
+function resizeCanvas(){const r=canvas.getBoundingClientRect(),img=ctx.getImageData(0,0,canvas.width,canvas.height);canvas.width=r.width;canvas.height=r.height;ctx.imageSmoothingEnabled=false;ctx.putImageData(img,0,0);}
+resizeCanvas();window.addEventListener('resize',resizeCanvas);
+let drawing=false,
+  currentTool='marker',
+  markerSize=3,
+  eraserSize=3,
+  color='#000000',
+  bucketColor='#000000',
+  flow=2500,
+  lastPos=null,
+  spraySize=3,
+  spraySpread=16,
+  sprayFlow=50,
+  sprayColor='#000000',
+  calligraphySize=20,
+  calligraphyFlow=2500,
+  calligraphyType=0,
+  symbolSize=35,
+  symbolType=0,
+  textFont="Arial",
+  textSize=32,
+  textColor="#000000",
+  textString="your text",
+  calligraphyColor="#000000",
+  symbolColor="#000000";
+const calligraphyBrushes = [
+  "♥\uFE0E", "⎸\uFE0E", "✦\uFE0E", "♥\uFE0E", "⎸\uFE0E", "✦\uFE0E"
+];
+let calligraphyBrushType = 0;
+const symbolChars = [
+  "★\uFE0E", "☠\uFE0E", "☣\uFE0E", "✠\uFE0E", "☭\uFE0E", "☮\uFE0E"
+];
+let symbolCharType = 0;
+document.querySelectorAll('.calligraphy-btn').forEach((btn,i)=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.calligraphy-btn').forEach(b=>b.classList.remove('calligraphy-selected'));
+    btn.classList.add('calligraphy-selected');
+    calligraphyBrushType=i;
+  };
+});
+document.querySelectorAll('.symbol-btn').forEach((btn,i)=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.symbol-btn').forEach(b=>b.classList.remove('symbol-selected'));
+    btn.classList.add('symbol-selected');
+    symbolCharType=i;
+  };
+});
+document.getElementById('marker-size').oninput=e=>{markerSize=+e.target.value;};
+document.getElementById('marker-flow').oninput=e=>{flow=+e.target.value;};
+document.getElementById('color-picker').oninput=e=>color=e.target.value;
+document.getElementById('calligraphy-size').oninput=e=>{calligraphySize=+e.target.value;};
+document.getElementById('calligraphy-flow').oninput=e=>{calligraphyFlow=+e.target.value;};
+document.getElementById('calligraphy-color').oninput=e=>{calligraphyColor=e.target.value;};
+document.getElementById('symbol-size').oninput=e=>symbolSize=+e.target.value;
+document.getElementById('symbol-color').oninput=e=>{symbolColor=e.target.value;};
+const fontDropdown=document.getElementById("font-dropdown"),fontDropdownList=document.getElementById("font-dropdown-list"),fontDropdownSelected=document.getElementById("font-dropdown-selected"),fontDropdownSelectedName=document.getElementById("font-dropdown-selected-name");
+Array.from(fontDropdownList.children).forEach(opt=>{
+  opt.onclick=function(){
+    Array.from(fontDropdownList.children).forEach(o=>o.classList.remove("selected"));
+    this.classList.add("selected");
+    textFont = this.getAttribute("data-font");
+    fontDropdownSelectedName.textContent = this.textContent;
+    fontDropdownSelectedName.style.fontFamily = textFont;
+    fontDropdown.classList.remove("open");
+    if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+  };
+});
+fontDropdownSelected.onclick=function(e){fontDropdown.classList.toggle("open");};fontDropdown.onblur=function(){fontDropdown.classList.remove("open");};
+document.getElementById('text-size').oninput=e=>{textSize=+e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
+document.getElementById('text-color').oninput=e=>{textColor=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
+document.getElementById('text-string').oninput=e=>{textString=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
+document.getElementById('spray-size').oninput=e=>spraySize=+e.target.value;document.getElementById('spray-spread').oninput=e=>spraySpread=+e.target.value;document.getElementById('spray-flow').oninput=e=>sprayFlow=+e.target.value;document.getElementById('spray-color').oninput=e=>sprayColor=e.target.value;
+document.getElementById('bucket-color').oninput=e=>bucketColor=e.target.value;
+document.getElementById('eraser-size').oninput=e=>eraserSize=+e.target.value;
+function drawCalligraphy(x,y){
+  ctx.save();
+  ctx.font = `${calligraphySize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = calligraphyColor;
+  ctx.fillText(calligraphyBrushes[calligraphyBrushType], x, y);
+  ctx.restore();
+}
+function drawCalligraphyFlowLine(x0,y0,x1,y1){
+  let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;
+  while(true){
+    drawCalligraphy(x0,y0);
+    if(x0===x1&&y0===y1)break;
+    let e2=2*err;
+    if(e2>-dy){err-=dy;x0+=sx;}
+    if(e2<dx){err+=dx;y0+=sy;}
+  }
+}
+function drawSymbol(x,y){
+  ctx.save();
+  ctx.font = `${symbolSize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = symbolColor;
+  ctx.fillText(symbolChars[symbolCharType], x, y);
+  ctx.restore();
+}
+function drawTextMultiline(str, x, y, font, size, color) {
+  ctx.save();
+  ctx.font = `${size}px ${font}`;
+  ctx.fillStyle = color;
+  ctx.textBaseline = "top";
+  ctx.textAlign = "left";
+  const lines = str.split('\n');
+  for(let i=0;i<lines.length;i++){
+    ctx.fillText(lines[i], x, y + i * size * 1.15);
+  }
+  ctx.restore();
+}
+function getBrushSettings(){if(currentTool==='marker')return{size:markerSize,color:color,flow:flow};if(currentTool==='eraser')return{size:eraserSize,color:"#fff",flow:flow};if(currentTool==='calligraphy')return{size:calligraphySize,flow:calligraphyFlow};return{size:markerSize,color:color,flow:flow};}
+function drawAt(x,y){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;ctx.fillRect(x,y,size,size);}
+function drawLine(x0,y0,x1,y1,customDraw){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;while(true){if(customDraw)customDraw(x0,y0);else ctx.fillRect(x0,y0,size,size);if(x0===x1&&y0===y1)break;let e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}}}
+function sprayAt(x,y){ctx.fillStyle=(currentTool==='spray')?sprayColor:color;for(let i=0;i<sprayFlow;i++){const a=Math.random()*2*Math.PI,r=Math.random()*spraySpread,ox=Math.cos(a)*r,oy=Math.sin(a)*r;ctx.fillRect(x+ox,y+oy,spraySize,spraySize);}}
+function hexToRgb(hex){const b=parseInt(hex.slice(1),16);return[(b>>16)&255,(b>>8)&255,b&255];}
+function getPixelColor(x,y,imgData){const i=(y*imgData.width+x)*4;return[imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]];}
+function colorsMatch(a,b){return a.every((v,i)=>v===b[i]);}
+function floodFill(x,y,fillHex){
+  let imgData;
+  try {
+    imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  } catch (e) {
+    alert("Bucket fill unavailable: Canvas is tainted (see console). Only use local or CORS-enabled assets.");
+    return;
+  }
+  const targetColor=getPixelColor(x,y,imgData),fillColor=hexToRgb(fillHex).concat(255);
+  if(colorsMatch(targetColor,fillColor))return;
+  const stack=[[x,y]];
+  while(stack.length){
+    const[cx,cy]=stack.pop();
+    if(cx<0||cy<0||cx>=canvas.width||cy>=canvas.height)continue;
+    const currentColor=getPixelColor(cx,cy,imgData);
+    if(!colorsMatch(currentColor,targetColor))continue;
+    const i=(cy*canvas.width+cx)*4;
+    imgData.data.set(fillColor,i);
+    stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+  }
+  ctx.putImageData(imgData,0,0);
+}
+let importImg = null, importImgNaturalWidth = 0, importImgNaturalHeight = 0,
+    importPreview = null, importDragging = false, importOffsetX = 0, importOffsetY = 0,
+    importPosX = 0, importPosY = 0, importScale = 1, importRotation = 0, importOpacity = 0.5, importFlipH = 1, importFlipV = 1;
+const importSettingsDiv = document.getElementById('import-settings');
+const importFileInput = document.getElementById('import-image-file');
+const importSizeSlider = document.getElementById('import-size');
+const importSizeValue = document.getElementById('import-size-value');
+const importOpacitySlider = document.getElementById('import-opacity');
+const importOpacityValue = document.getElementById('import-opacity-value');
+const importRotationSlider = document.getElementById('import-rotation');
+const importRotationValue = document.getElementById('import-rotation-value');
+const importFlipHBtn = document.getElementById('import-flip-h');
+const importFlipVBtn = document.getElementById('import-flip-v');
+const importStampBtn = document.getElementById('import-stamp-btn');
+const importCancelBtn = document.getElementById('import-cancel-btn');
+const importDropdown = document.getElementById('import-dropdown');
+function hideImportPreview() {
+  if(importPreview && importPreview.parentNode) {
+    importPreview.parentNode.removeChild(importPreview);
+    importPreview = null;
+  }
+}
+function showImportPreview() {
+  hideImportPreview();
+  if(!importImg) return;
+  importPreview = document.createElement('img');
+  importPreview.id = 'import-preview-img';
+  importPreview.src = importImg.src;
+  importPreview.draggable = false;
+  importPreview.style.position = 'absolute';
+  importPreview.style.opacity = importOpacity.toString();
+  importPreview.style.pointerEvents = 'auto';
+  importPreview.style.cursor = 'grab';
+  importPreview.style.zIndex = 5;
+  let container = document.getElementById('app-container');
+  container.appendChild(importPreview);
+  updateImportPreviewTransform();
+  importPreview.onmousedown = function(e) {
+    e.preventDefault();
+    importDragging = true;
+    let rect = importPreview.getBoundingClientRect();
+    let containerRect = container.getBoundingClientRect();
+    importOffsetX = e.clientX - rect.left;
+    importOffsetY = e.clientY - rect.top;
+  };
+  document.addEventListener('mousemove', imagePreviewDragMove);
+  document.addEventListener('mouseup', imagePreviewDragEnd);
+  importPreview.ontouchstart = function(e) {
+    if(e.touches.length !== 1) return;
+    e.preventDefault();
+    importDragging = true;
+    let rect = importPreview.getBoundingClientRect();
+    let containerRect = container.getBoundingClientRect();
+    let t = e.touches[0];
+    importOffsetX = t.clientX - rect.left;
+    importOffsetY = t.clientY - rect.top;
+  };
+  document.addEventListener('touchmove', imagePreviewDragMove, {passive:false});
+  document.addEventListener('touchend', imagePreviewDragEnd);
+  importPreview.onclick = null;
+  importPreview.ontouchend = null;
+}
+function imagePreviewDragMove(e) {
+  if(!importDragging || !importPreview) return;
+  let container = document.getElementById('app-container');
+  let containerRect = container.getBoundingClientRect();
+  let clientX, clientY;
+  if(e.touches && e.touches.length) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  let w = importPreview.offsetWidth, h = importPreview.offsetHeight;
+  let posX = clientX - containerRect.left - importOffsetX;
+  let posY = clientY - containerRect.top - importOffsetY;
+  posX = Math.max(0, Math.min(container.offsetWidth - w, posX));
+  posY = Math.max(0, Math.min(container.offsetHeight - h, posY));
+  importPosX = posX;
+  importPosY = posY;
+  updateImportPreviewTransform();
+  if(e.cancelable) e.preventDefault();
+}
+function imagePreviewDragEnd(e) {
+  if(importDragging) {
+    importDragging = false;
+    if(importPreview) importPreview.style.cursor='grab';
+  }
+}
+function updateImportPreviewTransform() {
+  if(!importPreview) return;
+  let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
+  let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+  importPreview.style.width = w+'px';
+  importPreview.style.height = h+'px';
+  importPreview.style.left = importPosX+'px';
+  importPreview.style.top = importPosY+'px';
+  let rot = importRotation;
+  let scaleX = importFlipH;
+  let scaleY = importFlipV;
+  importPreview.style.transform = `rotate(${rot}deg) scale(${scaleX},${scaleY})`;
+  importPreview.style.opacity = importOpacity;
+}
+function stampImageToCanvas() {
+  if(!importImg) return;
+  saveState();
+  let container = document.getElementById('app-container');
+  let w = importPreview.offsetWidth;
+  let h = importPreview.offsetHeight;
+  let px = (importPosX) * (canvas.width / container.offsetWidth);
+  let py = (importPosY) * (canvas.height / container.offsetHeight);
+  ctx.save();
+  ctx.globalAlpha = importOpacity;
+  ctx.translate(px + w/2, py + h/2);
+  ctx.rotate(importRotation * Math.PI / 180);
+  ctx.scale(importFlipH, importFlipV);
+  ctx.drawImage(importImg, -w/2, -h/2, w, h);
+  ctx.restore();
+  hideImportPreview();
+  importImg = null;
+  importSettingsDiv.classList.add('hidden');
+  importFileInput.value='';
+}
+function importResetState() {
+  importImg = null;
+  importImgNaturalWidth = 0;
+  importImgNaturalHeight = 0;
+  importScale = 1;
+  importRotation = 0;
+  importOpacity = 0.5;
+  importFlipH = 1;
+  importFlipV = 1;
+  let container = document.getElementById('app-container');
+  importPosX = (container.offsetWidth/2)-50;
+  importPosY = (container.offsetHeight/2)-50;
+  hideImportPreview();
+  importSettingsDiv.classList.add('hidden');
+}
+importFileInput.addEventListener('change', function(e){
+  let file = this.files[0];
+  if(!file) return;
+  importResetState();
+  let reader = new FileReader();
+  reader.onload = function(evt){
+    let img = new window.Image();
+    img.onload = function(){
+      importImg = img;
+      importImgNaturalWidth = img.naturalWidth;
+      importImgNaturalHeight = img.naturalHeight;
       let container = document.getElementById('app-container');
-      container.appendChild(importPreview);
-      updateImportPreviewTransform();
-      importPreview.onmousedown = function(e) {
-        e.preventDefault();
-        importDragging = true;
-        let rect = importPreview.getBoundingClientRect();
-        let containerRect = container.getBoundingClientRect();
-        importOffsetX = e.clientX - rect.left;
-        importOffsetY = e.clientY - rect.top;
-      };
-      document.addEventListener('mousemove', imagePreviewDragMove);
-      document.addEventListener('mouseup', imagePreviewDragEnd);
-      importPreview.ontouchstart = function(e) {
-        if(e.touches.length !== 1) return;
-        e.preventDefault();
-        importDragging = true;
-        let rect = importPreview.getBoundingClientRect();
-        let containerRect = container.getBoundingClientRect();
-        let t = e.touches[0];
-        importOffsetX = t.clientX - rect.left;
-        importOffsetY = t.clientY - rect.top;
-      };
-      document.addEventListener('touchmove', imagePreviewDragMove, {passive:false});
-      document.addEventListener('touchend', imagePreviewDragEnd);
-      importPreview.onclick = null;
-      importPreview.ontouchend = null;
-    }
-    function imagePreviewDragMove(e) {
-      if(!importDragging || !importPreview) return;
-      let container = document.getElementById('app-container');
-      let containerRect = container.getBoundingClientRect();
-      let clientX, clientY;
-      if(e.touches && e.touches.length) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-      } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
-      }
-      let w = importPreview.offsetWidth, h = importPreview.offsetHeight;
-      let posX = clientX - containerRect.left - importOffsetX;
-      let posY = clientY - containerRect.top - importOffsetY;
-      posX = Math.max(0, Math.min(container.offsetWidth - w, posX));
-      posY = Math.max(0, Math.min(container.offsetHeight - h, posY));
-      importPosX = posX;
-      importPosY = posY;
-      updateImportPreviewTransform();
-      if(e.cancelable) e.preventDefault();
-    }
-    function imagePreviewDragEnd(e) {
-      if(importDragging) {
-        importDragging = false;
-        if(importPreview) importPreview.style.cursor='grab';
-      }
-    }
-    function updateImportPreviewTransform() {
-      if(!importPreview) return;
-      let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
-      let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
-      importPreview.style.width = w+'px';
-      importPreview.style.height = h+'px';
-      importPreview.style.left = importPosX+'px';
-      importPreview.style.top = importPosY+'px';
-      let rot = importRotation;
-      let scaleX = importFlipH;
-      let scaleY = importFlipV;
-      importPreview.style.transform = `rotate(${rot}deg) scale(${scaleX},${scaleY})`;
-      importPreview.style.opacity = importOpacity;
-    }
-    function stampImageToCanvas() {
-      if(!importImg) return;
-      saveState();
-      let container = document.getElementById('app-container');
-      let w = importPreview.offsetWidth;
-      let h = importPreview.offsetHeight;
-      let px = (importPosX) * (canvas.width / container.offsetWidth);
-      let py = (importPosY) * (canvas.height / container.offsetHeight);
-      ctx.save();
-      ctx.globalAlpha = importOpacity;
-      ctx.translate(px + w/2, py + h/2);
-      ctx.rotate(importRotation * Math.PI / 180);
-      ctx.scale(importFlipH, importFlipV);
-      ctx.drawImage(importImg, -w/2, -h/2, w, h);
-      ctx.restore();
-      hideImportPreview();
-      importImg = null;
-      importSettingsDiv.classList.add('hidden');
-      importFileInput.value='';
-    }
-    function importResetState() {
-      importImg = null;
-      importImgNaturalWidth = 0;
-      importImgNaturalHeight = 0;
-      importScale = 1;
-      importRotation = 0;
-      importOpacity = 0.5;
-      importFlipH = 1;
-      importFlipV = 1;
-      let container = document.getElementById('app-container');
-      importPosX = (container.offsetWidth/2)-50;
-      importPosY = (container.offsetHeight/2)-50;
-      hideImportPreview();
-      importSettingsDiv.classList.add('hidden');
-    }
-    importFileInput.addEventListener('change', function(e){
-      let file = this.files[0];
-      if(!file) return;
-      importResetState();
-      let reader = new FileReader();
-      reader.onload = function(evt){
-        let img = new window.Image();
-        img.onload = function(){
-          importImg = img;
-          importImgNaturalWidth = img.naturalWidth;
-          importImgNaturalHeight = img.naturalHeight;
-          let container = document.getElementById('app-container');
-          let scaleX = container.offsetWidth / img.naturalWidth;
-          let scaleY = container.offsetHeight / img.naturalHeight;
-          let fitScale = Math.min(1, scaleX, scaleY);
-          importScale = fitScale;
-          importSizeSlider.value = Math.round(importScale * 100);
-          importSizeValue.textContent = importSizeSlider.value;
-          importOpacity = parseInt(importOpacitySlider.value,10) / 100.0;
-          importRotation = parseInt(importRotationSlider.value,10);
-          importFlipH = 1; importFlipV = 1;
-          let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
-          let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
-          importPosX = (container.offsetWidth-w)/2;
-          importPosY = (container.offsetHeight-h)/2;
-          importOpacityValue.textContent = importOpacitySlider.value;
-          importRotationValue.textContent = importRotationSlider.value;
-          importSettingsDiv.classList.remove('hidden');
-          showImportPreview();
-        };
-        img.src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-    importSizeSlider.addEventListener('input', function() {
-      importScale = parseInt(this.value,10)/100.0;
-      importSizeValue.textContent = this.value;
-      let container = document.getElementById('app-container');
+      let scaleX = container.offsetWidth / img.naturalWidth;
+      let scaleY = container.offsetHeight / img.naturalHeight;
+      let fitScale = Math.min(1, scaleX, scaleY);
+      importScale = fitScale;
+      importSizeSlider.value = Math.round(importScale * 100);
+      importSizeValue.textContent = importSizeSlider.value;
+      importOpacity = parseInt(importOpacitySlider.value,10) / 100.0;
+      importRotation = parseInt(importRotationSlider.value,10);
+      importFlipH = 1; importFlipV = 1;
       let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
       let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
       importPosX = (container.offsetWidth-w)/2;
       importPosY = (container.offsetHeight-h)/2;
-      updateImportPreviewTransform();
-    });
-    importOpacitySlider.addEventListener('input', function() {
-      importOpacity = parseInt(this.value,10)/100.0;
-      importOpacityValue.textContent = this.value;
-      if(importPreview) importPreview.style.opacity = importOpacity;
-    });
-    importRotationSlider.addEventListener('input', function() {
-      importRotation = parseInt(this.value,10);
-      importRotationValue.textContent = this.value;
-      updateImportPreviewTransform();
-    });
-    importFlipHBtn.addEventListener('click', function() { importFlipH *= -1; updateImportPreviewTransform(); });
-    importFlipVBtn.addEventListener('click', function() { importFlipV *= -1; updateImportPreviewTransform(); });
-    importStampBtn.addEventListener('click', function() { stampImageToCanvas(); });
-    importCancelBtn.addEventListener('click', function() { importResetState(); });
-    document.querySelectorAll('.menu-title').forEach(title=>{
-      title.addEventListener('click',()=>{
-        if(title.id==="undo-btn")return;
-        const menu=title.dataset.menu,dropdown=document.getElementById(`${menu}-dropdown`),isAlreadyOpen=!dropdown.classList.contains('hidden');
-        document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
-        if(!isAlreadyOpen)dropdown.classList.remove('hidden');
-        if(menu!=='import') importResetState();
-      });
-    });
-    document.getElementById('export-back').addEventListener('click',()=>{document.getElementById('export-dropdown').classList.add('hidden');});
-    document.getElementById('undo-btn').addEventListener('click',()=>{undo();});
-    document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z')undo();});
-    document.querySelectorAll('.tool-option').forEach(opt=>{
-      opt.addEventListener('click',()=>{
-        const tool=opt.id.split('-')[0],settings=document.getElementById(`${tool}-settings`);
-        if(currentTool===tool){if(settings)settings.classList.toggle('hidden');return;}
-        currentTool=tool;setToolHighlight(currentTool);
-        if(tool==="text"){showTextPreviewOverlay(textString, textFont, textSize, textColor,true);}
-        else{hideTextPreviewOverlay();}
-      });
-    });
-    function setToolHighlight(tool){
-      ['marker','calligraphy','symbol','text','spray','eraser','bucket','clear'].forEach(t=>{
-        const settings=document.getElementById(`${t}-settings`),option=document.getElementById(`${t}-option`);
-        if(settings)settings.classList.add('hidden');
-        if(option)option.classList.remove('selected');
-      });
-      const settings=document.getElementById(`${tool}-settings`),option=document.getElementById(`${tool}-option`);
-      if(settings)settings.classList.remove('hidden');
-      if(option)option.classList.add('selected');
+      importOpacityValue.textContent = importOpacitySlider.value;
+      importRotationValue.textContent = importRotationSlider.value;
+      importSettingsDiv.classList.remove('hidden');
+      showImportPreview();
+    };
+    img.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+importSizeSlider.addEventListener('input', function() {
+  importScale = parseInt(this.value,10)/100.0;
+  importSizeValue.textContent = this.value;
+  let container = document.getElementById('app-container');
+  let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
+  let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+  importPosX = (container.offsetWidth-w)/2;
+  importPosY = (container.offsetHeight-h)/2;
+  updateImportPreviewTransform();
+});
+importOpacitySlider.addEventListener('input', function() {
+  importOpacity = parseInt(this.value,10)/100.0;
+  importOpacityValue.textContent = this.value;
+  if(importPreview) importPreview.style.opacity = importOpacity;
+});
+importRotationSlider.addEventListener('input', function() {
+  importRotation = parseInt(this.value,10);
+  importRotationValue.textContent = this.value;
+  updateImportPreviewTransform();
+});
+importFlipHBtn.addEventListener('click', function() { importFlipH *= -1; updateImportPreviewTransform(); });
+importFlipVBtn.addEventListener('click', function() { importFlipV *= -1; updateImportPreviewTransform(); });
+importStampBtn.addEventListener('click', function() { stampImageToCanvas(); });
+importCancelBtn.addEventListener('click', function() { importResetState(); });
+document.querySelectorAll('.menu-title').forEach(title=>{
+  title.addEventListener('click',()=>{
+    if(title.id==="undo-btn")return;
+    const menu=title.dataset.menu,dropdown=document.getElementById(`${menu}-dropdown`),isAlreadyOpen=!dropdown.classList.contains('hidden');
+    document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
+    if(!isAlreadyOpen)dropdown.classList.remove('hidden');
+    if(menu!=='import') importResetState();
+  });
+});
+document.getElementById('export-back').addEventListener('click',()=>{document.getElementById('export-dropdown').classList.add('hidden');});
+document.getElementById('undo-btn').addEventListener('click',()=>{undo();});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z')undo();});
+document.querySelectorAll('.tool-option').forEach(opt=>{
+  opt.addEventListener('click',()=>{
+    const tool=opt.id.split('-')[0],settings=document.getElementById(`${tool}-settings`);
+    if(currentTool===tool){if(settings)settings.classList.toggle('hidden');return;}
+    currentTool=tool;setToolHighlight(currentTool);
+    if(tool==="text"){showTextPreviewOverlay(textString, textFont, textSize, textColor,true);}
+    else{hideTextPreviewOverlay();}
+  });
+});
+function setToolHighlight(tool){
+  ['marker','calligraphy','symbol','text','spray','eraser','bucket','clear'].forEach(t=>{
+    const settings=document.getElementById(`${t}-settings`),option=document.getElementById(`${t}-option`);
+    if(settings)settings.classList.add('hidden');
+    if(option)option.classList.remove('selected');
+  });
+  const settings=document.getElementById(`${tool}-settings`),option=document.getElementById(`${tool}-option`);
+  if(settings)settings.classList.remove('hidden');
+  if(option)option.classList.add('selected');
+}
+const panel=document.getElementById('tool-panel');let isDraggingPanel=false,offsetX=0,offsetY=0;
+document.getElementById('tool-panel-header').addEventListener('mousedown',e=>{isDraggingPanel=true;offsetX=e.offsetX;offsetY=e.offsetY;});
+document.addEventListener('mousemove',e=>{
+  if(!isDraggingPanel)return;
+  const container=document.getElementById('app-container').getBoundingClientRect();
+  let x=e.clientX-offsetX-container.left,y=e.clientY-offsetY-container.top;
+  panel.style.left=Math.max(0,Math.min(container.width-panel.offsetWidth,x))+'px';
+  panel.style.top=Math.max(0,Math.min(container.height-panel.offsetHeight,y))+'px';
+});
+document.addEventListener('mouseup',()=>isDraggingPanel=false);
+document.getElementById('clear-yes').addEventListener('click',()=>{saveState();ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('clear-settings').classList.add('hidden');});
+document.getElementById('clear-back').addEventListener('click',()=>{document.getElementById('clear-settings').classList.add('hidden');});
+document.getElementById('export-btn').addEventListener('click',()=>{
+  const filename=document.getElementById('file-name').value||'pixel-art',transparent=document.getElementById('transparent-bg').checked;
+  if(!transparent){
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.fillStyle = "#fff";
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.drawImage(canvas, 0, 0);
+    const link=document.createElement('a');
+    link.download=filename+'.png';
+    link.href=tempCanvas.toDataURL('image/png');
+    link.click();
+  }else{
+    const link=document.createElement('a');
+    link.download=filename+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  }
+});
+
+// TEXT TOOL PREVIEW LOGIC with precise DOM mapping and touch support, improved z-index and canvas-wide drag
+let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0, textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0;
+const textPreviewOverlay = document.getElementById('text-preview-overlay');
+const textPreviewContent = document.getElementById('text-preview-content');
+const textSubmitBtn = document.getElementById('text-submit-btn');
+const textCancelBtn = document.getElementById('text-cancel-btn');
+const textToolboxControls = document.getElementById('text-toolbox-controls');
+// Set z-index so tool panel (z:20) is above overlay (z:10)
+textPreviewOverlay.style.zIndex = "10";
+function showTextPreviewOverlay(text, font, size, color, forceCenter) {
+  let container = document.getElementById('app-container');
+  textPreviewActive = true;
+  textPreviewOverlay.style.display = "block";
+  textPreviewContent.textContent = text.replace(/\\n/g,"\n");
+  textPreviewOverlay.style.fontFamily = font;
+  textPreviewOverlay.style.fontSize = size + "px";
+  textPreviewOverlay.style.color = color;
+  textPreviewContent.style.fontFamily = font;
+  textPreviewContent.style.fontSize = size + "px";
+  textPreviewContent.style.color = color;
+  let w = textPreviewOverlay.offsetWidth || 100;
+  let h = textPreviewOverlay.offsetHeight || 30;
+  if(forceCenter || !textPreviewInit){
+    textPreviewPosX = (container.offsetWidth-w)/2;
+    textPreviewPosY = (container.offsetHeight-h)/2;
+    textPreviewInitX = textPreviewPosX;
+    textPreviewInitY = textPreviewPosY;
+    textPreviewInit = true;
+  }
+  textPreviewOverlay.style.left = textPreviewPosX + "px";
+  textPreviewOverlay.style.top = textPreviewPosY + "px";
+  textToolboxControls.style.display = "flex";
+}
+// Use full app-container as draggable area, not just canvas
+function getDraggableBounds() {
+  const container = document.getElementById('app-container');
+  return {
+    left: 0,
+    top: 0,
+    right: container.offsetWidth,
+    bottom: container.offsetHeight,
+    width: container.offsetWidth,
+    height: container.offsetHeight,
+  };
+}
+function updateTextPreviewContent(text, font, size, color) {
+  textPreviewContent.textContent = text.replace(/\\n/g,"\n");
+  textPreviewOverlay.style.fontFamily = font;
+  textPreviewOverlay.style.fontSize = size + "px";
+  textPreviewOverlay.style.color = color;
+  textPreviewContent.style.fontFamily = font;
+  textPreviewContent.style.fontSize = size + "px";
+  textPreviewContent.style.color = color;
+  let w = textPreviewOverlay.offsetWidth || 100;
+  let h = textPreviewOverlay.offsetHeight || 30;
+  textPreviewOverlay.style.left = textPreviewPosX + "px";
+  textPreviewOverlay.style.top = textPreviewPosY + "px";
+}
+function hideTextPreviewOverlay() {
+  textPreviewActive = false;
+  textPreviewOverlay.style.display = "none";
+  textToolboxControls.style.display = "none";
+  textPreviewInit = false;
+  textPreviewPosX = 0;
+  textPreviewPosY = 0;
+}
+textPreviewOverlay.onmousedown = function(e) {
+  e.preventDefault();
+  textPreviewDragging = true;
+  textPreviewOverlay.style.cursor='grabbing';
+  let rect = textPreviewOverlay.getBoundingClientRect();
+  let containerRect = document.getElementById('app-container').getBoundingClientRect();
+  textPreviewOffsetX = e.clientX - rect.left;
+  textPreviewOffsetY = e.clientY - rect.top;
+};
+// Touch support for mobile: drag text overlay
+textPreviewOverlay.ontouchstart = function(e) {
+  if(e.touches.length !== 1) return;
+  e.preventDefault();
+  textPreviewDragging = true;
+  textPreviewOverlay.style.cursor='grabbing';
+  let rect = textPreviewOverlay.getBoundingClientRect();
+  let containerRect = document.getElementById('app-container').getBoundingClientRect();
+  let t = e.touches[0];
+  textPreviewOffsetX = t.clientX - rect.left;
+  textPreviewOffsetY = t.clientY - rect.top;
+};
+document.addEventListener('mousemove', function(e){
+  if(!textPreviewDragging || !textPreviewActive) return;
+  let bounds = getDraggableBounds();
+  let w = textPreviewOverlay.offsetWidth, h = textPreviewOverlay.offsetHeight;
+  let posX = e.clientX - bounds.left - textPreviewOffsetX;
+  let posY = e.clientY - bounds.top - textPreviewOffsetY;
+  posX = Math.max(0, Math.min(bounds.width - w, posX));
+  posY = Math.max(0, Math.min(bounds.height - h, posY));
+  textPreviewPosX = posX;
+  textPreviewPosY = posY;
+  textPreviewOverlay.style.left = textPreviewPosX + "px";
+  textPreviewOverlay.style.top = textPreviewPosY + "px";
+});
+document.addEventListener('mouseup', function(){ textPreviewDragging=false;textPreviewOverlay.style.cursor='grab'; });
+// Touch move for text overlay
+document.addEventListener('touchmove', function(e){
+  if(!textPreviewDragging || !textPreviewActive) return;
+  let bounds = getDraggableBounds();
+  let w = textPreviewOverlay.offsetWidth, h = textPreviewOverlay.offsetHeight;
+  let t = e.touches[0];
+  let posX = t.clientX - bounds.left - textPreviewOffsetX;
+  let posY = t.clientY - bounds.top - textPreviewOffsetY;
+  posX = Math.max(0, Math.min(bounds.width - w, posX));
+  posY = Math.max(0, Math.min(bounds.height - h, posY));
+  textPreviewPosX = posX;
+  textPreviewPosY = posY;
+  textPreviewOverlay.style.left = textPreviewPosX + "px";
+  textPreviewOverlay.style.top = textPreviewPosY + "px";
+  if(e.cancelable) e.preventDefault();
+}, {passive:false});
+// Touch end for text overlay
+document.addEventListener('touchend', function(){ textPreviewDragging=false;textPreviewOverlay.style.cursor='grab'; });
+
+textSubmitBtn.onclick = function() {
+  if(!textPreviewActive) return;
+  saveState();
+  let container = document.getElementById('app-container');
+  let overlayRect = textPreviewOverlay.getBoundingClientRect();
+  let containerRect = container.getBoundingClientRect();
+  let px = (overlayRect.left - containerRect.left) * (canvas.width / container.offsetWidth);
+  let py = (overlayRect.top - containerRect.top) * (canvas.height / container.offsetHeight);
+  drawTextMultiline(document.getElementById('text-string').value.replace(/\\n/g,"\n"), px, py, textFont, textSize, textColor);
+  showTextPreviewOverlay(document.getElementById('text-string').value, textFont, textSize, textColor, false);
+  // Respawn at the original spot
+  textPreviewPosX = textPreviewInitX;
+  textPreviewPosY = textPreviewInitY;
+  textPreviewOverlay.style.left = textPreviewPosX + "px";
+  textPreviewOverlay.style.top = textPreviewPosY + "px";
+};
+textCancelBtn.onclick = hideTextPreviewOverlay;
+document.getElementById('text-string').oninput = e => {
+  textString = e.target.value;
+  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+};
+document.getElementById('text-size').oninput = e => {
+  textSize = +e.target.value;
+  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+};
+document.getElementById('text-color').oninput = e => {
+  textColor = e.target.value;
+  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+};
+// Font dropdown option handler -- ensures label & font updates
+Array.from(document.getElementsByClassName("font-dropdown-option")).forEach(opt=>{
+  opt.onclick=function(){
+    Array.from(fontDropdownList.children).forEach(o=>o.classList.remove("selected"));
+    this.classList.add("selected");
+    textFont = this.getAttribute("data-font");
+    fontDropdownSelectedName.textContent = this.textContent;
+    fontDropdownSelectedName.style.fontFamily = textFont;
+    fontDropdown.classList.remove("open");
+    if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+  };
+});
+canvas.addEventListener('mousedown',e=>{
+  const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
+  if(currentTool==='bucket'){
+    saveState();
+    floodFill(x,y,bucketColor);
+  }else{
+    saveState();
+    if(currentTool==='calligraphy'){
+      drawing=true;lastPos={x,y};drawCalligraphy(x,y);
+    }else if(currentTool==='symbol'){
+      drawSymbol(x,y);
+    }else if(currentTool==='text'){
+      // handled by overlay
+    }else{
+      drawing=true;lastPos={x,y};
+      if(currentTool==='spray'){sprayAt(x,y);}else{drawAt(x,y);}
     }
-    const panel=document.getElementById('tool-panel');let isDraggingPanel=false,offsetX=0,offsetY=0;
-    document.getElementById('tool-panel-header').addEventListener('mousedown',e=>{isDraggingPanel=true;offsetX=e.offsetX;offsetY=e.offsetY;});
-    document.addEventListener('mousemove',e=>{
-      if(!isDraggingPanel)return;
-      const container=document.getElementById('app-container').getBoundingClientRect();
-      let x=e.clientX-offsetX-container.left,y=e.clientY-offsetY-container.top;
-      panel.style.left=Math.max(0,Math.min(container.width-panel.offsetWidth,x))+'px';
-      panel.style.top=Math.max(0,Math.min(container.height-panel.offsetHeight,y))+'px';
-    });
-    document.addEventListener('mouseup',()=>isDraggingPanel=false);
-    document.getElementById('clear-yes').addEventListener('click',()=>{saveState();ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('clear-settings').classList.add('hidden');});
-    document.getElementById('clear-back').addEventListener('click',()=>{document.getElementById('clear-settings').classList.add('hidden');});
-    document.getElementById('export-btn').addEventListener('click',()=>{
-      const filename=document.getElementById('file-name').value||'pixel-art',transparent=document.getElementById('transparent-bg').checked;
-      if(!transparent){
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = canvas.width;
-        tempCanvas.height = canvas.height;
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCtx.fillStyle = "#fff";
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        tempCtx.drawImage(canvas, 0, 0);
-        const link=document.createElement('a');
-        link.download=filename+'.png';
-        link.href=tempCanvas.toDataURL('image/png');
-        link.click();
+  }
+});
+canvas.addEventListener('mousemove',e=>{
+  if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text')return;
+  const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
+  if(currentTool==='calligraphy'){
+    if(lastPos){
+      if(calligraphyFlow>=1000){
+        drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
       }else{
-        const link=document.createElement('a');
-        link.download=filename+'.png';
-        link.href=canvas.toDataURL('image/png');
-        link.click();
-      }
-    });
-    
-    // TEXT TOOL PREVIEW LOGIC with precise DOM mapping and touch support
-    let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0, textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0;
-    const textPreviewOverlay = document.getElementById('text-preview-overlay');
-    const textPreviewContent = document.getElementById('text-preview-content');
-    const textSubmitBtn = document.getElementById('text-submit-btn');
-    const textCancelBtn = document.getElementById('text-cancel-btn');
-    const textToolboxControls = document.getElementById('text-toolbox-controls');
-    function showTextPreviewOverlay(text, font, size, color, forceCenter) {
-      let container = document.getElementById('app-container');
-      textPreviewActive = true;
-      textPreviewOverlay.style.display = "block";
-      textPreviewContent.textContent = text.replace(/\\n/g,"\n");
-      textPreviewOverlay.style.fontFamily = font;
-      textPreviewOverlay.style.fontSize = size + "px";
-      textPreviewOverlay.style.color = color;
-      textPreviewContent.style.fontFamily = font;
-      textPreviewContent.style.fontSize = size + "px";
-      textPreviewContent.style.color = color;
-      let w = textPreviewOverlay.offsetWidth || 100;
-      let h = textPreviewOverlay.offsetHeight || 30;
-      if(forceCenter || !textPreviewInit){
-        textPreviewPosX = (container.offsetWidth-w)/2;
-        textPreviewPosY = (container.offsetHeight-h)/2;
-        textPreviewInitX = textPreviewPosX;
-        textPreviewInitY = textPreviewPosY;
-        textPreviewInit = true;
-      }
-      textPreviewOverlay.style.left = textPreviewPosX + "px";
-      textPreviewOverlay.style.top = textPreviewPosY + "px";
-      textToolboxControls.style.display = "flex";
-    }
-    function updateTextPreviewContent(text, font, size, color) {
-      textPreviewContent.textContent = text.replace(/\\n/g,"\n");
-      textPreviewOverlay.style.fontFamily = font;
-      textPreviewOverlay.style.fontSize = size + "px";
-      textPreviewOverlay.style.color = color;
-      textPreviewContent.style.fontFamily = font;
-      textPreviewContent.style.fontSize = size + "px";
-      textPreviewContent.style.color = color;
-      let w = textPreviewOverlay.offsetWidth || 100;
-      let h = textPreviewOverlay.offsetHeight || 30;
-      textPreviewOverlay.style.left = textPreviewPosX + "px";
-      textPreviewOverlay.style.top = textPreviewPosY + "px";
-    }
-    function hideTextPreviewOverlay() {
-      textPreviewActive = false;
-      textPreviewOverlay.style.display = "none";
-      textToolboxControls.style.display = "none";
-      textPreviewInit = false;
-      textPreviewPosX = 0;
-      textPreviewPosY = 0;
-    }
-    textPreviewOverlay.onmousedown = function(e) {
-      e.preventDefault();
-      textPreviewDragging = true;
-      textPreviewOverlay.style.cursor='grabbing';
-      let rect = textPreviewOverlay.getBoundingClientRect();
-      let containerRect = document.getElementById('app-container').getBoundingClientRect();
-      textPreviewOffsetX = e.clientX - rect.left;
-      textPreviewOffsetY = e.clientY - rect.top;
-    };
-    // Touch support for mobile: drag text overlay
-    textPreviewOverlay.ontouchstart = function(e) {
-      if(e.touches.length !== 1) return;
-      e.preventDefault();
-      textPreviewDragging = true;
-      textPreviewOverlay.style.cursor='grabbing';
-      let rect = textPreviewOverlay.getBoundingClientRect();
-      let containerRect = document.getElementById('app-container').getBoundingClientRect();
-      let t = e.touches[0];
-      textPreviewOffsetX = t.clientX - rect.left;
-      textPreviewOffsetY = t.clientY - rect.top;
-    };
-    document.addEventListener('mousemove', function(e){
-      if(!textPreviewDragging || !textPreviewActive) return;
-      let container = document.getElementById('app-container');
-      let containerRect = container.getBoundingClientRect();
-      let w = textPreviewOverlay.offsetWidth, h = textPreviewOverlay.offsetHeight;
-      let posX = e.clientX - containerRect.left - textPreviewOffsetX;
-      let posY = e.clientY - containerRect.top - textPreviewOffsetY;
-      posX = Math.max(0, Math.min(container.offsetWidth - w, posX));
-      posY = Math.max(0, Math.min(container.offsetHeight - h, posY));
-      textPreviewPosX = posX;
-      textPreviewPosY = posY;
-      textPreviewOverlay.style.left = textPreviewPosX + "px";
-      textPreviewOverlay.style.top = textPreviewPosY + "px";
-    });
-    document.addEventListener('mouseup', function(){ textPreviewDragging=false;textPreviewOverlay.style.cursor='grab'; });
-    // Touch move for text overlay
-    document.addEventListener('touchmove', function(e){
-      if(!textPreviewDragging || !textPreviewActive) return;
-      let container = document.getElementById('app-container');
-      let containerRect = container.getBoundingClientRect();
-      let w = textPreviewOverlay.offsetWidth, h = textPreviewOverlay.offsetHeight;
-      let t = e.touches[0];
-      let posX = t.clientX - containerRect.left - textPreviewOffsetX;
-      let posY = t.clientY - containerRect.top - textPreviewOffsetY;
-      posX = Math.max(0, Math.min(container.offsetWidth - w, posX));
-      posY = Math.max(0, Math.min(container.offsetHeight - h, posY));
-      textPreviewPosX = posX;
-      textPreviewPosY = posY;
-      textPreviewOverlay.style.left = textPreviewPosX + "px";
-      textPreviewOverlay.style.top = textPreviewPosY + "px";
-      if(e.cancelable) e.preventDefault();
-    }, {passive:false});
-    // Touch end for text overlay
-    document.addEventListener('touchend', function(){ textPreviewDragging=false;textPreviewOverlay.style.cursor='grab'; });
-    
-    textSubmitBtn.onclick = function() {
-      if(!textPreviewActive) return;
-      saveState();
-      let container = document.getElementById('app-container');
-      let overlayRect = textPreviewOverlay.getBoundingClientRect();
-      let containerRect = container.getBoundingClientRect();
-      let px = (overlayRect.left - containerRect.left) * (canvas.width / container.offsetWidth);
-      let py = (overlayRect.top - containerRect.top) * (canvas.height / container.offsetHeight);
-      drawTextMultiline(document.getElementById('text-string').value.replace(/\\n/g,"\n"), px, py, textFont, textSize, textColor);
-      showTextPreviewOverlay(document.getElementById('text-string').value, textFont, textSize, textColor, false);
-      // Respawn at the original spot
-      textPreviewPosX = textPreviewInitX;
-      textPreviewPosY = textPreviewInitY;
-      textPreviewOverlay.style.left = textPreviewPosX + "px";
-      textPreviewOverlay.style.top = textPreviewPosY + "px";
-    };
-    textCancelBtn.onclick = hideTextPreviewOverlay;
-    document.getElementById('text-string').oninput = e => {
-      textString = e.target.value;
-      if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-    };
-    document.getElementById('text-size').oninput = e => {
-      textSize = +e.target.value;
-      if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-    };
-    document.getElementById('text-color').oninput = e => {
-      textColor = e.target.value;
-      if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-    };
-    // Font dropdown option handler -- ensures label & font updates
-    Array.from(document.getElementsByClassName("font-dropdown-option")).forEach(opt=>{
-      opt.onclick=function(){
-        Array.from(fontDropdownList.children).forEach(o=>o.classList.remove("selected"));
-        this.classList.add("selected");
-        textFont = this.getAttribute("data-font");
-        fontDropdownSelectedName.textContent = this.textContent;
-        fontDropdownSelectedName.style.fontFamily = textFont;
-        fontDropdown.classList.remove("open");
-        if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-      };
-    });
-    canvas.addEventListener('mousedown',e=>{
-      const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
-      if(currentTool==='bucket'){
-        saveState();
-        floodFill(x,y,bucketColor);
-      }else{
-        saveState();
-        if(currentTool==='calligraphy'){
-          drawing=true;lastPos={x,y};drawCalligraphy(x,y);
-        }else if(currentTool==='symbol'){
-          drawSymbol(x,y);
-        }else if(currentTool==='text'){
-          // handled by overlay
-        }else{
-          drawing=true;lastPos={x,y};
-          if(currentTool==='spray'){sprayAt(x,y);}else{drawAt(x,y);}
-        }
-      }
-    });
-    canvas.addEventListener('mousemove',e=>{
-      if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text')return;
-      const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
-      if(currentTool==='calligraphy'){
-        if(lastPos){
-          if(calligraphyFlow>=1000){
-            drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
-          }else{
-            let dist=Math.hypot(x-lastPos.x,y-lastPos.y);
-            let step = Math.max(1, Math.floor(1000/calligraphyFlow));
-            if(dist>step){
-              let steps = Math.floor(dist/step);
-              for(let i=1;i<=steps;i++){
-                let nx = Math.round(lastPos.x + (x-lastPos.x)*i/steps);
-                let ny = Math.round(lastPos.y + (y-lastPos.y)*i/steps);
-                drawCalligraphy(nx,ny);
-              }
-            }else{
-              drawCalligraphy(x,y);
-            }
+        let dist=Math.hypot(x-lastPos.x,y-lastPos.y);
+        let step = Math.max(1, Math.floor(1000/calligraphyFlow));
+        if(dist>step){
+          let steps = Math.floor(dist/step);
+          for(let i=1;i<=steps;i++){
+            let nx = Math.round(lastPos.x + (x-lastPos.x)*i/steps);
+            let ny = Math.round(lastPos.y + (y-lastPos.y)*i/steps);
+            drawCalligraphy(nx,ny);
           }
         }else{
           drawCalligraphy(x,y);
         }
-      }else if(currentTool==='spray'){sprayAt(x,y);}
-      else if(flow>=1000&&lastPos){
-        drawLine(lastPos.x,lastPos.y,x,y);
-      }else{
-        drawAt(x,y);
       }
-      lastPos={x,y};
-    });
-    canvas.addEventListener('mouseup',()=>{drawing=false;});
-    function getCanvasCoordsTouch(e){const r=canvas.getBoundingClientRect(),t=e.touches[0];return{x:Math.floor((t.clientX-r.left)*canvas.width/r.width),y:Math.floor((t.clientY-r.top)*canvas.height/r.height)};}
-    canvas.addEventListener('touchstart',e=>{
-      e.preventDefault();
-      const{x,y}=getCanvasCoordsTouch(e);
-      if(currentTool==='bucket'){
-        saveState();
-        floodFill(x,y,bucketColor);
+    }else{
+      drawCalligraphy(x,y);
+    }
+  }else if(currentTool==='spray'){sprayAt(x,y);}
+  else if(flow>=1000&&lastPos){
+    drawLine(lastPos.x,lastPos.y,x,y);
+  }else{
+    drawAt(x,y);
+  }
+  lastPos={x,y};
+});
+canvas.addEventListener('mouseup',()=>{drawing=false;});
+function getCanvasCoordsTouch(e){const r=canvas.getBoundingClientRect(),t=e.touches[0];return{x:Math.floor((t.clientX-r.left)*canvas.width/r.width),y:Math.floor((t.clientY-r.top)*canvas.height/r.height)};}
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const{x,y}=getCanvasCoordsTouch(e);
+  if(currentTool==='bucket'){
+    saveState();
+    floodFill(x,y,bucketColor);
+  }else{
+    saveState();
+    if(currentTool==='calligraphy'){
+      drawing=true;lastPos={x,y};drawCalligraphy(x,y);
+    }else if(currentTool==='symbol'){
+      drawSymbol(x,y);
+    }else if(currentTool==='text'){
+      // handled by overlay
+    }else{
+      drawing=true;lastPos={x,y};
+      if(currentTool==='spray')sprayAt(x,y);else drawAt(x,y);
+    }
+  }
+});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text')return;
+  const{x,y}=getCanvasCoordsTouch(e);
+  if(currentTool==='calligraphy'){
+    if(lastPos){
+      if(calligraphyFlow>=1000){
+        drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
       }else{
-        saveState();
-        if(currentTool==='calligraphy'){
-          drawing=true;lastPos={x,y};drawCalligraphy(x,y);
-        }else if(currentTool==='symbol'){
-          drawSymbol(x,y);
-        }else if(currentTool==='text'){
-          // handled by overlay
-        }else{
-          drawing=true;lastPos={x,y};
-          if(currentTool==='spray')sprayAt(x,y);else drawAt(x,y);
-        }
-      }
-    });
-    canvas.addEventListener('touchmove',e=>{
-      e.preventDefault();
-      if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text')return;
-      const{x,y}=getCanvasCoordsTouch(e);
-      if(currentTool==='calligraphy'){
-        if(lastPos){
-          if(calligraphyFlow>=1000){
-            drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
-          }else{
-            let dist=Math.hypot(x-lastPos.x,y-lastPos.y);
-            let step = Math.max(1, Math.floor(1000/calligraphyFlow));
-            if(dist>step){
-              let steps = Math.floor(dist/step);
-              for(let i=1;i<=steps;i++){
-                let nx = Math.round(lastPos.x + (x-lastPos.x)*i/steps);
-                let ny = Math.round(lastPos.y + (y-lastPos.y)*i/steps);
-                drawCalligraphy(nx,ny);
-              }
-            }else{
-              drawCalligraphy(x,y);
-            }
+        let dist=Math.hypot(x-lastPos.x,y-lastPos.y);
+        let step = Math.max(1, Math.floor(1000/calligraphyFlow));
+        if(dist>step){
+          let steps = Math.floor(dist/step);
+          for(let i=1;i<=steps;i++){
+            let nx = Math.round(lastPos.x + (x-lastPos.x)*i/steps);
+            let ny = Math.round(lastPos.y + (y-lastPos.y)*i/steps);
+            drawCalligraphy(nx,ny);
           }
         }else{
           drawCalligraphy(x,y);
         }
-      }else if(currentTool==='spray'){
-        sprayAt(x,y);
-      }else if(flow>=1000&&lastPos){
-        drawLine(lastPos.x,lastPos.y,x,y);
-      }else{
-        drawAt(x,y);
       }
-      lastPos={x,y};
-    });
-    canvas.addEventListener('touchend',()=>{drawing=false;});
-    canvas.addEventListener('mouseout',()=>{drawing=false;});
+    }else{
+      drawCalligraphy(x,y);
+    }
+  }else if(currentTool==='spray'){
+    sprayAt(x,y);
+  }else if(flow>=1000&&lastPos){
+    drawLine(lastPos.x,lastPos.y,x,y);
+  }else{
+    drawAt(x,y);
+  }
+  lastPos={x,y};
+});
+canvas.addEventListener('touchend',()=>{drawing=false;});
+canvas.addEventListener('mouseout',()=>{drawing=false;});
 </script>
 <div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
 </body>
