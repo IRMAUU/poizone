@@ -192,14 +192,14 @@
     <label>size: <input type="number" id="calligraphy-size" min="1" max="64" value="20"></label><br>
     <label>color: <input type="color" id="calligraphy-color" value="#000000"></label><br>
     <label>flow: <input type="range" id="calligraphy-flow" min="1" max="3000" value="2500"></label><br>
-    <div style="display:flex;gap:8px;">
-      <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="♥&#xFE0E;" title="Heart">♥&#xFE0E;</button>
-      <button class="calligraphy-btn force-plain-text" data-calligraphy="⎸&#xFE0E;" title="Medium Vertical Bar">⎸&#xFE0E;</button>
-      <button class="calligraphy-btn force-plain-text" data-calligraphy="✦&#xFE0E;" title="Four Pointed Star">✦&#xFE0E;</button>
-      <button class="calligraphy-btn force-plain-text" data-calligraphy="♥&#xFE0E;" title="Heart 2">♥&#xFE0E;</button>
-      <button class="calligraphy-btn force-plain-text" data-calligraphy="⎸&#xFE0E;" title="Medium Vertical Bar 2">⎸&#xFE0E;</button>
-      <button class="calligraphy-btn force-plain-text" data-calligraphy="✦&#xFE0E;" title="Four Pointed Star 2">✦&#xFE0E;</button>
-    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:112px;">
+        <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="♥&#xFE0E;" title="Heart">♥&#xFE0E;</button>
+        <button class="calligraphy-btn force-plain-text" data-calligraphy="⎸&#xFE0E;" title="Medium Vertical Bar">⎸&#xFE0E;</button>
+        <button class="calligraphy-btn force-plain-text" data-calligraphy="✦&#xFE0E;" title="Four Pointed Star">✦&#xFE0E;</button>
+        <button class="calligraphy-btn force-plain-text" data-calligraphy="◢&#xFE0E;" title="Black Right-Pointing Triangle">◢&#xFE0E;</button>
+        <button class="calligraphy-btn force-plain-text" data-calligraphy="◣&#xFE0E;" title="Black Lower-Left Triangle">◣&#xFE0E;</button>
+        <button class="calligraphy-btn force-plain-text" data-calligraphy="♦&#xFE0E;" title="Diamond">♦&#xFE0E;</button>
+      </div>
   </div>
   <div class="tool-option" id="symbol-option">-symbol</div>
   <div class="tool-settings hidden" id="symbol-settings">
@@ -326,7 +326,12 @@ let drawing=false,
   calligraphyColor="#000000",
   symbolColor="#000000";
 const calligraphyBrushes = [
-  "♥\uFE0E", "⎸\uFE0E", "✦\uFE0E", "♥\uFE0E", "⎸\uFE0E", "✦\uFE0E"
+"♥\uFE0E",
+  "⎸\uFE0E",
+  "✦\uFE0E",
+  "◢\uFE0E",
+  "◣\uFE0E",
+  "♦\uFE0E"
 ];
 let calligraphyBrushType = 0;
 const symbolChars = [
