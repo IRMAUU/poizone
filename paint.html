@@ -448,20 +448,195 @@ textSubmitBtn.onclick=function(){
 textCancelBtn.onclick=hideTextPreviewOverlay;
 document.getElementById('text-string').oninput=e=>{textString=e.target.value;if(textPreviewActive)updateTextPreviewContent(textString,textFont,textSize,textColor);};
 Array.from(document.getElementsByClassName("font-dropdown-option")).forEach(opt=>{opt.onclick=function(){Array.from(fontDropdownList.children).forEach(o=>o.classList.remove("selected"));this.classList.add("selected");textFont=this.getAttribute("data-font");fontDropdownSelectedName.textContent=this.textContent;fontDropdownSelectedName.style.fontFamily=textFont;fontDropdown.classList.remove("open");if(textPreviewActive)updateTextPreviewContent(textString,textFont,textSize,textColor);};});
-canvas.addEventListener('mousedown',e=>{const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);if(currentTool==='bucket'){saveState();floodFill(x,y,bucketColor);}else{saveState();if(currentTool==='calligraphy'){drawing=true;lastPos={x,y};drawCalligraphy(x,y);}else if(currentTool==='symbol'){drawSymbol(x,y);}else if(currentTool==='text'){}else{drawing=true;lastPos={x,y};if(currentTool==='spray'){sprayAt(x,y);}else{drawAt(x,y);}}}});
-canvas.addEventListener('mousemove',e=>{if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text')return;const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)*canvas.width/r.width),y=Math.floor((e.clientY-r.top)*canvas.height/r.height);if(currentTool==='calligraphy'){if(lastPos){if(calligraphyFlow>=1000){drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);}else{let dist=Math.hypot(x-lastPos.x,y-lastPos.y);let step=Math.max(1,Math.floor(1000/calligraphyFlow));if(dist>step){let steps=Math.floor(dist/step);for(let i=1;i<=steps;i++){let nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps),ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);drawCalligraphy(nx,ny);}}else{drawCalligraphy(x,y);}}}else{drawCalligraphy(x,y);}}else if(currentTool==='spray'){sprayAt(x,y);}else if(flow>=1000&&lastPos){drawLine(lastPos.x,lastPos.y,x,y);}else{drawAt(x,y);}lastPos={x,y};});
+
+// ---- Restored marker/spray/eraser implementation ----
+function drawAt(x, y) {
+  if (currentTool === "eraser") {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, eraserSize / 2, 0, 2 * Math.PI);
+    ctx.fillStyle = "#fff";
+    ctx.globalAlpha = 1;
+    ctx.fill();
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, markerSize / 2, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 1;
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawLine(x0, y0, x1, y1) {
+  ctx.save();
+  ctx.strokeStyle = currentTool === "eraser" ? "#fff" : color;
+  ctx.lineWidth = currentTool === "eraser" ? eraserSize : markerSize;
+  ctx.lineCap = "round";
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function sprayAt(x, y) {
+  ctx.save();
+  ctx.fillStyle = sprayColor;
+  ctx.globalAlpha = 1;
+  for (let i = 0; i < sprayFlow; i++) {
+    const angle = Math.random() * 2 * Math.PI;
+    const radius = Math.random() * spraySpread;
+    ctx.beginPath();
+    ctx.arc(
+      x + Math.cos(angle) * radius,
+      y + Math.sin(angle) * radius,
+      spraySize / 2,
+      0,
+      2 * Math.PI
+    );
+    ctx.fill();
+  }
+  ctx.restore();
+}
+// ---- End restore ----
+
+// Mouse/touch event handlers for all tools including marker/spray/eraser
+canvas.addEventListener('mousedown',e=>{
+  const r=canvas.getBoundingClientRect(),
+        x=Math.floor((e.clientX-r.left)*canvas.width/r.width),
+        y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
+  if(currentTool==='bucket'){
+    saveState();
+    floodFill(x,y,bucketColor);
+  }else{
+    saveState();
+    if(currentTool==='calligraphy'){
+      drawing=true;lastPos={x,y};drawCalligraphy(x,y);
+    }else if(currentTool==='symbol'){
+      drawSymbol(x,y);
+    }else if(currentTool==='text'){
+      // do nothing
+    }else if(currentTool==='spray'){
+      drawing=true;lastPos={x,y};sprayAt(x,y);
+    }else if(currentTool==='eraser' || currentTool==='marker'){
+      drawing=true;lastPos={x,y};drawAt(x,y);
+    }
+  }
+});
+canvas.addEventListener('mousemove',e=>{
+  if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text')return;
+  const r=canvas.getBoundingClientRect(),
+        x=Math.floor((e.clientX-r.left)*canvas.width/r.width),
+        y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
+  if(currentTool==='calligraphy'){
+    if(lastPos){
+      if(calligraphyFlow>=1000){
+        drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
+      }else{
+        let dist=Math.hypot(x-lastPos.x,y-lastPos.y);
+        let step=Math.max(1,Math.floor(1000/calligraphyFlow));
+        if(dist>step){
+          let steps=Math.floor(dist/step);
+          for(let i=1;i<=steps;i++){
+            let nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps),
+                ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);
+            drawCalligraphy(nx,ny);
+          }
+        }else{
+          drawCalligraphy(x,y);
+        }
+      }
+    }else{
+      drawCalligraphy(x,y);
+    }
+  }else if(currentTool==='spray'){
+    sprayAt(x,y);
+  }else if(currentTool==='eraser' || currentTool==='marker'){
+    if(flow>=1000&&lastPos){
+      drawLine(lastPos.x,lastPos.y,x,y);
+    }else{
+      drawAt(x,y);
+    }
+  }
+  lastPos={x,y};
+});
 canvas.addEventListener('mouseup',()=>{drawing=false;});
-function getCanvasCoordsTouch(e){const r=canvas.getBoundingClientRect(),t=e.touches[0];return{x:Math.floor((t.clientX-r.left)*canvas.width/r.width),y:Math.floor((t.clientY-r.top)*canvas.height/r.height)};}
-canvas.addEventListener('touchstart',e=>{e.preventDefault();const{x,y}=getCanvasCoordsTouch(e);if(currentTool==='bucket'){saveState();floodFill(x,y,bucketColor);}else{saveState();if(currentTool==='calligraphy'){drawing=true;lastPos={x,y};drawCalligraphy(x,y);}else if(currentTool==='symbol'){drawSymbol(x,y);}else if(currentTool==='text'){}else{drawing=true;lastPos={x,y};if(currentTool==='spray')sprayAt(x,y);else drawAt(x,y);}}});
-canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text')return;const{x,y}=getCanvasCoordsTouch(e);if(currentTool==='calligraphy'){if(lastPos){if(calligraphyFlow>=1000){drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);}else{let dist=Math.hypot(x-lastPos.x,y-lastPos.y);let step=Math.max(1,Math.floor(1000/calligraphyFlow));if(dist>step){let steps=Math.floor(dist/step);for(let i=1;i<=steps;i++){let nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps),ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);drawCalligraphy(nx,ny);}}else{drawCalligraphy(x,y);}}}else{drawCalligraphy(x,y);}}else if(currentTool==='spray'){sprayAt(x,y);}else if(flow>=1000&&lastPos){drawLine(lastPos.x,lastPos.y,x,y);}else{drawAt(x,y);}lastPos={x,y};});
+function getCanvasCoordsTouch(e){
+  const r=canvas.getBoundingClientRect(),t=e.touches[0];
+  return{
+    x:Math.floor((t.clientX-r.left)*canvas.width/r.width),
+    y:Math.floor((t.clientY-r.top)*canvas.height/r.height)
+  };
+}
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const{x,y}=getCanvasCoordsTouch(e);
+  if(currentTool==='bucket'){
+    saveState();
+    floodFill(x,y,bucketColor);
+  }else{
+    saveState();
+    if(currentTool==='calligraphy'){
+      drawing=true;lastPos={x,y};drawCalligraphy(x,y);
+    }else if(currentTool==='symbol'){
+      drawSymbol(x,y);
+    }else if(currentTool==='text'){
+      // do nothing
+    }else if(currentTool==='spray'){
+      drawing=true;lastPos={x,y};sprayAt(x,y);
+    }else if(currentTool==='eraser' || currentTool==='marker'){
+      drawing=true;lastPos={x,y};drawAt(x,y);
+    }
+  }
+});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text')return;
+  const{x,y}=getCanvasCoordsTouch(e);
+  if(currentTool==='calligraphy'){
+    if(lastPos){
+      if(calligraphyFlow>=1000){
+        drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
+      }else{
+        let dist=Math.hypot(x-lastPos.x,y-lastPos.y);
+        let step=Math.max(1,Math.floor(1000/calligraphyFlow));
+        if(dist>step){
+          let steps=Math.floor(dist/step);
+          for(let i=1;i<=steps;i++){
+            let nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps),
+                ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);
+            drawCalligraphy(nx,ny);
+          }
+        }else{
+          drawCalligraphy(x,y);
+        }
+      }
+    }else{
+      drawCalligraphy(x,y);
+    }
+  }else if(currentTool==='spray'){
+    sprayAt(x,y);
+  }else if(currentTool==='eraser' || currentTool==='marker'){
+    if(flow>=1000&&lastPos){
+      drawLine(lastPos.x,lastPos.y,x,y);
+    }else{
+      drawAt(x,y);
+    }
+  }
+  lastPos={x,y};
+},{passive:false});
 canvas.addEventListener('touchend',()=>{drawing=false;});
 canvas.addEventListener('mouseout',()=>{drawing=false;});
+
 function floodFill(x,y,fillHex){let imgData;try{imgData=ctx.getImageData(0,0,canvas.width,canvas.height);}catch(e){alert("Bucket fill unavailable: Canvas is tainted (see console). Only use local or CORS-enabled assets.");return;}const targetColor=getPixelColor(x,y,imgData),fillColor=hexToRgb(fillHex).concat(255);if(colorsMatch(targetColor,fillColor))return;const stack=[[x,y]];while(stack.length){const[cx,cy]=stack.pop();if(cx<0||cy<0||cx>=canvas.width||cy>=canvas.height)continue;const currentColor=getPixelColor(cx,cy,imgData);if(!colorsMatch(currentColor,targetColor))continue;const i=(cy*canvas.width+cx)*4;imgData.data.set(fillColor,i);stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);}ctx.putImageData(imgData,0,0);}
 function hexToRgb(hex){const b=parseInt(hex.slice(1),16);return[(b>>16)&255,(b>>8)&255,b&255];}
 function getPixelColor(x,y,imgData){const i=(y*imgData.width+x)*4;return[imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]];}
 function colorsMatch(a,b){return a.every((v,i)=>v===b[i]);}
 // --- import image logic ---
-
 let importImg=null,importImgNaturalWidth=0,importImgNaturalHeight=0,importPreview=null,importDragging=false,importOffsetX=0,importOffsetY=0,importPosX=0,importPosY=0,importScale=0.5,importRotation=0,importOpacity=0.75,importFlipH=1,importFlipV=1;
 const importSettingsDiv=document.getElementById('import-settings'),importFileInput=document.getElementById('import-image-file'),importSizeSlider=document.getElementById('import-size'),importSizeValue=document.getElementById('import-size-value'),importOpacitySlider=document.getElementById('import-opacity'),importOpacityValue=document.getElementById('import-opacity-value'),importRotationSlider=document.getElementById('import-rotation'),importRotationNumber=document.getElementById('import-rotation-number'),importFlipHBtn=document.getElementById('import-flip-h'),importFlipVBtn=document.getElementById('import-flip-v'),importStampBtn=document.getElementById('import-stamp-btn'),importCancelBtn=document.getElementById('import-cancel-btn'),importDropdown=document.getElementById('import-dropdown');
 function hideImportPreview(){if(importPreview&&importPreview.parentNode){importPreview.parentNode.removeChild(importPreview);importPreview=null;}}
@@ -500,3 +675,4 @@ document.getElementById('export-btn').addEventListener('click',()=>{const filena
 <div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
 </body>
 </html>
+
