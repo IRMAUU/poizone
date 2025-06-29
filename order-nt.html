@@ -61,7 +61,7 @@
   <div class="nav-links"><a href="https://poiz.one/paint">PAINT</a><a href="https://poiz.one/domainparked">PARK</a><a href="https://poiz.one/edex">EDEX</a><a href="https://instagram.com/poiz.0ne">CONTACT</a></div>
 </center>
 <div class="order-section">
-  <div class="order-img"><img src="navy-tee.png" alt="Shoohedd11: Substitute Tee"></div>
+  <div class="order-img"><img src="navy-tee.gif" alt="Shoohedd11: Substitute Tee"></div>
   <div class="order-form-wrap">
     <h2>Order: SHOOHEDD11 - SUBSTITUTE TEE</h2>
     <form id="orderForm" autocomplete="off" onsubmit="return false;">
@@ -89,7 +89,7 @@
       <input type="email" name="order_email" id="email" required>
       <label>Phone Number</label>
       <input type="text" name="order_phone" required>
-      <div class="checkbox"><input type="checkbox" id="addMore" onchange="toggleExtras()"> - add more items</div>
+      <div class="checkbox"><input type="checkbox" id="addMore" onchange="toggleExtras()"> - add more items [$30usd ea]</div>
       <div id="extras" style="display:none;">
         <label>Additional Product</label>
         <select id="extraProduct" onchange="showCount()">
@@ -107,7 +107,7 @@
         </div>
       </div>
       <div class="added-items" id="itemList"></div>
-      <div class="price-box" id="priceBox">$40<span class="usd">usd</span></div>
+      <div class="price-box" id="priceBox">$35<span class="usd">usd</span></div>
       <button type="button" class="submit-btn" id="paypalBtn" style="margin-left:1em;opacity:0.7;pointer-events:none;background:#181818;color:#444;">Confirm Purchase (PayPal)</button>
       <input type="hidden" name="extra_items" id="extraItemsField" value="">
       <input type="hidden" name="cost_total" id="orderTotalField" value="">
@@ -135,7 +135,7 @@
     countrySelect.appendChild(o);
   });
   countrySelect.value="AUS";
-  let basePrice=40,shippingPrice=10, extraItemPrice=35;
+  let basePrice=35,shippingPrice=10, extraItemPrice=30;
   function updatePrice(){
     const e=countrySelect.value;
     shippingPrice=(e==="AUS")?10:25;
