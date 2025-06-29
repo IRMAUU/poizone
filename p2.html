@@ -14,6 +14,8 @@
     input,textarea,label,button,.menu-title,.tool-option{color:#39ff14;font-family:'Roboto Mono',monospace;font-weight:700;font-size:14px;}
     input,textarea{user-select:auto;}
     input[type="number"],input[type="text"]{background:#000;color:#39ff14;border:1px solid #39ff14;padding:2px 4px;}
+    input[type="number"].no-arrows::-webkit-inner-spin-button,input[type="number"].no-arrows::-webkit-outer-spin-button{appearance:none;margin:0;}
+    input[type="number"].no-arrows{-moz-appearance:textfield;}
     button{background:#000;color:#39ff14;border:1px solid #39ff14;padding:4px 8px;cursor:pointer;font-family:'Roboto Mono',monospace;font-weight:700;}
     #app-container{width:80vw;height:80vh;margin:auto;position:relative;top:1vh;background:#fff;display:flex;justify-content:center;align-items:center;}
     canvas#paint-canvas{width:100%;height:100%;background:#fff;image-rendering:pixelated;border:1px solid #000;cursor:crosshair;}
@@ -121,6 +123,23 @@
     @media (max-width:900px){
       #import-preview-img{max-width:90vw;max-height:60vh;}
     }
+    .rotation-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+    .rotation-control input[type="number"].no-arrows {
+      width: 45px;
+      background: #000;
+      border: 1px solid #39ff14;
+      color: #39ff14;
+      font-size: 13px;
+      text-align: right;
+      padding:2px 4px;
+      margin-left: 2px;
+    }
     #text-preview-overlay {
       position: absolute;
       z-index: 6;
@@ -171,6 +190,25 @@
     }
     #text-toolbox-controls button:active {
       background:#333;
+    }
+    .text-rotation-wrapper {
+      margin-top: 7px;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .text-rotation-wrapper label {
+      margin-right: 4px;
+    }
+    .text-rotation-wrapper input[type="number"].no-arrows {
+      width: 45px;
+      background: #000;
+      border: 1px solid #39ff14;
+      color: #39ff14;
+      font-size: 13px;
+      text-align: right;
+      padding:2px 4px;
     }
   </style>
 </head>
@@ -237,6 +275,12 @@
     <label>size: <input type="number" id="text-size" min="8" max="150" value="32" style="width:48px;"></label><br>
     <label>color: <input type="color" id="text-color" value="#000000"></label><br>
     <textarea id="text-string" rows="2" style="width:95%;resize:vertical;background-color: #000;">your text</textarea>
+    <div class="text-rotation-wrapper">
+      <label for="text-rotation-range">rotation:</label>
+      <input type="range" id="text-rotation-range" min="0" max="360" value="0" style="width:90px;">
+      <input type="number" id="text-rotation-number" min="0" max="360" value="0" class="no-arrows">
+      <span id="text-rotation-value">0</span>°
+    </div>
     <div id="text-toolbox-controls">
       <button id="text-submit-btn">submit</button>
       <button id="text-cancel-btn">cancel</button>
@@ -269,9 +313,14 @@
 <div class="dropdown hidden" id="import-dropdown">
   <label class="import-label" for="import-image-file">upload<input type="file" id="import-image-file" accept="image/*"></label>
   <div id="import-settings" class="hidden" style="margin-top:6px;">
-    <label>size: <input type="range" id="import-size" min="10" max="400" value="100" style="width:90px;"> <span id="import-size-value">100</span>%</label><br>
+    <label>size: <input type="range" id="import-size" min="1" max="400" value="50" style="width:90px;"> <span id="import-size-value">50</span>%</label><br>
     <label>opacity: <input type="range" id="import-opacity" min="10" max="100" value="75" style="width:90px;"> <span id="import-opacity-value">50</span>%</label><br>
-    <label>rotation: <input type="range" id="import-rotation" min="0" max="360" value="0" style="width:90px;"> <span id="import-rotation-value">0</span>°</label><br>
+    <div class="rotation-control">
+      <label for="import-rotation">rotation:</label>
+      <input type="range" id="import-rotation" min="0" max="360" value="0" style="width:90px;">
+      <input type="number" id="import-rotation-number" min="0" max="360" value="0" class="no-arrows">
+      <span id="import-rotation-value">0</span>°
+    </div>
     <div class="flip-btns">
       <button id="import-flip-h">flip horizontal</button>
       <button id="import-flip-v">flip vertical</button>
@@ -373,9 +422,9 @@ Array.from(fontDropdownList.children).forEach(opt=>{
   };
 });
 fontDropdownSelected.onclick=function(e){fontDropdown.classList.toggle("open");};fontDropdown.onblur=function(){fontDropdown.classList.remove("open");};
-document.getElementById('text-size').oninput=e=>{textSize=+e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
-document.getElementById('text-color').oninput=e=>{textColor=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
-document.getElementById('text-string').oninput=e=>{textString=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
+document.getElementById('text-size').oninput=e=>{textSize=+e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);}
+document.getElementById('text-color').oninput=e=>{textColor=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);}
+document.getElementById('text-string').oninput=e=>{textString=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);}
 document.getElementById('spray-size').oninput=e=>spraySize=+e.target.value;document.getElementById('spray-spread').oninput=e=>spraySpread=+e.target.value;document.getElementById('spray-flow').oninput=e=>sprayFlow=+e.target.value;document.getElementById('spray-color').oninput=e=>sprayColor=e.target.value;
 document.getElementById('bucket-color').oninput=e=>bucketColor=e.target.value;
 document.getElementById('eraser-size').oninput=e=>eraserSize=+e.target.value;
@@ -407,15 +456,19 @@ function drawSymbol(x,y){
   ctx.fillText(symbolChars[symbolCharType], x, y);
   ctx.restore();
 }
-function drawTextMultiline(str, x, y, font, size, color) {
+function drawTextMultiline(str, x, y, font, size, color, rotation) {
   ctx.save();
   ctx.font = `${size}px ${font}`;
   ctx.fillStyle = color;
   ctx.textBaseline = "top";
   ctx.textAlign = "left";
+  ctx.translate(x, y);
+  if (rotation && rotation !== 0) {
+    ctx.rotate(rotation * Math.PI / 180);
+  }
   const lines = str.split('\n');
   for(let i=0;i<lines.length;i++){
-    ctx.fillText(lines[i], x, y + i * size * 1.15);
+    ctx.fillText(lines[i], 0, i * size * 1.15);
   }
   ctx.restore();
 }
@@ -450,7 +503,7 @@ function floodFill(x,y,fillHex){
 }
 let importImg = null, importImgNaturalWidth = 0, importImgNaturalHeight = 0,
     importPreview = null, importDragging = false, importOffsetX = 0, importOffsetY = 0,
-    importPosX = 0, importPosY = 0, importScale = 1, importRotation = 0, importOpacity = 0.5, importFlipH = 1, importFlipV = 1;
+    importPosX = 0, importPosY = 0, importScale = 0.5, importRotation = 0, importOpacity = 0.5, importFlipH = 1, importFlipV = 1;
 const importSettingsDiv = document.getElementById('import-settings');
 const importFileInput = document.getElementById('import-image-file');
 const importSizeSlider = document.getElementById('import-size');
@@ -459,6 +512,7 @@ const importOpacitySlider = document.getElementById('import-opacity');
 const importOpacityValue = document.getElementById('import-opacity-value');
 const importRotationSlider = document.getElementById('import-rotation');
 const importRotationValue = document.getElementById('import-rotation-value');
+const importRotationNumber = document.getElementById('import-rotation-number');
 const importFlipHBtn = document.getElementById('import-flip-h');
 const importFlipVBtn = document.getElementById('import-flip-v');
 const importStampBtn = document.getElementById('import-stamp-btn');
@@ -513,7 +567,6 @@ function showImportPreview() {
 function imagePreviewDragMove(e) {
   if(!importDragging || !importPreview) return;
   let container = document.getElementById('app-container');
-  let containerRect = container.getBoundingClientRect();
   let clientX, clientY;
   if(e.touches && e.touches.length) {
     clientX = e.touches[0].clientX;
@@ -522,11 +575,9 @@ function imagePreviewDragMove(e) {
     clientX = e.clientX;
     clientY = e.clientY;
   }
-  let w = importPreview.offsetWidth, h = importPreview.offsetHeight;
-  let posX = clientX - containerRect.left - importOffsetX;
-  let posY = clientY - containerRect.top - importOffsetY;
-  posX = Math.max(0, Math.min(container.offsetWidth - w, posX));
-  posY = Math.max(0, Math.min(container.offsetHeight - h, posY));
+  let posX = clientX - container.getBoundingClientRect().left - importOffsetX;
+  let posY = clientY - container.getBoundingClientRect().top - importOffsetY;
+  // Remove clamping, allow dragging anywhere:
   importPosX = posX;
   importPosY = posY;
   updateImportPreviewTransform();
@@ -540,8 +591,8 @@ function imagePreviewDragEnd(e) {
 }
 function updateImportPreviewTransform() {
   if(!importPreview) return;
-  let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
-  let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+  let w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+  let h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
   importPreview.style.width = w+'px';
   importPreview.style.height = h+'px';
   importPreview.style.left = importPosX+'px';
@@ -558,6 +609,7 @@ function stampImageToCanvas() {
   let container = document.getElementById('app-container');
   let w = importPreview.offsetWidth;
   let h = importPreview.offsetHeight;
+  // Remove bounds: allow stamping anywhere, even outside canvas
   let px = (importPosX) * (canvas.width / container.offsetWidth);
   let py = (importPosY) * (canvas.height / container.offsetHeight);
   ctx.save();
@@ -576,7 +628,7 @@ function importResetState() {
   importImg = null;
   importImgNaturalWidth = 0;
   importImgNaturalHeight = 0;
-  importScale = 1;
+  importScale = 0.5;
   importRotation = 0;
   importOpacity = 0.5;
   importFlipH = 1;
@@ -599,17 +651,16 @@ importFileInput.addEventListener('change', function(e){
       importImgNaturalWidth = img.naturalWidth;
       importImgNaturalHeight = img.naturalHeight;
       let container = document.getElementById('app-container');
-      let scaleX = container.offsetWidth / img.naturalWidth;
-      let scaleY = container.offsetHeight / img.naturalHeight;
-      let fitScale = Math.min(1, scaleX, scaleY);
-      importScale = fitScale;
-      importSizeSlider.value = Math.round(importScale * 100);
-      importSizeValue.textContent = importSizeSlider.value;
+      // Default scaling: always 50%
+      importScale = 0.5;
+      importSizeSlider.value = 50;
+      importSizeValue.textContent = 50;
       importOpacity = parseInt(importOpacitySlider.value,10) / 100.0;
       importRotation = parseInt(importRotationSlider.value,10);
+      importRotationNumber.value = importRotation;
       importFlipH = 1; importFlipV = 1;
-      let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
-      let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+      let w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+      let h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
       importPosX = (container.offsetWidth-w)/2;
       importPosY = (container.offsetHeight-h)/2;
       importOpacityValue.textContent = importOpacitySlider.value;
@@ -625,8 +676,8 @@ importSizeSlider.addEventListener('input', function() {
   importScale = parseInt(this.value,10)/100.0;
   importSizeValue.textContent = this.value;
   let container = document.getElementById('app-container');
-  let w = Math.max(10, Math.round(importImgNaturalWidth * importScale));
-  let h = Math.max(10, Math.round(importImgNaturalHeight * importScale));
+  let w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+  let h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
   importPosX = (container.offsetWidth-w)/2;
   importPosY = (container.offsetHeight-h)/2;
   updateImportPreviewTransform();
@@ -636,11 +687,18 @@ importOpacitySlider.addEventListener('input', function() {
   importOpacityValue.textContent = this.value;
   if(importPreview) importPreview.style.opacity = importOpacity;
 });
-importRotationSlider.addEventListener('input', function() {
-  importRotation = parseInt(this.value,10);
-  importRotationValue.textContent = this.value;
+// --- Image rotation slider + number ---
+function setImportRotation(val) {
+  let v = Math.max(0, Math.min(360, Number(val)||0));
+  importRotation = v;
+  importRotationSlider.value = v;
+  importRotationNumber.value = v;
+  importRotationValue.textContent = v;
   updateImportPreviewTransform();
-});
+}
+importRotationSlider.addEventListener('input', function() { setImportRotation(this.value); });
+importRotationNumber.addEventListener('input', function() { setImportRotation(this.value); });
+// End image rotation sync
 importFlipHBtn.addEventListener('click', function() { importFlipH *= -1; updateImportPreviewTransform(); });
 importFlipVBtn.addEventListener('click', function() { importFlipV *= -1; updateImportPreviewTransform(); });
 importStampBtn.addEventListener('click', function() { stampImageToCanvas(); });
@@ -710,14 +768,17 @@ document.getElementById('export-btn').addEventListener('click',()=>{
   }
 });
 
-let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0, textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0;
+// --- Text overlay controls (no bounds, rotation) ---
+let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0, textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0, textRotation = 0;
 const textPreviewOverlay = document.getElementById('text-preview-overlay');
 const textPreviewContent = document.getElementById('text-preview-content');
 const textSubmitBtn = document.getElementById('text-submit-btn');
 const textCancelBtn = document.getElementById('text-cancel-btn');
 const textToolboxControls = document.getElementById('text-toolbox-controls');
+const textRotationRange = document.getElementById('text-rotation-range');
+const textRotationNumber = document.getElementById('text-rotation-number');
+const textRotationValue = document.getElementById('text-rotation-value');
 textPreviewOverlay.style.zIndex = "10";
-
 function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   let container = document.getElementById('app-container');
   textPreviewActive = true;
@@ -726,6 +787,7 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   textPreviewOverlay.style.fontFamily = font;
   textPreviewOverlay.style.fontSize = size + "px";
   textPreviewOverlay.style.color = color;
+  textPreviewOverlay.style.transform = `rotate(${textRotation}deg)`;
   textPreviewContent.style.fontFamily = font;
   textPreviewContent.style.fontSize = size + "px";
   textPreviewContent.style.color = color;
@@ -742,24 +804,14 @@ function showTextPreviewOverlay(text, font, size, color, forceCenter) {
   textPreviewOverlay.style.left = textPreviewPosX + "px";
   textPreviewOverlay.style.top = textPreviewPosY + "px";
   textToolboxControls.style.display = "flex";
-}
-
-function getDraggableBounds() {
-  const container = document.getElementById('app-container');
-  let multiplier = (window.innerWidth <= 900) ? 2 : 1; // double area on mobile
-  return {
-    left: 0,
-    top: 0,
-    width: container.offsetWidth * multiplier,
-    height: container.offsetHeight * multiplier
-  };
-
+  updateTextPreviewTransform();
 }
 function updateTextPreviewContent(text, font, size, color) {
   textPreviewContent.textContent = text.replace(/\n/g,"\n");
   textPreviewOverlay.style.fontFamily = font;
   textPreviewOverlay.style.fontSize = size + "px";
   textPreviewOverlay.style.color = color;
+  textPreviewOverlay.style.transform = `rotate(${textRotation}deg)`;
   textPreviewContent.style.fontFamily = font;
   textPreviewContent.style.fontSize = size + "px";
   textPreviewContent.style.color = color;
@@ -767,6 +819,10 @@ function updateTextPreviewContent(text, font, size, color) {
   let h = textPreviewOverlay.offsetHeight || 30;
   textPreviewOverlay.style.left = textPreviewPosX + "px";
   textPreviewOverlay.style.top = textPreviewPosY + "px";
+  updateTextPreviewTransform();
+}
+function updateTextPreviewTransform() {
+  textPreviewOverlay.style.transform = `rotate(${textRotation}deg)`;
 }
 function hideTextPreviewOverlay() {
   textPreviewActive = false;
@@ -796,15 +852,13 @@ textPreviewOverlay.ontouchstart = function(e) {
 };
 document.addEventListener('mousemove', function(e){
   if(!textPreviewDragging || !textPreviewActive) return;
-  let bounds = getDraggableBounds();
   let w = textPreviewOverlay.offsetWidth, h = textPreviewOverlay.offsetHeight;
   const containerRect = document.getElementById('app-container').getBoundingClientRect();
   let mouseX = e.clientX - containerRect.left;
   let mouseY = e.clientY - containerRect.top;
   let posX = mouseX - textPreviewOffsetX;
   let posY = mouseY - textPreviewOffsetY;
-  posX = Math.max(bounds.left, Math.min(bounds.left + bounds.width - w, posX));
-  posY = Math.max(bounds.top, Math.min(bounds.top + bounds.height - h, posY));
+  // Remove bounds, allow drag anywhere
   textPreviewPosX = posX;
   textPreviewPosY = posY;
   textPreviewOverlay.style.left = textPreviewPosX + "px";
@@ -813,7 +867,6 @@ document.addEventListener('mousemove', function(e){
 document.addEventListener('mouseup', function(){ textPreviewDragging=false;textPreviewOverlay.style.cursor='grab'; });
 document.addEventListener('touchmove', function(e){
   if(!textPreviewDragging || !textPreviewActive) return;
-  let bounds = getDraggableBounds();
   let w = textPreviewOverlay.offsetWidth, h = textPreviewOverlay.offsetHeight;
   const containerRect = document.getElementById('app-container').getBoundingClientRect();
   let t = e.touches[0];
@@ -821,8 +874,6 @@ document.addEventListener('touchmove', function(e){
   let touchY = t.clientY - containerRect.top;
   let posX = touchX - textPreviewOffsetX;
   let posY = touchY - textPreviewOffsetY;
-  posX = Math.max(bounds.left, Math.min(bounds.left + bounds.width - w, posX));
-  posY = Math.max(bounds.top, Math.min(bounds.top + bounds.height - h, posY));
   textPreviewPosX = posX;
   textPreviewPosY = posY;
   textPreviewOverlay.style.left = textPreviewPosX + "px";
@@ -831,6 +882,17 @@ document.addEventListener('touchmove', function(e){
 }, {passive:false});
 document.addEventListener('touchend', function(){ textPreviewDragging=false;textPreviewOverlay.style.cursor='grab'; });
 
+function setTextRotation(val) {
+  let v = Math.max(0, Math.min(360, Number(val)||0));
+  textRotation = v;
+  textRotationRange.value = v;
+  textRotationNumber.value = v;
+  textRotationValue.textContent = v;
+  updateTextPreviewTransform();
+}
+textRotationRange.addEventListener('input', function() { setTextRotation(this.value); });
+textRotationNumber.addEventListener('input', function() { setTextRotation(this.value); });
+
 textSubmitBtn.onclick = function() {
   if(!textPreviewActive) return;
   saveState();
@@ -838,7 +900,7 @@ textSubmitBtn.onclick = function() {
   let canvasRect = canvas.getBoundingClientRect();
   let px = (overlayRect.left - canvasRect.left) * (canvas.width / canvasRect.width);
   let py = (overlayRect.top - canvasRect.top) * (canvas.height / canvasRect.height);
-  drawTextMultiline(document.getElementById('text-string').value, px, py, textFont, textSize, textColor);
+  drawTextMultiline(document.getElementById('text-string').value, px, py, textFont, textSize, textColor, textRotation);
   showTextPreviewOverlay(document.getElementById('text-string').value, textFont, textSize, textColor, false);
   textPreviewPosX = textPreviewInitX;
   textPreviewPosY = textPreviewInitY;
@@ -848,15 +910,15 @@ textSubmitBtn.onclick = function() {
 textCancelBtn.onclick = hideTextPreviewOverlay;
 document.getElementById('text-string').oninput = e => {
   textString = e.target.value;
-  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor, textRotation);
 };
 document.getElementById('text-size').oninput = e => {
   textSize = +e.target.value;
-  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor, textRotation);
 };
 document.getElementById('text-color').oninput = e => {
   textColor = e.target.value;
-  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+  if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor, textRotation);
 };
 Array.from(document.getElementsByClassName("font-dropdown-option")).forEach(opt=>{
   opt.onclick=function(){
@@ -866,7 +928,7 @@ Array.from(document.getElementsByClassName("font-dropdown-option")).forEach(opt=
     fontDropdownSelectedName.textContent = this.textContent;
     fontDropdownSelectedName.style.fontFamily = textFont;
     fontDropdown.classList.remove("open");
-    if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+    if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor, textRotation);
   };
 });
 
