@@ -418,13 +418,12 @@ textRotationNumber.addEventListener('input',function(){setTextRotation(this.valu
 textSubmitBtn.onclick=function(){
   if(!textPreviewActive)return;
   saveState();
-  let text=document.getElementById('text-string').value;
-  let box=getTextBBox(text,textFont,textSize);
-  let overlay=document.getElementById('text-preview-overlay');
-  let canvasRect=canvas.getBoundingClientRect(),overlayRect=overlay.getBoundingClientRect();
-  // Calculate the correct center of the overlay after rotation
-  let centerX = overlayRect.left + overlay.offsetWidth/2;
-  let centerY = overlayRect.top + overlay.offsetHeight/2;
+  // PATCHED: Use the true center of the DOM text (text-preview-content) for pixel-perfect alignment!
+  let contentElem = document.getElementById('text-preview-content');
+  let contentRect = contentElem.getBoundingClientRect();
+  let canvasRect = canvas.getBoundingClientRect();
+  let centerX = contentRect.left + contentRect.width/2;
+  let centerY = contentRect.top + contentRect.height/2;
   let px = (centerX - canvasRect.left) * (canvas.width / canvasRect.width);
   let py = (centerY - canvasRect.top) * (canvas.height / canvasRect.height);
   ctx.save();
@@ -434,15 +433,14 @@ textSubmitBtn.onclick=function(){
   ctx.fillStyle = textColor;
   ctx.textBaseline = "middle";
   ctx.textAlign = "center";
-  let lines=text.split('\n');
+  let lines=textString.split('\n');
   let blockHeight = lines.length * textSize * 1.15;
   let offsetY = -blockHeight/2 + textSize*1.15/2;
-  // Center each line horizontally and center the block vertically
   for(let i=0;i<lines.length;i++){
     ctx.fillText(lines[i], 0, offsetY + i*textSize*1.15);
   }
   ctx.restore();
-  showTextPreviewOverlay(text,textFont,textSize,textColor,false);
+  showTextPreviewOverlay(textString,textFont,textSize,textColor,false);
   textPreviewPosX=textPreviewInitX;textPreviewPosY=textPreviewInitY;
   textPreviewOverlay.style.left=textPreviewPosX+"px";
   textPreviewOverlay.style.top=textPreviewPosY+"px";
