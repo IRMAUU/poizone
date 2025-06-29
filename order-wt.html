@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shoohedd11: Dog Tee</title>
+  <title>Shoohedd11: Monstah Tee</title>
   <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
@@ -61,9 +61,9 @@
   <div class="nav-links"><a href="https://poiz.one/paint">PAINT</a><a href="https://poiz.one/domainparked">PARK</a><a href="https://poiz.one/edex">EDEX</a><a href="https://instagram.com/poiz.0ne">CONTACT</a></div>
 </center>
 <div class="order-section">
-  <div class="order-img"><img src="white-tee.gif" alt="Shoohedd11: Dog Tee"></div>
+  <div class="order-img"><img src="black-tee.gif" alt="Shoohedd11: Monstah Tee"></div>
   <div class="order-form-wrap">
-    <h2>Order: SHOOHEDD11 - DOG TEE</h2>
+    <h2>Order: SHOOHEDD11 - MONSTAH TEE</h2>
     <form id="orderForm" autocomplete="off" onsubmit="return false;">
       <input type="hidden" name="page_name" id="pageNameField">
       <label>Size</label>
@@ -89,7 +89,7 @@
       <input type="email" name="order_email" id="email" required>
       <label>Phone Number</label>
       <input type="text" name="order_phone" required>
-      <div class="checkbox"><input type="checkbox" id="addMore" onchange="toggleExtras()"> - add more items [$30 ea]</div>
+      <div class="checkbox"><input type="checkbox" id="addMore" onchange="toggleExtras()"> - add more items [$30usd ea]</div>
       <div id="extras" style="display:none;">
         <label>Additional Product</label>
         <select id="extraProduct" onchange="showCount()">
@@ -164,10 +164,11 @@
   function x(a,c,s,i){return btoa(a+"-"+c+"-"+s)==i}
   function generateOrderId(){return 'SHOOHEDD11-'+Date.now();}
 
+  // FIX: Use the displayed price only as the PayPal amount
   document.getElementById('paypalBtn').addEventListener('click',function(){
     if(this.style.pointerEvents==="none")return;
     const c=countrySelect.value,
-      t=basePrice+shippingPrice+getAddedItemsPrice(),
+      t=parseInt(document.getElementById('orderTotalField').value, 10), // Use the displayed value for total
       v=this.getAttribute('data-v'),
       s=addedItems.map(i=>i.product+i.count+i.size).join("");
     if(!x(t,c,s,v)){return;}
@@ -176,7 +177,8 @@
     document.getElementById('orderShippingField').value = shippingPrice;
     let orderId = generateOrderId();
     document.getElementById('orderIdField').value = orderId;
-    let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=SHOOHEDD11%20DOG%20TEE%20(+extras)&shipping=${shippingPrice}`;
+    let paypalLink=`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=michaelryan2000@live.com.au&currency_code=USD&amount=${t}&item_name=SHOOHEDD11%20MONSTAH%20TEE%20(+extras)&shipping=0`;
+    // Set shipping=0 because it's included in the total 'amount'
     window.open(paypalLink,'_blank');
     emailjs.sendForm('service_7y7feqr','template_i94jxe9',document.getElementById('orderForm'));
   });
