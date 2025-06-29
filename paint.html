@@ -393,7 +393,15 @@ document.getElementById('eraser-size').oninput=e=>eraserSize=+e.target.value;
 function drawCalligraphy(x,y){ctx.save();ctx.font = `${calligraphySize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;ctx.textAlign = "center";ctx.textBaseline = "middle";ctx.fillStyle = calligraphyColor;ctx.fillText(calligraphyBrushes[calligraphyBrushType], x, y);ctx.restore();}
 function drawCalligraphyFlowLine(x0,y0,x1,y1){let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;while(true){drawCalligraphy(x0,y0);if(x0===x1&&y0===y1)break;let e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}}}
 function drawSymbol(x,y){ctx.save();ctx.font = `${symbolSize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;ctx.textAlign = "center";ctx.textBaseline = "middle";ctx.fillStyle = symbolColor;ctx.fillText(symbolChars[symbolCharType], x, y);ctx.restore();}
-function drawTextMultiline(str, x, y, font, size, color, rotation) {ctx.save();ctx.font = `${size}px ${font}`;ctx.fillStyle = color;ctx.textBaseline = "top";ctx.textAlign = "left";ctx.translate(x, y);if(rotation&&rotation!==0)ctx.rotate(rotation*Math.PI/180);const lines=str.split('\n');for(let i=0;i<lines.length;i++){ctx.fillText(lines[i],0,i*size*1.15);}ctx.restore();}
+function drawTextMultiline(str, x, y, font, size, color, rotation) {ctx.save();ctx.font = `${size}px ${font}`;ctx.fillStyle = color;ctx.textBaseline = "middle";
+ctx.textAlign = "left";
+let lines = document.getElementById('text-string').value.split('\n');
+let offsetX = -box.width / 2;
+let blockHeight = lines.length * textSize * 1.15;
+let offsetY = -blockHeight / 2 + textSize * 1.15 / 2;
+for (let i = 0; i < lines.length; i++) {
+  ctx.fillText(lines[i], offsetX, offsetY + i * textSize * 1.15);
+}ctx.restore();}
 function getBrushSettings(){if(currentTool==='marker')return{size:markerSize,color:color,flow:flow};if(currentTool==='eraser')return{size:eraserSize,color:"#fff",flow:flow};if(currentTool==='calligraphy')return{size:calligraphySize,flow:calligraphyFlow};return{size:markerSize,color:color,flow:flow};}
 function drawAt(x,y){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;ctx.fillRect(x,y,size,size);}
 function drawLine(x0,y0,x1,y1,customDraw){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;while(true){if(customDraw)customDraw(x0,y0);else ctx.fillRect(x0,y0,size,size);if(x0===x1&&y0===y1)break;let e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}}}
