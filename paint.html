@@ -158,7 +158,6 @@
       padding: 0;
       margin: 0;
       box-sizing: border-box;
-      /* Center transform for rotation: */
       transform-origin: center center;
     }
     #text-preview-content {
@@ -284,8 +283,8 @@
     </div>
     <div class="text-rotation-wrapper">
       <label for="text-rotation-range">rotation:</label>
-      <input type="range" id="text-rotation-range" min="0" max="360" value="0" style="width:90px;">
-      <input type="number" id="text-rotation-number" min="0" max="360" value="0" class="no-arrows">
+      <input type="range" id="text-rotation-range" min="-180" max="180" value="0" style="width:90px;">
+      <input type="number" id="text-rotation-number" min="-180" max="180" value="0" class="no-arrows">
     </div>
     <label>color: <input type="color" id="text-color" value="#000000"></label><br>
     <textarea id="text-string" rows="2" style="width:95%;resize:vertical;background-color: #000;">your text</textarea>
@@ -442,17 +441,17 @@ document.addEventListener('mousemove',function(e){if(!textPreviewDragging||!text
 document.addEventListener('mouseup',function(){textPreviewDragging=false;textPreviewOverlay.style.cursor='grab';});
 document.addEventListener('touchmove',function(e){if(!textPreviewDragging||!textPreviewActive)return;let w=textPreviewOverlay.offsetWidth,h=textPreviewOverlay.offsetHeight;const containerRect=document.getElementById('app-container').getBoundingClientRect();let t=e.touches[0];let touchX=t.clientX-containerRect.left,touchY=t.clientY-containerRect.top,posX=touchX-textPreviewOffsetX,posY=touchY-textPreviewOffsetY;textPreviewPosX=posX;textPreviewPosY=posY;textPreviewOverlay.style.left=textPreviewPosX+"px";textPreviewOverlay.style.top=textPreviewPosY+"px";if(e.cancelable)e.preventDefault();},{passive:false});
 document.addEventListener('touchend',function(){textPreviewDragging=false;textPreviewOverlay.style.cursor='grab';});
-function setTextRotation(val){let v=Math.max(0,Math.min(360,Number(val)||0));textRotation=v;textRotationRange.value=v;textRotationNumber.value=v;updateTextPreviewTransform();}
+function setTextRotation(val){let v=Math.max(-180,Math.min(180,Number(val)||0));textRotation=v;textRotationRange.value=v;textRotationNumber.value=v;updateTextPreviewTransform();}
 textRotationRange.addEventListener('input',function(){setTextRotation(this.value);});
 textRotationNumber.addEventListener('input',function(){setTextRotation(this.value);});
 textSubmitBtn.onclick=function(){
   if(!textPreviewActive)return;
   saveState();
   let box=getTextBBox(document.getElementById('text-string').value,textFont,textSize);
-  // Calculate the overlay center using the overlay's left/top and box width/height
   let overlay=document.getElementById('text-preview-overlay');
   let container=document.getElementById('app-container');
-  let overlayRect=overlay.getBoundingClientRect(),containerRect=container.getBoundingClientRect(),canvasRect=canvas.getBoundingClientRect();
+  let overlayRect=overlay.getBoundingClientRect(),canvasRect=canvas.getBoundingClientRect();
+  // Overlay center (for rotation)
   let centerX = overlayRect.left + overlay.offsetWidth/2;
   let centerY = overlayRect.top + overlay.offsetHeight/2;
   // Convert to canvas coordinates
