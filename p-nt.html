@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHOOHEDD11: SUBSTITUTE TEE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap');
+    body {margin:0;padding:0;background:black;font-family:'Source Code Pro',monospace;color:#84ff00;}
+    a{color:#84ff00;font-weight:bold;font-family:'Source Code Pro',monospace;font-size:20px;text-decoration:none;margin:0 15px;}
+    a:hover{font-weight:bolder;}
+
+    .scroll-tile-bar {
+      width: 60vw; min-width: 320px; max-width: 1050px;
+      overflow: hidden; position: relative; background: black;
+      color: #84ff00; margin: 0 auto 15px auto; box-sizing: border-box;
+      padding: 0; height: 32px; border-bottom: 1.5px solid #1b1b1b;
+      user-select: none; display: flex; align-items: center; justify-content: center;
+      transition: width 0.2s;
+    }
+    .scroll-tile-bar .editable-text {
+      outline: none; border: none; background: transparent; color: #84ff00;
+      font-size: 15.75px; font-family: 'Source Code Pro', monospace;
+      font-weight: bold; white-space: nowrap; display: inline-block;
+      min-width: 150px; margin: 0;
+    }
+    .tile-content {
+      display: flex; flex-direction: row; align-items: center;
+      width: max-content; height: 100%;
+      animation: scroll-infinite 8s linear infinite; will-change: transform;
+    }
+    @keyframes scroll-infinite {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .tile-text {
+      padding: 2px 30px 2px 0; font-size: 15.75px;
+      font-family: 'Source Code Pro', monospace; font-weight: bold;
+      white-space: nowrap; display: inline-block; line-height: 21px;
+      letter-spacing: 0.04em; user-select: none;
+    }
+
+    .nav-links {
+      margin: 10px auto 5px auto; text-align: center; padding-bottom: 15px;
+    }
+    .nav-links a:hover {
+      color: #b6ff62 !important; font-weight: bolder;
+    }
+
+    /* ---- NEW UPDATE SECTION ---- */
+    .update-section{
+      width:95%;
+      max-width:900px;
+      margin:50px auto;
+      display:flex;
+      font-family:'Source Code Pro',monospace;
+    }
+    .update-image-slider{
+      position:relative;width:80%;max-width:550px;overflow:hidden;user-select:none;margin:0;
+    }
+    .update-images{
+      display:flex;width:100%;transition:transform 0.4s cubic-bezier(.77,0,.18,1);
+    }
+    .update-slide{
+      width:100%;flex-shrink:0;object-fit:contain;pointer-events:none;display:block;
+    }
+    .update-dots{text-align:center;margin-top:8px;}
+    .update-dots .dot{
+      display:inline-block;width:7.5px;height:7.5px;margin:0 3px;background:#222;border-radius:50%;border:1px solid #84ff00;cursor:pointer;transition:background 0.2s;
+    }
+    .update-dots .dot.active{background:#84ff00;}
+    .update-text{width:70%;padding:0 20px;display:flex;flex-direction:column;justify-content:flex-start;}
+    .update-subtitle{font-size:12px;text-align:right;width:100%;}
+    .update-title{font-size:46px;font-weight:bold;margin:5px 0;text-align:left;}
+    .update-para{font-size:15px;font-weight:normal;text-align:left;padding:8px 0;}
+    /* Responsive (from webstore) */
+    @media screen and (max-width:1050px) {
+      .scroll-tile-bar { min-width: 0; }
+    }
+    @media screen and (max-width:768px){
+      .scroll-tile-bar {
+        width: 90vw !important;
+        min-width: 0;
+        max-width: none;
+        height: 26px;
+      }
+      .scroll-tile-bar .tile-text,
+      .scroll-tile-bar .editable-text {
+        font-size: 11.8px;
+        line-height: 16.5px;
+      }
+      .nav-links{margin:10px auto 2.5px auto;}
+      .update-section{width:85%;flex-direction:column!important;align-items:center;}
+      .update-image-slider{width:100%;max-width:550px;}
+      .update-text{width:100%;padding:0;}
+      .update-subtitle{text-align:right;}
+      .update-title{text-align:left;}
+    }
+
+    /* BUTTON STYLING */
+    .purchase-btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #84ff00;
+      color: black;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      text-transform: uppercase;
+      margin-top: 40px;
+      border-radius: 15px;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 12px 0 #84ff0055;
+      font-family:'Source Code Pro',monospace;
+    }
+    .purchase-btn:hover,
+    .purchase-btn:focus {
+      background: #b6ff62;
+      color: black;
+      box-shadow: 0 2px 16px 0 #b6ff6266;
+      outline: none;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 4px 0 3px 0;
+      background: black;
+      color: #84ff00;
+      margin-top: 60px;
+      font-size: 13px;
+      letter-spacing: 1.1px;
+    }
+    .footer a {
+      font-size: 14px;
+      margin: 0;
+      color: #84ff00;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .footer a:hover { color: #b6ff62 !important; }
+  </style>
+</head>
+<body>
+<center>
+  <div class="titleimg"><img src="pws.png" width="350px"></div>
+  <div class="scroll-tile-bar" id="scrollTileBar">
+    <span style="font-size:0;position:absolute;left:-9999px;" aria-hidden="true">tile-scroll-bar</span>
+    <div class="tile-content" id="tileContent">
+      <span class="tile-text editable-text" id="tileEditable" contenteditable="true">POIZ.ONE PAINT - LAST UPDATED 28 MAY 2025 - v2.0 // POIZ.ONE DOMAIN PARKED - LAST UPDATED 8 JUNE 2025</span>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="https://poiz.one/paint">PAINT</a>
+    <a href="https://poiz.one/domainparked">PARK</a>
+    <a href="https://poiz.one/products">PRODUCTS</a>
+    <a href="https://poiz.one/edex">EDEX</a>
+    <a href="https://instagram.com/poiz.0ne">CONTACT</a>
+  </div>
+</center>
+<div class="update-section">
+  <div class="update-image-slider" id="updateImageSlider">
+    <div class="update-images" id="updateImages">
+      <img src="navy-tee.gif" class="update-slide" draggable="false" alt="Image 1">
+      <img src="navy-tee2.png" class="update-slide" draggable="false" alt="Image 2">
+      <img src="tee-img3.png" class="update-slide" draggable="false" alt="Image 3">
+    </div>
+    <div class="update-dots" id="updateDots">
+      <span class="dot active"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+  </div>
+  <div class="update-text">
+    <div class="update-subtitle">pic: xxl // s m l xl xxl</div>
+    <div class="update-title">SHOOHEDD11: SUBSTITUTE TEE</div>
+    <div class="update-para">
+      FEATURED ARTWORK: em F*cken F*ckers😃😃 [JAN 17 2025]<br>PICTURED: XL<br>
+      - Heavy cotton tee<br>
+      - Digital DTG print<br>
+      - Hand-sewn product tag
+      <br><br>
+      <button class="purchase-btn" onclick="window.location.href='https://poiz.one/order-nt'">$35 - BUY NOW</button>
+    </div>
+  </div>
+</div>
+<div class="footer">
+  <a href="https://instagram.com/poiz.0ne" target="_blank">@poiz.0ne</a>
+</div>
+<script>
+function makeSlider(wrapperId, imagesId, dotsId){
+  const wrapper=document.getElementById(wrapperId),
+        slider=document.getElementById(imagesId),
+        dotsContainer=document.getElementById(dotsId),
+        slides=slider.querySelectorAll('img'),
+        dots=dotsContainer.querySelectorAll('.dot');
+  let index=0,startX=0,isDragging=false;
+  function updateSliderWidth(){
+    slider.style.width=(slides.length*100)+'%';
+    slides.forEach(slide=>{slide.style.width=(100/slides.length)+'%';});
+  }
+  function updateSlider(){
+    const percent=index*(100/slides.length);
+    slider.style.transform=`translateX(-${percent}%)`;
+    dots.forEach((dot,i)=>dot.classList.toggle('active',i===index));
+  }
+  function goToSlide(i){index=i;updateSlider();}
+  function startDrag(e){isDragging=true;startX=e.type.includes('mouse')?e.pageX:e.touches[0].clientX;}
+  function endDrag(e){
+    if(!isDragging)return;
+    const endX=e.type.includes('mouse')?e.pageX:e.changedTouches[0].clientX,diff=endX-startX;
+    if(diff>50&&index>0)index--;else if(diff<-50&&index<slides.length-1)index++;
+    updateSlider();isDragging=false;
+  }
+  function cancelDrag(){isDragging=false;}
+  wrapper.addEventListener('mousedown',startDrag);
+  wrapper.addEventListener('touchstart',startDrag,{passive:true});
+  wrapper.addEventListener('mouseup',endDrag);
+  wrapper.addEventListener('touchend',endDrag);
+  wrapper.addEventListener('mouseleave',cancelDrag);
+  dots.forEach((dot,i)=>{dot.addEventListener('click',()=>goToSlide(i));});
+  window.addEventListener('resize',updateSliderWidth);
+  updateSliderWidth();updateSlider();
+}
+makeSlider('updateImageSlider','updateImages','updateDots');
+
+// --- TILED, INFINTELY LOOPING SCROLL BAR WITH EDITABLE TEXT ---
+(function(){
+  const tileBar = document.getElementById('scrollTileBar');
+  const tileContent = document.getElementById('tileContent');
+  const tileEditable = document.getElementById('tileEditable');
+
+  function updateTiles() {
+    // Remove all but first editable node
+    while (tileContent.children.length > 1) tileContent.removeChild(tileContent.lastChild);
+
+    // Get base text for tile
+    const text = tileEditable.innerText || tileEditable.textContent || '';
+    // Estimate how many tiles needed for a full infinite look
+    const tileCount = Math.ceil(window.innerWidth / tileEditable.offsetWidth) * 3 + 2;
+
+    // Remove old clones if any
+    for(let i=1;i<tileCount;i++){
+      let clone = tileEditable.cloneNode(true);
+      clone.contentEditable = "false";
+      clone.removeAttribute("id");
+      clone.classList.remove('editable-text');
+      tileContent.appendChild(clone);
+    }
+    // Update animation duration based on content width (shorter = faster, more tiles)
+    const totalWidth = tileContent.scrollWidth;
+    let duration = Math.max(6, totalWidth/180); // min 6s, faster if longer
+    tileContent.style.animationDuration = duration+'s';
+  }
+
+  // On edit, update tiles instantly
+  tileEditable.addEventListener('input', updateTiles);
+
+  // On window resize, update tile count
+  window.addEventListener('resize', updateTiles);
+
+  // Remove linebreaks in contenteditable
+  tileEditable.addEventListener('keydown', function(e){
+    if(e.key === "Enter"){e.preventDefault();}
+  });
+
+  // Initial fill
+  setTimeout(updateTiles, 100);
+
+})();
+</script>
+</body>
+</html>
