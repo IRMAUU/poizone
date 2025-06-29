@@ -6,7 +6,7 @@
   <link rel="shortcut icon" href="favicon.png">
   <meta name="theme-color" content="#070707">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<link href="https://fonts.googleapis.com/css2?family=Eagle+Lake&family=Jacquard+24&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Eagle+Lake&family=Jacquard+24&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
     html,body{margin:0;padding:5;height:100%;background:#070707;font-family:'Roboto Mono',monospace;font-weight:700;user-select:none;color:#39ff14;font-size:14px;}
     a{font-family:'Roboto Mono',monospace;font-weight:700;user-select:none;color:#39ff14;font-size:8px;text-decoration:underline;}
@@ -271,14 +271,14 @@
         <div class="font-dropdown-option" style="font-family: 'Comic Sans MS', cursive, sans-serif;" data-font="'Comic Sans MS', cursive, sans-serif">Comic Sans MS</div>
         <div class="font-dropdown-option" style="font-family: 'Georgia', serif;" data-font="Georgia, serif">Georgia</div>
         <div class="font-dropdown-option" style="font-family: 'Impact', fantasy;" data-font="Impact, fantasy">Impact</div>
-<div class="font-dropdown-option" style="font-family: Helvetica, Arial, sans-serif;" data-font="Helvetica, Arial, sans-serif">Helvetica</div>
-<div class="font-dropdown-option" style="font-family: Papyrus, fantasy;" data-font="Papyrus, fantasy">Papyrus</div>
-<div class="font-dropdown-option" style="font-family: Stencil, fantasy;" data-font="Stencil, fantasy">Stencil</div>
-<div class="font-dropdown-option" style="font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;" data-font="Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace">Menlo</div>
+        <div class="font-dropdown-option" style="font-family: Helvetica, Arial, sans-serif;" data-font="Helvetica, Arial, sans-serif">Helvetica</div>
+        <div class="font-dropdown-option" style="font-family: Papyrus, fantasy;" data-font="Papyrus, fantasy">Papyrus</div>
+        <div class="font-dropdown-option" style="font-family: Stencil, fantasy;" data-font="Stencil, fantasy">Stencil</div>
+        <div class="font-dropdown-option" style="font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;" data-font="Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace">Menlo</div>
         <div class="font-dropdown-option" style="font-family: 'Verdana', sans-serif;" data-font="Verdana, sans-serif">Verdana</div>
         <div class="font-dropdown-option" style="font-family: 'Trebuchet MS', sans-serif;" data-font="'Trebuchet MS', sans-serif">Trebuchet MS</div>
-<div class="font-dropdown-option" style="font-family: 'Eagle Lake', cursive;" data-font="'Eagle Lake', cursive">Eagle Lake</div>
-<div class="font-dropdown-option" style="font-family: 'Jacquard 24', cursive;" data-font="'Jacquard 24', cursive">Jacquard 24</div>
+        <div class="font-dropdown-option" style="font-family: 'Eagle Lake', cursive;" data-font="'Eagle Lake', cursive">Eagle Lake</div>
+        <div class="font-dropdown-option" style="font-family: 'Jacquard 24', cursive;" data-font="'Jacquard 24', cursive">Jacquard 24</div>
         <div class="font-dropdown-option" style="font-family: 'Lucida Console', Monaco, monospace;" data-font="'Lucida Console', Monaco, monospace">Lucida Console</div>
       </div>
     </div><br>
@@ -330,8 +330,8 @@
     <label>opacity: <input type="range" id="import-opacity" min="10" max="100" value="75" style="width:90px;"> <span id="import-opacity-value">50</span>%</label><br>
     <div class="rotation-control">
       <label for="import-rotation">rotation:</label>
-      <input type="range" id="import-rotation" min="0" max="360" value="0" style="width:90px;">
-      <input type="number" id="import-rotation-number" min="0" max="360" value="0" class="no-arrows">
+      <input type="range" id="import-rotation" min="-180" max="180" value="0" style="width:90px;">
+      <input type="number" id="import-rotation-number" min="-180" max="180" value="0" class="no-arrows">
     </div>
     <div class="flip-btns">
       <button id="import-flip-h">flip horizontal</button>
@@ -393,57 +393,6 @@ document.getElementById('eraser-size').oninput=e=>eraserSize=+e.target.value;
 function drawCalligraphy(x,y){ctx.save();ctx.font = `${calligraphySize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;ctx.textAlign = "center";ctx.textBaseline = "middle";ctx.fillStyle = calligraphyColor;ctx.fillText(calligraphyBrushes[calligraphyBrushType], x, y);ctx.restore();}
 function drawCalligraphyFlowLine(x0,y0,x1,y1){let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;while(true){drawCalligraphy(x0,y0);if(x0===x1&&y0===y1)break;let e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}}}
 function drawSymbol(x,y){ctx.save();ctx.font = `${symbolSize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;ctx.textAlign = "center";ctx.textBaseline = "middle";ctx.fillStyle = symbolColor;ctx.fillText(symbolChars[symbolCharType], x, y);ctx.restore();}
-function drawTextMultiline(str, x, y, font, size, color, rotation) {ctx.save();ctx.font = `${size}px ${font}`;ctx.fillStyle = color;ctx.textBaseline = "middle";
-ctx.textAlign = "left";
-let lines = document.getElementById('text-string').value.split('\n');
-let offsetX = -box.width / 2;
-let blockHeight = lines.length * textSize * 1.15;
-let offsetY = -blockHeight / 2 + textSize * 1.15 / 2;
-for (let i = 0; i < lines.length; i++) {
-  ctx.fillText(lines[i], offsetX, offsetY + i * textSize * 1.15);
-}ctx.restore();}
-function getBrushSettings(){if(currentTool==='marker')return{size:markerSize,color:color,flow:flow};if(currentTool==='eraser')return{size:eraserSize,color:"#fff",flow:flow};if(currentTool==='calligraphy')return{size:calligraphySize,flow:calligraphyFlow};return{size:markerSize,color:color,flow:flow};}
-function drawAt(x,y){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;ctx.fillRect(x,y,size,size);}
-function drawLine(x0,y0,x1,y1,customDraw){const{size,color}=getBrushSettings();ctx.fillStyle=(currentTool==='spray')?sprayColor:color;let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;while(true){if(customDraw)customDraw(x0,y0);else ctx.fillRect(x0,y0,size,size);if(x0===x1&&y0===y1)break;let e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}}}
-function sprayAt(x,y){ctx.fillStyle=(currentTool==='spray')?sprayColor:color;for(let i=0;i<sprayFlow;i++){const a=Math.random()*2*Math.PI,r=Math.random()*spraySpread,ox=Math.cos(a)*r,oy=Math.sin(a)*r;ctx.fillRect(x+ox,y+oy,spraySize,spraySize);}}
-function hexToRgb(hex){const b=parseInt(hex.slice(1),16);return[(b>>16)&255,(b>>8)&255,b&255];}
-function getPixelColor(x,y,imgData){const i=(y*imgData.width+x)*4;return[imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]];}
-function colorsMatch(a,b){return a.every((v,i)=>v===b[i]);}
-function floodFill(x,y,fillHex){let imgData;try{imgData=ctx.getImageData(0,0,canvas.width,canvas.height);}catch(e){alert("Bucket fill unavailable: Canvas is tainted (see console). Only use local or CORS-enabled assets.");return;}const targetColor=getPixelColor(x,y,imgData),fillColor=hexToRgb(fillHex).concat(255);if(colorsMatch(targetColor,fillColor))return;const stack=[[x,y]];while(stack.length){const[cx,cy]=stack.pop();if(cx<0||cy<0||cx>=canvas.width||cy>=canvas.height)continue;const currentColor=getPixelColor(cx,cy,imgData);if(!colorsMatch(currentColor,targetColor))continue;const i=(cy*canvas.width+cx)*4;imgData.data.set(fillColor,i);stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);}ctx.putImageData(imgData,0,0);}
-let importImg=null,importImgNaturalWidth=0,importImgNaturalHeight=0,importPreview=null,importDragging=false,importOffsetX=0,importOffsetY=0,importPosX=0,importPosY=0,importScale=0.5,importRotation=0,importOpacity=0.5,importFlipH=1,importFlipV=1;
-const importSettingsDiv=document.getElementById('import-settings'),importFileInput=document.getElementById('import-image-file'),importSizeSlider=document.getElementById('import-size'),importSizeValue=document.getElementById('import-size-value'),importOpacitySlider=document.getElementById('import-opacity'),importOpacityValue=document.getElementById('import-opacity-value'),importRotationSlider=document.getElementById('import-rotation'),importRotationNumber=document.getElementById('import-rotation-number'),importFlipHBtn=document.getElementById('import-flip-h'),importFlipVBtn=document.getElementById('import-flip-v'),importStampBtn=document.getElementById('import-stamp-btn'),importCancelBtn=document.getElementById('import-cancel-btn'),importDropdown=document.getElementById('import-dropdown');
-function hideImportPreview(){if(importPreview&&importPreview.parentNode){importPreview.parentNode.removeChild(importPreview);importPreview=null;}}
-function showImportPreview(){hideImportPreview();if(!importImg)return;importPreview=document.createElement('img');importPreview.id='import-preview-img';importPreview.src=importImg.src;importPreview.draggable=false;importPreview.style.position='absolute';importPreview.style.opacity=importOpacity.toString();importPreview.style.pointerEvents='auto';importPreview.style.cursor='grab';importPreview.style.zIndex=5;importPreview.style.boxSizing='border-box';let container=document.getElementById('app-container');container.appendChild(importPreview);updateImportPreviewTransform();importPreview.onmousedown=function(e){e.preventDefault();importDragging=true;let rect=importPreview.getBoundingClientRect();importOffsetX=e.clientX-rect.left;importOffsetY=e.clientY-rect.top;};document.addEventListener('mousemove',imagePreviewDragMove);document.addEventListener('mouseup',imagePreviewDragEnd);importPreview.ontouchstart=function(e){if(e.touches.length!==1)return;e.preventDefault();importDragging=true;let rect=importPreview.getBoundingClientRect();let t=e.touches[0];importOffsetX=t.clientX-rect.left;importOffsetY=t.clientY-rect.top;};document.addEventListener('touchmove',imagePreviewDragMove,{passive:false});document.addEventListener('touchend',imagePreviewDragEnd);}
-function imagePreviewDragMove(e){if(!importDragging||!importPreview)return;let container=document.getElementById('app-container');let clientX,clientY;if(e.touches&&e.touches.length){clientX=e.touches[0].clientX;clientY=e.touches[0].clientY;}else{clientX=e.clientX;clientY=e.clientY;}let posX=clientX-container.getBoundingClientRect().left-importOffsetX;let posY=clientY-container.getBoundingClientRect().top-importOffsetY;importPosX=posX;importPosY=posY;updateImportPreviewTransform();if(e.cancelable)e.preventDefault();}
-function imagePreviewDragEnd(e){if(importDragging){importDragging=false;if(importPreview)importPreview.style.cursor='grab';}}
-function updateImportPreviewTransform(){if(!importPreview)return;let w=Math.max(1,Math.round(importImgNaturalWidth*importScale)),h=Math.max(1,Math.round(importImgNaturalHeight*importScale));importPreview.style.width=w+'px';importPreview.style.height=h+'px';importPreview.style.left=importPosX+'px';importPreview.style.top=importPosY+'px';let rot=importRotation,scaleX=importFlipH,scaleY=importFlipV;importPreview.style.transform=`rotate(${rot}deg) scale(${scaleX},${scaleY})`;importPreview.style.opacity=importOpacity;}
-function stampImageToCanvas(){if(!importImg)return;saveState();let container=document.getElementById('app-container');let w=importPreview.offsetWidth,h=importPreview.offsetHeight;let px=(importPosX)*(canvas.width/container.offsetWidth),py=(importPosY)*(canvas.height/container.offsetHeight);ctx.save();ctx.globalAlpha=importOpacity;ctx.translate(px+w/2,py+h/2);ctx.rotate(importRotation*Math.PI/180);ctx.scale(importFlipH,importFlipV);ctx.drawImage(importImg,-w/2,-h/2,w,h);ctx.restore();hideImportPreview();importImg=null;importSettingsDiv.classList.add('hidden');importFileInput.value='';}
-function importResetState(){importImg=null;importImgNaturalWidth=0;importImgNaturalHeight=0;importScale=0.5;importRotation=0;importOpacity=0.5;importFlipH=1;importFlipV=1;let container=document.getElementById('app-container');importPosX=(container.offsetWidth/2)-50;importPosY=(container.offsetHeight/2)-50;hideImportPreview();importSettingsDiv.classList.add('hidden');}
-importFileInput.addEventListener('change',function(e){let file=this.files[0];if(!file)return;importResetState();let reader=new FileReader();reader.onload=function(evt){let img=new window.Image();img.onload=function(){importImg=img;importImgNaturalWidth=img.naturalWidth;importImgNaturalHeight=img.naturalHeight;let container=document.getElementById('app-container');importScale=0.5;importSizeSlider.value=50;importSizeValue.textContent=50;importOpacity=parseInt(importOpacitySlider.value,10)/100.0;importRotation=parseInt(importRotationSlider.value,10);importRotationNumber.value=importRotation;importFlipH=1;importFlipV=1;let w=Math.max(1,Math.round(importImgNaturalWidth*importScale)),h=Math.max(1,Math.round(importImgNaturalHeight*importScale));importPosX=(container.offsetWidth-w)/2;importPosY=(container.offsetHeight-h)/2;importOpacityValue.textContent=importOpacitySlider.value;importSettingsDiv.classList.remove('hidden');showImportPreview();};img.src=evt.target.result;};reader.readAsDataURL(file);});
-importSizeSlider.addEventListener('input',function(){importScale=parseInt(this.value,10)/100.0;importSizeValue.textContent=this.value;let container=document.getElementById('app-container');let w=Math.max(1,Math.round(importImgNaturalWidth*importScale)),h=Math.max(1,Math.round(importImgNaturalHeight*importScale));importPosX=(container.offsetWidth-w)/2;importPosY=(container.offsetHeight-h)/2;updateImportPreviewTransform();});
-importOpacitySlider.addEventListener('input',function(){importOpacity=parseInt(this.value,10)/100.0;importOpacityValue.textContent=this.value;if(importPreview)importPreview.style.opacity=importOpacity;});
-function setImportRotation(val){let v=Math.max(0,Math.min(360,Number(val)||0));importRotation=v;importRotationSlider.value=v;importRotationNumber.value=v;updateImportPreviewTransform();}
-importRotationSlider.addEventListener('input',function(){setImportRotation(this.value);});
-importRotationNumber.addEventListener('input',function(){setImportRotation(this.value);});
-importFlipHBtn.addEventListener('click',function(){importFlipH*=-1;updateImportPreviewTransform();});
-importFlipVBtn.addEventListener('click',function(){importFlipV*=-1;updateImportPreviewTransform();});
-importStampBtn.addEventListener('click',function(){stampImageToCanvas();});
-importCancelBtn.addEventListener('click',function(){importResetState();});
-document.querySelectorAll('.menu-title').forEach(title=>{title.addEventListener('click',()=>{if(title.id==="undo-btn")return;const menu=title.dataset.menu,dropdown=document.getElementById(`${menu}-dropdown`),isAlreadyOpen=!dropdown.classList.contains('hidden');document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));if(!isAlreadyOpen)dropdown.classList.remove('hidden');if(menu!=='import')importResetState();});});
-document.getElementById('export-back').addEventListener('click',()=>{document.getElementById('export-dropdown').classList.add('hidden');});
-document.getElementById('undo-btn').addEventListener('click',()=>{undo();});
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z')undo();});
-document.querySelectorAll('.tool-option').forEach(opt=>{opt.addEventListener('click',()=>{const tool=opt.id.split('-')[0],settings=document.getElementById(`${tool}-settings`);if(currentTool===tool){if(settings)settings.classList.toggle('hidden');return;}currentTool=tool;setToolHighlight(currentTool);if(tool==="text"){showTextPreviewOverlay(textString,textFont,textSize,textColor,true);}else{hideTextPreviewOverlay();}});});
-function setToolHighlight(tool){['marker','calligraphy','symbol','text','spray','eraser','bucket','clear'].forEach(t=>{const settings=document.getElementById(`${t}-settings`),option=document.getElementById(`${t}-option`);if(settings)settings.classList.add('hidden');if(option)option.classList.remove('selected');});const settings=document.getElementById(`${tool}-settings`),option=document.getElementById(`${tool}-option`);if(settings)settings.classList.remove('hidden');if(option)option.classList.add('selected');}
-const panel=document.getElementById('tool-panel');let isDraggingPanel=false,offsetX=0,offsetY=0;
-document.getElementById('tool-panel-header').addEventListener('mousedown',e=>{isDraggingPanel=true;offsetX=e.offsetX;offsetY=e.offsetY;});
-document.addEventListener('mousemove',e=>{if(!isDraggingPanel)return;const container=document.getElementById('app-container').getBoundingClientRect();let x=e.clientX-offsetX-container.left,y=e.clientY-offsetY-container.top;panel.style.left=Math.max(0,Math.min(container.width-panel.offsetWidth,x))+'px';panel.style.top=Math.max(0,Math.min(container.height-panel.offsetHeight,y))+'px';});
-document.addEventListener('mouseup',()=>isDraggingPanel=false);
-document.getElementById('clear-yes').addEventListener('click',()=>{saveState();ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('clear-settings').classList.add('hidden');});
-document.getElementById('clear-back').addEventListener('click',()=>{document.getElementById('clear-settings').classList.add('hidden');});
-document.getElementById('export-btn').addEventListener('click',()=>{const filename=document.getElementById('file-name').value||'pixel-art',transparent=document.getElementById('transparent-bg').checked;if(!transparent){const tempCanvas=document.createElement('canvas');tempCanvas.width=canvas.width;tempCanvas.height=canvas.height;const tempCtx=tempCanvas.getContext('2d');tempCtx.fillStyle="#fff";tempCtx.fillRect(0,0,tempCanvas.width,tempCanvas.height);tempCtx.drawImage(canvas,0,0);const link=document.createElement('a');link.download=filename+'.png';link.href=tempCanvas.toDataURL('image/png');link.click();}else{const link=document.createElement('a');link.download=filename+'.png';link.href=canvas.toDataURL('image/png');link.click();}});
-let textPreviewActive=false,textPreviewDragging=false,textPreviewOffsetX=0,textPreviewOffsetY=0,textPreviewPosX=0,textPreviewPosY=0,textPreviewInit=false,textPreviewInitX=0,textPreviewInitY=0,textRotation=0;
-const textPreviewOverlay=document.getElementById('text-preview-overlay'),textPreviewContent=document.getElementById('text-preview-content'),textSubmitBtn=document.getElementById('text-submit-btn'),textCancelBtn=document.getElementById('text-cancel-btn'),textToolboxControls=document.getElementById('text-toolbox-controls'),textRotationRange=document.getElementById('text-rotation-range'),textRotationNumber=document.getElementById('text-rotation-number');
 function getTextBBox(text,font,size){const off=document.createElement('canvas');const offCtx=off.getContext('2d');offCtx.font=`${size}px ${font}`;const lines=text.split('\n');let width=0;for(let l of lines){const m=offCtx.measureText(l);width=Math.max(width,m.width);}return {width,height:lines.length*size*1.15};}
 function showTextPreviewOverlay(text,font,size,color,forceCenter){textPreviewActive=true;textPreviewOverlay.style.display="block";textPreviewOverlay.style.boxSizing="border-box";textPreviewContent.textContent=text.replace(/\n/g,"\n");textPreviewOverlay.style.fontFamily=font;textPreviewOverlay.style.fontSize=size+"px";textPreviewOverlay.style.color=color;textPreviewContent.style.fontFamily=font;textPreviewContent.style.fontSize=size+"px";textPreviewContent.style.color=color;let box=getTextBBox(text,font,size);textPreviewOverlay.style.width=box.width+"px";textPreviewOverlay.style.height=box.height+"px";textPreviewOverlay.style.transformOrigin="center center";if(forceCenter||!textPreviewInit){let container=document.getElementById('app-container');textPreviewPosX=(container.offsetWidth-box.width)/2;textPreviewPosY=(container.offsetHeight-box.height)/2;textPreviewInitX=textPreviewPosX;textPreviewInitY=textPreviewPosY;textPreviewInit=true;}textPreviewOverlay.style.left=textPreviewPosX+"px";textPreviewOverlay.style.top=textPreviewPosY+"px";textToolboxControls.style.display="flex";updateTextPreviewTransform();}
 function updateTextPreviewContent(text,font,size,color){textPreviewContent.textContent=text.replace(/\n/g,"\n");textPreviewOverlay.style.fontFamily=font;textPreviewOverlay.style.fontSize=size+"px";textPreviewOverlay.style.color=color;textPreviewContent.style.fontFamily=font;textPreviewContent.style.fontSize=size+"px";textPreviewContent.style.color=color;let box=getTextBBox(text,font,size);textPreviewOverlay.style.width=box.width+"px";textPreviewOverlay.style.height=box.height+"px";textPreviewOverlay.style.left=textPreviewPosX+"px";textPreviewOverlay.style.top=textPreviewPosY+"px";updateTextPreviewTransform();}
@@ -461,14 +410,12 @@ textRotationNumber.addEventListener('input',function(){setTextRotation(this.valu
 textSubmitBtn.onclick=function(){
   if(!textPreviewActive)return;
   saveState();
-  let box=getTextBBox(document.getElementById('text-string').value,textFont,textSize);
+  let text=document.getElementById('text-string').value;
+  let box=getTextBBox(text,textFont,textSize);
   let overlay=document.getElementById('text-preview-overlay');
-  let container=document.getElementById('app-container');
-  let overlayRect=overlay.getBoundingClientRect(),canvasRect=canvas.getBoundingClientRect();
-  // Overlay center (for rotation)
+  let canvasRect=canvas.getBoundingClientRect(),overlayRect=overlay.getBoundingClientRect();
   let centerX = overlayRect.left + overlay.offsetWidth/2;
   let centerY = overlayRect.top + overlay.offsetHeight/2;
-  // Convert to canvas coordinates
   let px = (centerX - canvasRect.left) * (canvas.width / canvasRect.width);
   let py = (centerY - canvasRect.top) * (canvas.height / canvasRect.height);
   ctx.save();
@@ -476,16 +423,17 @@ textSubmitBtn.onclick=function(){
   ctx.rotate(textRotation*Math.PI/180);
   ctx.font = `${textSize}px ${textFont}`;
   ctx.fillStyle = textColor;
-  ctx.textBaseline = "top";
+  ctx.textBaseline = "middle";
   ctx.textAlign = "left";
-  let lines=document.getElementById('text-string').value.split('\n');
+  let lines=text.split('\n');
+  let blockHeight = lines.length * textSize * 1.15;
   let offsetX = -box.width/2;
-  let offsetY = -box.height/2;
+  let offsetY = -blockHeight/2 + textSize*1.15/2;
   for(let i=0;i<lines.length;i++){
     ctx.fillText(lines[i], offsetX, offsetY + i*textSize*1.15);
   }
   ctx.restore();
-  showTextPreviewOverlay(document.getElementById('text-string').value,textFont,textSize,textColor,false);
+  showTextPreviewOverlay(text,textFont,textSize,textColor,false);
   textPreviewPosX=textPreviewInitX;textPreviewPosY=textPreviewInitY;
   textPreviewOverlay.style.left=textPreviewPosX+"px";
   textPreviewOverlay.style.top=textPreviewPosY+"px";
@@ -501,6 +449,27 @@ canvas.addEventListener('touchstart',e=>{e.preventDefault();const{x,y}=getCanvas
 canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text')return;const{x,y}=getCanvasCoordsTouch(e);if(currentTool==='calligraphy'){if(lastPos){if(calligraphyFlow>=1000){drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);}else{let dist=Math.hypot(x-lastPos.x,y-lastPos.y);let step=Math.max(1,Math.floor(1000/calligraphyFlow));if(dist>step){let steps=Math.floor(dist/step);for(let i=1;i<=steps;i++){let nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps),ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);drawCalligraphy(nx,ny);}}else{drawCalligraphy(x,y);}}}else{drawCalligraphy(x,y);}}else if(currentTool==='spray'){sprayAt(x,y);}else if(flow>=1000&&lastPos){drawLine(lastPos.x,lastPos.y,x,y);}else{drawAt(x,y);}lastPos={x,y};});
 canvas.addEventListener('touchend',()=>{drawing=false;});
 canvas.addEventListener('mouseout',()=>{drawing=false;});
+
+// IMAGE ROTATION SLIDER - min -180, max 180, default 0
+const importRotationSlider=document.getElementById('import-rotation');
+const importRotationNumber=document.getElementById('import-rotation-number');
+let importRotation = 0;
+importRotationSlider.min = "-180";
+importRotationSlider.max = "180";
+importRotationSlider.value = "0";
+importRotationNumber.min = "-180";
+importRotationNumber.max = "180";
+importRotationNumber.value = "0";
+function setImportRotation(val){
+  let v=Math.max(-180,Math.min(180,Number(val)||0));
+  importRotation=v;
+  importRotationSlider.value = v;
+  importRotationNumber.value = v;
+  updateImportPreviewTransform();
+}
+importRotationSlider.addEventListener('input',function(){setImportRotation(this.value);});
+importRotationNumber.addEventListener('input',function(){setImportRotation(this.value);});
+
 </script>
 <div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
 </body>
