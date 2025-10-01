@@ -53,7 +53,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+      z-index: 10000;       /* above canvas */
+      pointer-events: all;   /* receive clicks */
     }
 
     #popup-box {
@@ -63,6 +64,8 @@
       width: 300px;
       text-align: center;
       position: relative;
+      z-index: 10001;       /* above overlay */
+      pointer-events: all;
     }
 
     #popup-box img {
@@ -83,6 +86,7 @@
       cursor: pointer;
       font-weight: bold;
       color: #ff3c00;
+      z-index: 10002;       /* topmost clickable */
     }
   </style>
 </head>
@@ -122,28 +126,24 @@
 
     let unityInstance = null;
     createUnityInstance(canvas, {
-      dataUrl: "twegallery.data.br",
-      frameworkUrl: "twegallery.framework.js.br",
-      codeUrl: "twegallery.wasm.br",
+      dataUrl: "Build/twegallery.data.br",
+      frameworkUrl: "Build/twegallery.framework.js.br",
+      codeUrl: "Build/twegallery.wasm.br",
       streamingAssetsUrl: "StreamingAssets",
       companyName: "DefaultCompany",
       productName: "twegallery",
       productVersion: "0.1",
     }).then(instance => {
       unityInstance = instance;
-      // Pause game until popup is closed
-      if (unityInstance && unityInstance.Module && unityInstance.Module.pauseMainLoop) {
-        unityInstance.Module.pauseMainLoop();
-      }
     });
+
+    // Block canvas interactions until popup closed
+    canvas.style.pointerEvents = "none";
 
     // Popup close button
     document.getElementById("popup-close").addEventListener("click", function() {
       document.getElementById("popup-overlay").style.display = "none";
-      // Resume Unity after popup closed
-      if (unityInstance && unityInstance.Module && unityInstance.Module.resumeMainLoop) {
-        unityInstance.Module.resumeMainLoop();
-      }
+      canvas.style.pointerEvents = "auto"; // allow game interactions
     });
   </script>
 </body>
