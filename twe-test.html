@@ -1,154 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="utf-8" http-equiv="refresh" content="300">
+    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="utf-8" http-equiv="refresh" content="300">
   <meta property="og:title" content="twe-test"/>
   <meta property="twitter:title" content="twe-test"/>
-  <meta property="og:image" content="twegall-logo.png"/>
-  <meta property="twitter:image" content="twegall-logo.png"/>
-  <title>twe-test</title>
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      color: #ff3c00; /* blood-orange */
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
-
-    /* Logo */
-    #logo {
-      width: 70%;
-      margin: 20px auto;
-      display: block;
-    }
-
-    /* Game container */
-    #game-container {
-      width: 80%;
-      margin: 0 auto 20px auto;
-      padding: 10px;
-    }
-
-    #unity-canvas {
-      width: 100%;
-      height: auto;
-      background: #231F20;
-    }
-
-    /* Links */
-    .links {
-      margin: 10px 0 40px 0;
-    }
-    .links a {
-      display: inline-block;
-      margin: 0 8px;
-      font-size: 8px;
-      text-decoration: none;
-      color: #ff3c00;
-    }
-
-    /* Popup overlay */
-    #popup-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;       /* above canvas */
-      pointer-events: all;   /* receive clicks */
-    }
-
-    #popup-box {
-      background: #111;
-      border-radius: 12px;
-      padding: 20px;
-      width: 300px;
-      text-align: center;
-      position: relative;
-      z-index: 10001;       /* above overlay */
-      pointer-events: all;
-    }
-
-    #popup-box img {
-      max-width: 100%;
-      margin-bottom: 10px;
-    }
-
-    #popup-box p {
-      font-size: 8px;
-      color: #ff3c00;
-      margin: 4px 0;
-    }
-
-    #popup-close {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      cursor: pointer;
-      font-weight: bold;
-      color: #ff3c00;
-      z-index: 10002;       /* topmost clickable */
-    }
-  </style>
-</head>
-<body>
-  <!-- Logo -->
-  <img id="logo" src="twegall-logo.png" alt="Logo">
-
-  <!-- Game -->
-  <div id="game-container">
-    <canvas id="unity-canvas"></canvas>
-  </div>
-
-  <!-- Links -->
-  <div class="links">
-    <a href="#">Link One</a>
-    <a href="#">Link Two</a>
-    <a href="#">Link Three</a>
-    <a href="#">Link Four</a>
-  </div>
-
-  <!-- Popup -->
-  <div id="popup-overlay">
-    <div id="popup-box">
-      <div id="popup-close">X</div>
-      <img src="default-popup.png" alt="Popup Image">
-      <p>Default text line one</p>
-      <p>Default text line two</p>
-      <p>Default text line three</p>
-      <p>Default text line four</p>
+  <meta property="og:image" content="twe-thumb.png"/>
+  <meta property="twitter:image" content="twe-thumb.png"/>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>twe-test</title>
+    <style>
+      body {
+        margin: 0;
+        background: #000;
+        color: #ff3c00; /* blood-orange */
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+  
+      /* Logo */
+      #logo {
+        width: 70%;
+        max-width: 100%;
+        height: auto;
+        margin: 20px auto;
+        display: block;
+      }
+  
+      /* Game container */
+      #game-container {
+        width: 80%;
+        margin: 0 auto 20px auto;
+        padding: 10px;
+      }
+  
+      #unity-canvas {
+        width: 100%;
+        height: auto;
+        background: #231F20;
+      }
+  
+      /* Links */
+      .links {
+        margin: 10px 0 40px 0;
+      }
+      .links a {
+        display: inline-block;
+        margin: 0 8px;
+        font-size: 8px;
+        text-decoration: none;
+        color: #ff3c00;
+      }
+  
+      /* Popup overlay */
+      #popup-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        pointer-events: all;
+      }
+  
+      #popup-box {
+        background: #111;
+        border-radius: 12px;
+        padding: 20px;
+        width: 300px;
+        text-align: center;
+        position: relative;
+        z-index: 10001;
+        pointer-events: all;
+      }
+  
+      #popup-box img {
+        max-width: 100%;
+        margin-bottom: 10px;
+      }
+  
+      #popup-box p {
+        font-size: 8px;
+        color: #ff3c00;
+        margin: 4px 0;
+      }
+  
+      #popup-close {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #ff3c00;
+        z-index: 10002;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Logo -->
+    <img id="logo" src="twegall-logo.png" alt="Logo">
+  
+    <!-- Game -->
+    <div id="game-container">
+      <canvas id="unity-canvas"></canvas>
     </div>
-  </div>
-
-  <!-- Unity Loader -->
-  <script src="twegallery.loader.js"></script>
-  <script>
-    const canvas = document.querySelector("#unity-canvas");
-
-    let unityInstance = null;
-    createUnityInstance(canvas, {
-      dataUrl: "twegallery.data.br",
-      frameworkUrl: "twegallery.framework.js.br",
-      codeUrl: "twegallery.wasm.br",
-      streamingAssetsUrl: "StreamingAssets",
-      companyName: "DefaultCompany",
-      productName: "twegallery",
-      productVersion: "0.1",
-    }).then(instance => {
-      unityInstance = instance;
-    });
-
-    // Block canvas interactions until popup closed
-    canvas.style.pointerEvents = "none";
-
-    // Popup close button
-    document.getElementById("popup-close").addEventListener("click", function() {
-      document.getElementById("popup-overlay").style.display = "none";
-      canvas.style.pointerEvents = "auto"; // allow game interactions
-    });
-  </script>
-</body>
-</html>
+  
+    <!-- Links -->
+    <div class="links">
+      <a href="#">Link One</a>
+      <a href="#">Link Two</a>
+      <a href="#">Link Three</a>
+      <a href="#">Link Four</a>
+    </div>
+  
+    <!-- Popup -->
+    <div id="popup-overlay">
+      <div id="popup-box">
+        <div id="popup-close">X</div>
+        <img src="default-popup.png" alt="Popup Image">
+        <p>Default text line one</p>
+        <p>Default text line two</p>
+        <p>Default text line three</p>
+        <p>Default text line four</p>
+      </div>
+    </div>
+  
+    <!-- Unity Loader -->
+    <script src="twegallery.loader.js"></script>
+    <script>
+      const canvas = document.querySelector("#unity-canvas");
+  
+      let unityInstance = null;
+      createUnityInstance(canvas, {
+        dataUrl: "twegallery.data",
+        frameworkUrl: "twegallery.framework.js",
+        codeUrl: "twegallery.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "twegallery",
+        productVersion: "0.1",
+      }).then(instance => {
+        unityInstance = instance;
+      });
+  
+      // Block canvas interactions until popup closed
+      canvas.style.pointerEvents = "none";
+  
+      // Popup close button
+      document.getElementById("popup-close").addEventListener("click", function() {
+        document.getElementById("popup-overlay").style.display = "none";
+        canvas.style.pointerEvents = "auto"; // enable game interactions
+      });
+    </script>
+  </body>
+  </html>
