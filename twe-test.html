@@ -1,222 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
-    <meta http-equiv="refresh" content="300">
-    <meta property="og:title" content="twe-test"/>
-    <meta property="twitter:title" content="twe-test"/>
-    <meta property="og:image" content="twe-thumb.png"/>
-    <meta property="twitter:image" content="twe-thumb.png"/>
-    
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+<title>twe-test</title>
 
-    <title>twe-test</title>
+<style>
+body {
+  margin: 0;
+  background: #000;
+  color: #ff1500;
+  font-family: 'ZCOOL QingKe HuangYou', cursive;
+  text-align: center;
+}
 
-    <style>
-      body {
-        margin: 0;
-        background: #000;
-        color: #ff1500;
-        font-family: 'ZCOOL QingKe HuangYou', cursive;
-        text-align: center;
-      }
+#logo { width: 70%; max-width: 100%; height: auto; margin: 20px auto; display: block; }
 
-      /* Logo */
-      #logo {
-        width: 70%;
-        max-width: 100%;
-        height: auto;
-        margin: 20px auto;
-        display: block;
-      }
+.game-container { margin: 0 auto 20px auto; padding: 10px; position: relative; }
 
-      /* Game containers */
-      .game-container {
-        margin: 0 auto 20px auto;
-        padding: 10px;
-        position: relative;
-      }
+canvas { display: block; margin: 0 auto; background: #231F20; }
 
-      canvas {
-        display: block;
-        margin: 0 auto;
-        background: #231F20;
-      }
+#twegallery-container canvas { width: 80%; height: auto; aspect-ratio: 16 / 9; }
+#Mtwegallery-container canvas { width: 90%; height: auto; aspect-ratio: 9 / 16; }
 
-      /* Desktop size */
-      #twegallery-container canvas {
-        width: 80%;
-        height: auto;
-        aspect-ratio: 16 / 9;
-      }
+.links { margin: 10px 0 40px 0; }
+.links a { display: inline-block; margin: 0 8px; font-size: 10px; text-decoration: underline; color: #ff1500; font-weight: bold; }
+.links a:visited { font-weight: normal; }
 
-      /* Mobile size (portrait) */
-      #Mtwegallery-container canvas {
-        width: 90%;
-        height: auto;
-        aspect-ratio: 9 / 16;
-      }
-
-      /* Links */
-      .links {
-        margin: 10px 0 40px 0;
-      }
-      .links a {
-        display: inline-block;
-        margin: 0 8px;
-        font-size: 10px;
-        text-decoration: underline;
-        color: #ff1500;
-        font-weight: bold;
-      }
-      .links a:visited {
-        font-weight: normal;
-      }
-
-      /* Popup overlay */
-      .popup-overlay {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        pointer-events: all;
-      }
-
-      .popup-box {
-        background: #111;
-        border-radius: 12px;
-        padding: 25px;
-        width: 300px;
-        text-align: center;
-        position: relative;
-        z-index: 10001;
-        pointer-events: all;
-      }
-
-      .popup-box img {
-        max-width: 65%;
-        margin-bottom: 15px;
-      }
-
-      .popup-box p {
-        font-size: 13px;
-        color: #ff1500;
-        margin: 6px 0;
-      }
-
-      .popup-close {
-        position: absolute;
-        top: 8px;
-        right: 12px;
-        cursor: pointer;
-        font-weight: bold;
-        color: #ff1500;
-        z-index: 10002;
-      }
-    </style>
+.popup-overlay {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000; pointer-events: all;
+}
+.popup-box {
+  background: #111; border-radius: 12px; padding: 25px; width: 300px;
+  text-align: center; position: relative; z-index: 10001; pointer-events: all;
+}
+.popup-box img { max-width: 65%; margin-bottom: 15px; }
+.popup-box p { font-size: 13px; color: #ff1500; margin: 6px 0; }
+.popup-close { position: absolute; top: 8px; right: 12px; cursor: pointer; font-weight: bold; color: #ff1500; z-index: 10002; }
+</style>
 </head>
 <body>
-    <!-- Logo -->
-    <img id="logo" src="twegall-logo.png" alt="Logo">
 
-    <!-- Desktop Game -->
-    <div id="twegallery-container" class="game-container">
-      <canvas id="twegallery-canvas"></canvas>
-      <div class="popup-overlay" id="popup-twe">
-        <div class="popup-box">
-          <div class="popup-close" data-target="popup-twe">X</div>
-          <img src="logo-pop.png" alt="Popup Image">
-          <p>&malt; THIRDWORLDELITE &malt;</p>
-          <p>WELCOME TO THE</p>
-          <p>ELITE NETWORK GALLERY</p>
-          <p>press 'x' to enter</p>
-        </div>
-      </div>
+<img id="logo" src="twegall-logo.png" alt="Logo">
+
+<!-- Desktop Game -->
+<div id="twegallery-container" class="game-container" style="display:none;">
+  <canvas id="twegallery-canvas"></canvas>
+  <div class="popup-overlay" id="popup-twe">
+    <div class="popup-box">
+      <div class="popup-close" data-target="popup-twe">X</div>
+      <img src="logo-pop.png" alt="Popup Image">
+      <p>&malt; THIRDWORLDELITE &malt;</p>
+      <p>WELCOME TO THE</p>
+      <p>ELITE NETWORK GALLERY</p>
+      <p>press 'x' to enter</p>
     </div>
+  </div>
+</div>
 
-    <!-- Mobile Game -->
-    <div id="Mtwegallery-container" class="game-container">
-      <canvas id="Mtwegallery-canvas"></canvas>
-      <div class="popup-overlay" id="popup-mtwe">
-        <div class="popup-box">
-          <div class="popup-close" data-target="popup-mtwe">X</div>
-          <img src="logo-pop.png" alt="Popup Image">
-          <p>&malt; THIRDWORLDELITE &malt;</p>
-          <p>WELCOME TO THE</p>
-          <p>MOBILE ELITE GALLERY</p>
-          <p>press 'x' to enter</p>
-        </div>
-      </div>
+<!-- Mobile Game -->
+<div id="Mtwegallery-container" class="game-container" style="display:none;">
+  <canvas id="Mtwegallery-canvas"></canvas>
+  <div class="popup-overlay" id="popup-mtwe">
+    <div class="popup-box">
+      <div class="popup-close" data-target="popup-mtwe">X</div>
+      <img src="logo-pop.png" alt="Popup Image">
+      <p>&malt; THIRDWORLDELITE &malt;</p>
+      <p>WELCOME TO THE</p>
+      <p>MOBILE ELITE GALLERY</p>
+      <p>press 'x' to enter</p>
     </div>
+  </div>
+</div>
 
-    <!-- Links -->
-    <div class="links">
-      <a href="https://www.instagram.com/3rd.world.elite">instagram</a>
-      <a href="https://x.com/elite_network_">x</a>
-      <a href="https://elite-ware.com/?fbclid=PAZXh0bgNhZW0CMTEAAaceVQ-o7hXe7YCivYznzkMyT5szVURHgAAM7hNzibvMbJ0CV610hgEJHxKmvw_aem_5cZt4hFQdujx_c2QPtOcbg">merch</a>
-      <a href="https://discord.gg/aRw5fynrWj">discord</a>
-    </div>
+<div class="links">
+  <a href="https://www.instagram.com/3rd.world.elite">instagram</a>
+  <a href="https://x.com/elite_network_">x</a>
+  <a href="https://elite-ware.com/?fbclid=...">merch</a>
+  <a href="https://discord.gg/aRw5fynrWj">discord</a>
+</div>
 
-    <!-- Unity Loaders -->
-    <script src="twegallery.loader.js"></script>
-    <script src="Mtwegallery.loader.js"></script>
+<script src="twegallery.loader.js"></script>
+<script src="Mtwegallery.loader.js"></script>
 
-    <script>
-      const desktopContainer = document.getElementById("twegallery-container");
-      const mobileContainer = document.getElementById("Mtwegallery-container");
+<script>
+const desktopContainer = document.getElementById("twegallery-container");
+const mobileContainer = document.getElementById("Mtwegallery-container");
 
-      function checkScreen() {
-        const screenWidth = window.innerWidth;
-        if (screenWidth > 768) {
-          desktopContainer.style.display = "block";
-          mobileContainer.style.display = "none";
-        } else {
-          desktopContainer.style.display = "none";
-          mobileContainer.style.display = "block";
-        }
-      }
+let unityInstance = null;
 
-      window.addEventListener("resize", checkScreen);
-      checkScreen(); // initial check
+function initUnity(canvasId, dataUrl, frameworkUrl, codeUrl, productName) {
+  const canvas = document.getElementById(canvasId);
+  createUnityInstance(canvas, {
+    dataUrl: dataUrl,
+    frameworkUrl: frameworkUrl,
+    codeUrl: codeUrl,
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "DefaultCompany",
+    productName: productName,
+    productVersion: "0.1",
+  }).then(instance => { unityInstance = instance; });
 
-      // -------------------- Unity Initialization --------------------
-      function createUnity(canvasId, dataUrl, frameworkUrl, codeUrl, productName) {
-        const canvas = document.getElementById(canvasId);
-        let instance = null;
+  canvas.style.pointerEvents = "none";
+  const popupOverlay = canvas.parentElement.querySelector(".popup-overlay");
+  const closeBtn = popupOverlay.querySelector(".popup-close");
+  closeBtn.addEventListener("click", () => {
+    popupOverlay.style.display = "none";
+    canvas.style.pointerEvents = "auto";
+  });
+}
 
-        createUnityInstance(canvas, {
-          dataUrl: dataUrl,
-          frameworkUrl: frameworkUrl,
-          codeUrl: codeUrl,
-          streamingAssetsUrl: "StreamingAssets",
-          companyName: "DefaultCompany",
-          productName: productName,
-          productVersion: "0.1"
-        }).then(inst => {
-          instance = inst;
-        });
+// ------------------- SCREEN CHECK -------------------
+function checkScreen() {
+  const screenWidth = window.innerWidth;
+  if(screenWidth > 768){
+    desktopContainer.style.display = "block";
+    mobileContainer.style.display = "none";
+    if(!desktopContainer.dataset.loaded){
+      initUnity("twegallery-canvas","twegallery.data","twegallery.framework.js","twegallery.wasm","twegallery");
+      desktopContainer.dataset.loaded = "true";
+    }
+  } else {
+    desktopContainer.style.display = "none";
+    mobileContainer.style.display = "block";
+    if(!mobileContainer.dataset.loaded){
+      initUnity("Mtwegallery-canvas","Mtwegallery.data","Mtwegallery.framework.js","Mtwegallery.wasm","Mtwegallery");
+      mobileContainer.dataset.loaded = "true";
+    }
+  }
+}
 
-        canvas.style.pointerEvents = "none";
-
-        const popupOverlay = canvas.parentElement.querySelector(".popup-overlay");
-        const closeBtn = popupOverlay.querySelector(".popup-close");
-        closeBtn.addEventListener("click", () => {
-          popupOverlay.style.display = "none";
-          canvas.style.pointerEvents = "auto";
-        });
-      }
-
-      // Init both games
-      createUnity("twegallery-canvas", "twegallery.data", "twegallery.framework.js", "twegallery.wasm", "twegallery");
-      createUnity("Mtwegallery-canvas", "Mtwegallery.data", "Mtwegallery.framework.js", "Mtwegallery.wasm", "Mtwegallery");
-    </script>
+window.addEventListener("resize", checkScreen);
+checkScreen(); // initial check
+</script>
 </body>
 </html>
