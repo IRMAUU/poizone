@@ -89,54 +89,66 @@ canvas { display: block; margin: 0 auto; background: #231F20; }
 <script src="Mtwegallery.loader.js"></script>
 
 <script>
-const desktopContainer = document.getElementById("twegallery-container");
-const mobileContainer = document.getElementById("Mtwegallery-container");
-
 let unityInstance = null;
+let currentPlatform = null; // "desktop" or "mobile"
 
 function initUnity(canvasId, dataUrl, frameworkUrl, codeUrl, productName) {
-  const canvas = document.getElementById(canvasId);
-  createUnityInstance(canvas, {
-    dataUrl: dataUrl,
-    frameworkUrl: frameworkUrl,
-    codeUrl: codeUrl,
-    streamingAssetsUrl: "StreamingAssets",
-    companyName: "DefaultCompany",
-    productName: productName,
-    productVersion: "0.1",
-  }).then(instance => { unityInstance = instance; });
+    const canvas = document.getElementById(canvasId);
 
-  canvas.style.pointerEvents = "none";
-  const popupOverlay = canvas.parentElement.querySelector(".popup-overlay");
-  const closeBtn = popupOverlay.querySelector(".popup-close");
-  closeBtn.addEventListener("click", () => {
-    popupOverlay.style.display = "none";
-    canvas.style.pointerEvents = "auto";
-  });
+    return createUnityInstance(canvas, {
+        dataUrl: dataUrl,
+        frameworkUrl: frameworkUrl,
+        codeUrl: codeUrl,
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: productName,
+        productVersion: "0.1",
+    });
 }
 
-// ------------------- SCREEN CHECK -------------------
+function unloadUnity() {
+    if (unityInstance) {
+        unityInstance.Quit().then(() => {
+            unityInstance = null;
+        });
+    }
+}
+
 function checkScreen() {
-  const screenWidth = window.innerWidth;
-  if(screenWidth > 768){
-    desktopContainer.style.display = "block";
-    mobileContainer.style.display = "none";
-    if(!desktopContainer.dataset.loaded){
-      initUnity("twegallery-canvas","twegallery.data","twegallery.framework.js","twegallery.wasm","twegallery");
-      desktopContainer.dataset.loaded = "true";
+    const width = window.innerWidth;
+    if(width > 768){
+        // DESKTOP
+        document.getElementById("twegallery-container").style.display = "block";
+        document.getElementById("Mtwegallery-container").style.display = "none";
+
+        if(currentPlatform !== "desktop") {
+            unloadUnity();
+            initUnity("twegallery-canvas","twegallery.data","twegallery.framework.js","twegallery.wasm","twegallery")
+                .then(instance => unityInstance = instance);
+            currentPlatform = "desktop";
+        }
+    } else {
+        // MOBILE
+        document.getElementById("twegallery-container").style.display = "none";
+        document.getElementById("Mtwegallery-container").style.display = "block";
+
+        if(currentPlatform !== "mobile") {
+            unloadUnity();
+            initUnity("Mtwegallery-canvas","Mtwegallery.data","Mtwegallery.framework.js","Mtwegallery.wasm","Mtwegallery")
+                .then(instance => unityInstance = instance);
+            currentPlatform = "mobile";
+        }
     }
-  } else {
-    desktopContainer.style.display = "none";
-    mobileContainer.style.display = "block";
-    if(!mobileContainer.dataset.loaded){
-      initUnity("Mtwegallery-canvas","Mtwegallery.data","Mtwegallery.framework.js","Mtwegallery.wasm","Mtwegallery");
-      mobileContainer.dataset.loaded = "true";
-    }
-  }
 }
 
-window.addEventListener("resize", checkScreen);
-checkScreen(); // initial check
+// Initial check
+checkScreen();
+
+// Listen for resize
+window.addEventListener("resize", () => {
+    checkScreen();
+});
 </script>
+
 </body>
 </html>
