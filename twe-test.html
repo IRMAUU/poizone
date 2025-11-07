@@ -22,9 +22,12 @@
 
   .game-container { 
     display: none; 
-    margin: 0 auto; 
+    margin: 20px auto; /* keeps container centered */
+    max-width: 1200px; /* prevents stretching too wide */
     position: relative;
     background: #1a1a1a; /* slightly darker grey */
+    border-radius: 8px; /* optional, soft corners */
+    overflow: hidden;
   }
 
   canvas { 
@@ -50,10 +53,10 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 120px;
-    height: 120px;
+    width: 90px; /* slightly smaller */
+    height: 90px; /* slightly smaller */
     transform: translate(-50%, -50%);
-    animation: spin 2s linear infinite;
+    animation: spin 4s linear infinite; /* slower spin */
     pointer-events: none; /* ensures it doesn't block clicks */
   }
 
