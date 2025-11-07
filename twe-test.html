@@ -12,13 +12,56 @@
     font-family: 'ZCOOL QingKe HuangYou', cursive;
     text-align: center;
   }
-  #logo { width: 70%; max-width: 100%; margin: 20px auto; display: block; }
 
-  .game-container { display: none; margin: 0 auto; }
-  canvas { display: block; margin: 0 auto; background: #231F20; }
+  #logo { 
+    width: 70%; 
+    max-width: 100%; 
+    margin: 20px auto; 
+    display: block; 
+  }
 
-  #twegallery-container canvas { width: 80%; height: auto; aspect-ratio: 16/9; }
-  #Mtwegallery-container canvas { width: 90%; height: auto; aspect-ratio: 9/16; }
+  .game-container { 
+    display: none; 
+    margin: 0 auto; 
+    position: relative;
+    background: #1a1a1a; /* slightly darker grey */
+  }
+
+  canvas { 
+    display: block; 
+    margin: 0 auto; 
+    background: #231F20; 
+  }
+
+  #twegallery-container canvas { 
+    width: 80%; 
+    height: auto; 
+    aspect-ratio: 16/9; 
+  }
+
+  #Mtwegallery-container canvas { 
+    width: 90%; 
+    height: auto; 
+    aspect-ratio: 9/16; 
+  }
+
+  /* Spinning logo style */
+  .loading-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120px;
+    height: 120px;
+    transform: translate(-50%, -50%);
+    animation: spin 2s linear infinite;
+    pointer-events: none; /* ensures it doesn't block clicks */
+  }
+
+  @keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
 </style>
 </head>
 <body>
@@ -27,11 +70,13 @@
 
 <!-- Desktop Game -->
 <div id="twegallery-container" class="game-container">
+  <img src="loading-logo.png" class="loading-logo" id="desktop-loading-logo">
   <canvas id="twegallery-canvas"></canvas>
 </div>
 
 <!-- Mobile Game -->
 <div id="Mtwegallery-container" class="game-container">
+  <img src="loading-logo.png" class="loading-logo" id="mobile-loading-logo">
   <canvas id="Mtwegallery-canvas"></canvas>
 </div>
 
@@ -40,11 +85,17 @@ let unityInstance = null;
 let currentPlatform = null; // "desktop" or "mobile"
 
 // simple Unity init function
-function initUnity(canvasId, loaderUrl, dataUrl, frameworkUrl, codeUrl, productName) {
+function initUnity(canvasId, loaderUrl, dataUrl, frameworkUrl, codeUrl, productName, logoId) {
     return new Promise(resolve => {
         const canvas = document.getElementById(canvasId);
+        const loadingLogo = document.getElementById(logoId);
+
+        // make sure the spinning logo is visible
+        loadingLogo.style.display = "block";
+
         const loaderScript = document.createElement("script");
         loaderScript.src = loaderUrl;
+
         loaderScript.onload = () => {
             createUnityInstance(canvas, {
                 dataUrl: dataUrl,
@@ -56,6 +107,10 @@ function initUnity(canvasId, loaderUrl, dataUrl, frameworkUrl, codeUrl, productN
                 productVersion: "0.1"
             }).then(instance => {
                 unityInstance = instance;
+
+                // remove spinning logo once Unity is loaded
+                loadingLogo.style.display = "none";
+
                 resolve();
             });
         };
@@ -88,7 +143,8 @@ function checkScreen() {
                 "twegallery.data",
                 "twegallery.framework.js",
                 "twegallery.wasm",
-                "twegallery"
+                "twegallery",
+                "desktop-loading-logo"
             );
             currentPlatform = "desktop";
         }
@@ -105,7 +161,8 @@ function checkScreen() {
                 "Mtwegallery.data",
                 "Mtwegallery.framework.js",
                 "Mtwegallery.wasm",
-                "Mtwegallery"
+                "Mtwegallery",
+                "mobile-loading-logo"
             );
             currentPlatform = "mobile";
         }
@@ -115,6 +172,7 @@ function checkScreen() {
 // initial check + resize listener
 checkScreen();
 window.addEventListener("resize", checkScreen);
+
 </script>
 
 </body>
