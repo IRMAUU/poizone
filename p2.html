@@ -16,10 +16,10 @@
     input[type="number"],input[type="text"]{background:#000;color:#39ff14;border:1px solid #39ff14;padding:2px 4px;}
     input[type="number"].no-arrows::-webkit-inner-spin-button,input[type="number"].no-arrows::-webkit-outer-spin-button{appearance:none;margin:0;}
     input[type="number"].no-arrows{-moz-appearance:textfield;}
-    button{background:#000;color:#39ff14;border:1px solid #39ff14;padding:4px 8px;cursor:pointer;font-family:'Roboto Mono',monospace;font-weight:700;}
-    #app-container{width:80vw;height:80vh;margin:auto;position:relative;top:1vh;background:#fff;display:flex;justify-content:center;align-items:center;}
-    canvas#paint-canvas{width:100%;height:100%;background:#fff;image-rendering:pixelated;border:1px solid #000;cursor:crosshair;}
-    #tool-panel{position:absolute;top:10px;left:10px;background:#222;color:#39ff14;padding:8px;border:1px solid #555;z-index:20;user-select:none;border-radius:6px;}
+    button{background:#000;color:#39ff14;border:1px solid #39ff14;padding:3px 6px;cursor:pointer;font-family:'Roboto Mono',monospace;font-weight:700;}
+    #app-container{width:80vw;height:80vh;margin:auto;position:relative;top:1vh;background:#fff;display:flex;justify-content:center;align-items:center;overflow:hidden;}
+    canvas#paint-canvas{width:100%;height:100%;background:#fff;image-rendering:pixelated;border:1px solid #000;cursor:crosshair;display:block;}
+    #tool-panel{position:absolute;top:10px;left:10px;background:#222;color:#39ff14;padding:8px;border:1px solid #555;z-index:40;user-select:none;border-radius:6px;max-width:420px;}
     .menu-title{cursor:move;padding:4px;text-transform:lowercase;}
     .menu-title#undo-btn{cursor:pointer;color:#39ff14;}
     .dropdown{margin-top:5px;background:#444;padding:5px;border:1px solid #666;border-radius:6px;}
@@ -60,12 +60,7 @@
       unicode-bidi: isolate;
       color: #000 !important;
     }
-    .force-plain-text {
-      font-family: 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif' !important;
-      font-variant-ligatures: none !important;
-      font-feature-settings: "liga" 0, "calt" 0 !important;
-      unicode-bidi: isolate;
-    }
+    .force-plain-text { font-family: 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif' !important; font-variant-ligatures: none !important; font-feature-settings: "liga" 0, "calt" 0 !important; unicode-bidi: isolate; }
     .font-dropdown{position:relative;display:inline-block;min-width:100px;cursor:pointer;background:#222;border:1px solid #39ff14;color:#39ff14;border-radius:4px;font-size:14px;margin-bottom:6px;margin-right:2px;}
     .font-dropdown-selected{padding:3px 8px;background:#222;border-radius:4px;min-width:120px;display:flex;align-items:center;user-select:none;}
     .font-dropdown-list{display:none;position:absolute;background:#222;border:1px solid #222;z-index:9;left:0;right:0;max-height:200px;overflow-y:auto;margin-top:2px;border-radius:4px;}
@@ -74,1411 +69,1435 @@
     .font-dropdown-option:last-child{border-bottom:none;}
     .font-dropdown-option:hover,.font-dropdown-option.selected{background:#39ff14;color:#222;}
     .font-dropdown-arrow{margin-left:auto;margin-right:2px;font-size:12px;color:#39ff14;}
-    #import-preview-img {
+    #import-preview-img { position:absolute; pointer-events:auto; z-index:16; user-select:none; transition:box-shadow 0.2s; box-shadow: 0 0 0 2px #f00; border: 2px solid #f00; opacity: 0.5; touch-action: none; background: transparent; will-change: transform; box-sizing: border-box; }
+    #import-preview-img.stamping { pointer-events:none; opacity:1; border:none; box-shadow:none; transition: none; }
+    .flip-btns { display: flex; flex-direction: column; gap: 6px; margin-top:7px; margin-bottom:7px; }
+    .flip-btns button { width: 100%; padding: 5px 0; margin: 0; background: #111; color: #39ff14; border: 1px solid #39ff14; border-radius: 3px; font-size: 13px; cursor:pointer; }
+    .flip-btns button:active { background:#333; }
+    #import-cancel-btn, #import-stamp-btn { margin-right: 10px; margin-top: 7px; margin-bottom: 7px; }
+    @media (max-width:900px){ #import-preview-img{max-width:90vw;max-height:60vh;} }
+    .rotation-control { display: flex; align-items: center; gap: 6px; margin-top: 2px; margin-bottom: 2px; }
+    .rotation-control input[type="number"].no-arrows { width: 55px; background: #000; border: 1px solid #39ff14; color: #39ff14; font-size: 13px; text-align: right; padding:2px 4px; margin-left: 2px; }
+    #text-preview-overlay { position: absolute; z-index: 45; pointer-events: auto; user-select: none; cursor: grab; min-width: 10px; min-height: 10px; will-change: transform; display: none; border: 2px solid #f00 !important; box-shadow: 0 0 0 2px #f00; background: transparent; opacity: 0.5; padding: 0; margin: 0; box-sizing: border-box; transform-origin: center center; }
+    #text-preview-content { font-weight: 700; display: inline-block; background: transparent; color: #000; pointer-events: none; user-select: none; padding: 0; margin: 0; min-width: 10px; min-height: 10px; font-family: inherit; font-size: inherit; white-space: pre; }
+    #text-toolbox-controls { display: flex; flex-direction: row; gap: 8px; margin-top: 7px; margin-bottom: 7px; }
+    #text-toolbox-controls button { font-size:13px; background:#111; color:#39ff14; border:1px solid #39ff14; border-radius:3px; padding:3px 10px; cursor:pointer; }
+    #text-toolbox-controls button:active { background:#333; }
+    .text-rotation-wrapper,.text-size-wrapper { margin-top: 7px; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
+    .text-rotation-wrapper label,.text-size-wrapper label { margin-right: 4px; }
+    .text-rotation-wrapper input[type="number"].no-arrows, .text-size-wrapper input[type="number"].no-arrows { width: 45px; background: #000; border: 1px solid #39ff14; color: #39ff14; font-size: 13px; text-align: right; padding:2px 4px; }
+
+    /* Edit dropdown layout + narrow stacked layers */
+    #edit-dropdown{ width:245px; }
+    #edit-dropdown .layers-grid{ display:flex; flex-direction:column; gap:6px; margin-top:4px; max-height:240px; overflow-y:auto; padding-right:4px; }
+    .layer-cell{ width:225px; height:20px; padding:4px 6px; background:#111; border:2px solid #222; color:#ccc; text-align:left; cursor:pointer; border-radius:4px; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:13px; }
+    .layer-cell.active{ border-color:#39ff14; background:#0a0a0a; color:#39ff14; }
+    .layer-cell.transform-active{ border-color:#39ff14; box-shadow:0 0 8px #39ff14; }
+    .layer-actions{ display:flex; gap:6px; align-items:center; }
+    .layer-actions button{ padding:2px 6px; font-size:12px; background:#111; color:#39ff14; border:1px solid #39ff14; border-radius:3px; cursor:pointer; }
+    .filters-section, .select-section, .transform-section{ margin-top:8px; font-size:13px; text-transform:lowercase; }
+    .filters-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:3px; margin-top:3px; }
+    .filter-btn{ padding:3px; background:#111; color:#39ff14; border:1px solid #39ff14; border-radius:4px; cursor:pointer; width:100%; text-transform:lowercase; }
+    .select-controls{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+    .transform-controls{ display:flex; flex-direction:column; gap:6px; margin-top:6px; font-size:13px; }
+    .transform-controls input[type="range"]{ width:100%; }
+    .transform-row{ display:flex; gap:6px; align-items:center; }
+
+    /* red outline for active pixel bbox in edit mode */
+    #layer-outline{
       position:absolute;
+      z-index:42;
       pointer-events:auto;
-      z-index:5;
-      user-select:none;
-      transition:box-shadow 0.2s;
-      box-shadow: 0 0 0 2px #f00;
-      border: 2px solid #f00;
-      opacity: 0.5;
-      touch-action: none;
-      background: transparent;
-      will-change: transform;
-      box-sizing: border-box;
-    }
-    #import-preview-img.stamping {
-      pointer-events:none;
-      opacity:1;
-      border:none;
-      box-shadow:none;
-      transition: none;
-    }
-    .flip-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top:7px;
-      margin-bottom:7px;
-    }
-    .flip-btns button {
-      width: 100%;
-      padding: 5px 0;
-      margin: 0;
-      background: #111;
-      color: #39ff14;
-      border: 1px solid #39ff14;
-      border-radius: 3px;
-      font-size: 13px;
-      cursor:pointer;
-    }
-    .flip-btns button:active {
-      background:#333;
-    }
-    #import-cancel-btn, #import-stamp-btn {
-      margin-right: 10px;
-      margin-top: 7px;
-      margin-bottom: 7px;
-    }
-    @media (max-width:900px){
-      #import-preview-img{max-width:90vw;max-height:60vh;}
-    }
-    .rotation-control {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 2px;
-      margin-bottom: 2px;
-    }
-    .rotation-control input[type="number"].no-arrows {
-      width: 45px;
-      background: #000;
-      border: 1px solid #39ff14;
-      color: #39ff14;
-      font-size: 13px;
-      text-align: right;
-      padding:2px 4px;
-      margin-left: 2px;
-    }
-    #text-preview-overlay {
-      position: absolute;
-      z-index: 6;
-      pointer-events: auto;
-      user-select: none;
-      cursor: grab;
-      min-width: 10px;
-      min-height: 10px;
-      will-change: transform;
-      display: none;
-      border: 2px solid #f00 !important;
-      box-shadow: 0 0 0 2px #f00;
-      background: transparent;
-      opacity: 0.5;
-      padding: 0;
-      margin: 0;
-      box-sizing: border-box;
-      transform-origin: center center;
-    }
-    #text-preview-content {
-      font-weight: 700;
-      display: inline-block;
-      background: transparent;
-      color: #000;
-      pointer-events: none;
-      user-select: none;
-      padding: 0;
-      margin: 0;
-      min-width: 10px;
-      min-height: 10px;
-      font-family: inherit;
-      font-size: inherit;
-      white-space: pre;
-    }
-    #text-toolbox-controls {
-      display: flex;
-      flex-direction: row;
-      gap: 8px;
-      margin-top: 7px;
-      margin-bottom: 7px;
-    }
-    #text-toolbox-controls button {
-      font-size:13px;
-      background:#111;
-      color:#39ff14;
-      border:1px solid #39ff14;
-      border-radius:3px;
-      padding:3px 10px;
-      cursor:pointer;
-    }
-    #text-toolbox-controls button:active {
-      background:#333;
-    }
-    .text-rotation-wrapper,.text-size-wrapper {
-      margin-top: 7px;
-      margin-bottom: 2px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .text-rotation-wrapper label,.text-size-wrapper label {
-      margin-right: 4px;
-    }
-    .text-rotation-wrapper input[type="number"].no-arrows,
-    .text-size-wrapper input[type="number"].no-arrows {
-      width: 45px;
-      background: #000;
-      border: 1px solid #39ff14;
-      color: #39ff14;
-      font-size: 13px;
-      text-align: right;
-      padding:2px 4px;
+      border:2px solid #f00;
+      box-shadow:0 0 0 2px rgba(255,0,0,0.12);
+      display:none;
+      background:transparent;
+      transform-origin:top left;
+      cursor:grab;
+      touch-action:none;
     }
 
-    /* New layer and filter UI styles */
-    .layers-grid{
-      display:flex;
-      gap:6px;
-      align-items:center;
-      margin-top:6px;
-    }
-    .layer-cell{
-      min-width:90px;
-      padding:6px;
-      background:#111;
-      border:2px solid #222;
-      color:#ccc;
-      text-align:center;
-      cursor:pointer;
-      border-radius:4px;
-    }
-    .layer-cell.active{
-      border-color:#39ff14;
-      background:#0a0a0a;
-      color:#39ff14;
-    }
-    .layers-controls{
-      display:flex;
-      gap:6px;
-      margin-top:6px;
-      align-items:center;
-    }
-    .filters-grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:8px;
-      margin-top:6px;
-    }
-    .filter-btn{
-      background:#000;
-      border:2px solid #39ff14;
-      color:#39ff14;
-      padding:8px;
-      border-radius:4px;
-      cursor:pointer;
-      text-align:center;
-    }
-    .select-info{font-size:12px;color:#aaa;margin-top:6px;}
-    /* selection preview overlay */
+    /* selection preview overlay (rect marquee and floating selection) */
     #selection-preview{
       position:absolute;
-      z-index:7;
+      z-index:43;
       display:none;
       pointer-events:auto;
       border:2px dashed #39ff14;
       background:transparent;
-      opacity:0.9;
+      opacity:0.95;
       transform-origin:center center;
     }
     #selection-preview img{display:block;max-width:none;max-height:none;pointer-events:none;}
+/* marching-ants */
+#selection-preview.marching {
+  border: 2px dashed #39ff14;
+  animation: march 0.6s steps(8) infinite;
+}
+@keyframes march {
+  0%   { border-color: #39ff14; }
+  100% { border-color: #000; }
+}
+    /* Transform section hidden by default */
+    /* Transform section hidden by default */
+#transform-section-wrapper.hidden { display: none; }
   </style>
 </head>
 <body>
-<center><img src="ppt.png" width="13%"></center>
-<div id="app-container">
-<canvas id="paint-canvas"></canvas>
-<div id="tool-panel">
-<div class="menu-title" id="tool-panel-header" data-menu="tools">-tools</div>
-<div class="dropdown hidden" id="tools-dropdown">
-  <div class="tool-option" id="marker-option">-marker</div>
-  <div class="tool-settings hidden" id="marker-settings">
-    <label>size: <input type="number" id="marker-size" min="1" max="25" value="3"></label><br>
-    <label>color: <input type="color" id="color-picker"></label><br>
-    <label>flow: <input type="range" id="marker-flow" min="1" max="3000" value="2500"></label>
-  </div>
-  <div class="tool-option" id="calligraphy-option">-calligraphy</div>
-  <div class="tool-settings hidden" id="calligraphy-settings">
-    <label>size: <input type="number" id="calligraphy-size" min="1" max="64" value="20"></label><br>
-    <label>color: <input type="color" id="calligraphy-color" value="#000000"></label><br>
-    <label>flow: <input type="range" id="calligraphy-flow" min="1" max="3000" value="2500"></label><br>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:112px;">
-        <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="♥&#xFE0E;" title="Heart">♥&#xFE0E;</button>
-        <button class="calligraphy-btn force-plain-text" data-calligraphy="⎸&#xFE0E;" title="Medium Vertical Bar">⎸&#xFE0E;</button>
-        <button class="calligraphy-btn force-plain-text" data-calligraphy="✦&#xFE0E;" title="Four Pointed Star">✦&#xFE0E;</button>
-        <button class="calligraphy-btn force-plain-text" data-calligraphy="◢&#xFE0E;" title="Black Right-Pointing Triangle">◢&#xFE0E;</button>
-        <button class="calligraphy-btn force-plain-text" data-calligraphy="◣&#xFE0E;" title="Black Lower-Left Triangle">◣&#xFE0E;</button>
-        <button class="calligraphy-btn force-plain-text" data-calligraphy="♦&#xFE0E;" title="Diamond">♦&#xFE0E;</button>
+  <center><img src="ppt.png" width="13%"></center>
+  <div id="app-container">
+    <canvas id="paint-canvas"></canvas>
+
+    <div id="layer-outline"></div>
+
+    <div id="tool-panel">
+      <div class="menu-title" id="tool-panel-header" data-menu="tools">-tools</div>
+      <div class="dropdown hidden" id="tools-dropdown">
+        <div class="tool-option" id="marker-option">-marker</div>
+        <div class="tool-settings hidden" id="marker-settings">
+          <label>size: <input type="number" id="marker-size" min="1" max="25" value="3"></label><br>
+          <label>color: <input type="color" id="color-picker" value="#000000"></label><br>
+          <label>flow: <input type="range" id="marker-flow" min="1" max="3000" value="2500"></label>
+        </div>
+
+        <div class="tool-option" id="calligraphy-option">-calligraphy</div>
+        <div class="tool-settings hidden" id="calligraphy-settings">
+          <label>size: <input type="number" id="calligraphy-size" min="1" max="64" value="20"></label><br>
+          <label>color: <input type="color" id="calligraphy-color" value="#000000"></label><br>
+          <label>flow: <input type="range" id="calligraphy-flow" min="1" max="3000" value="2500"></label><br>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:112px;">
+            <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="HEART">HEART</button>
+            <button class="calligraphy-btn force-plain-text" data-calligraphy="VERTICAL">|</button>
+            <button class="calligraphy-btn force-plain-text" data-calligraphy="STAR">✦</button>
+            <button class="calligraphy-btn force-plain-text" data-calligraphy="TRIANGLE-R">TRIANGLE-R</button>
+            <button class="calligraphy-btn force-plain-text" data-calligraphy="TRIANGLE-L">TRIANGLE-L</button>
+            <button class="calligraphy-btn force-plain-text" data-calligraphy="DIAMOND">◆</button>
+          </div>
+        </div>
+
+        <div class="tool-option" id="symbol-option">-symbol</div>
+        <div class="tool-settings hidden" id="symbol-settings">
+          <label>size: <input type="number" id="symbol-size" min="1" max="150" value="35"></label><br>
+          <label>color: <input type="color" id="symbol-color" value="#000000"></label><br>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:112px;">
+            <button class="symbol-btn symbol-selected force-plain-text" data-symbol="STAR">★</button>
+            <button class="symbol-btn force-plain-text" data-symbol="SKULL">☠</button>
+            <button class="symbol-btn force-plain-text" data-symbol="BIOHAZARD">☣</button>
+            <button class="symbol-btn force-plain-text" data-symbol="CROSS">✠</button>
+            <button class="symbol-btn force-plain-text" data-symbol="HAMMER">☭</button>
+            <button class="symbol-btn force-plain-text" data-symbol="PEACE">☮</button>
+          </div>
+        </div>
+
+        <div class="tool-option" id="text-option">-text</div>
+        <div class="tool-settings hidden" id="text-settings">
+          <div id="font-dropdown" class="font-dropdown" tabindex="0">
+            <div class="font-dropdown-selected" id="font-dropdown-selected">
+              <span id="font-dropdown-selected-name" style="font-family: Arial;">Arial</span>
+              <span class="font-dropdown-arrow">▼</span>
+            </div>
+            <div class="font-dropdown-list" id="font-dropdown-list">
+              <div class="font-dropdown-option" style="font-family: Arial;" data-font="Arial">Arial</div>
+              <div class="font-dropdown-option" style="font-family: 'Courier New', Courier, monospace;" data-font="'Courier New', Courier, monospace">Courier New</div>
+              <div class="font-dropdown-option" style="font-family: 'Times New Roman', Times, serif;" data-font="'Times New Roman', Times, serif">Times New Roman</div>
+              <div class="font-dropdown-option" style="font-family: 'Roboto Mono', monospace;" data-font="'Roboto Mono', monospace">Roboto Mono</div>
+              <div class="font-dropdown-option" style="font-family: 'Comic Sans MS', cursive, sans-serif;" data-font="'Comic Sans MS', cursive, sans-serif">Comic Sans MS</div>
+              <div class="font-dropdown-option" style="font-family: 'Georgia', serif;" data-font="Georgia, serif">Georgia</div>
+              <div class="font-dropdown-option" style="font-family: 'Impact', fantasy;" data-font="Impact, fantasy">Impact</div>
+              <div class="font-dropdown-option" style="font-family: Helvetica, Arial, sans-serif;" data-font="Helvetica, Arial, sans-serif">Helvetica</div>
+              <div class="font-dropdown-option" style="font-family: Papyrus, fantasy;" data-font="Papyrus, fantasy">Papyrus</div>
+              <div class="font-dropdown-option" style="font-family: Stencil, fantasy;" data-font="Stencil, fantasy">Stencil</div>
+              <div class="font-dropdown-option" style="font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;" data-font="Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace">Menlo</div>
+              <div class="font-dropdown-option" style="font-family: 'Verdana', sans-serif;" data-font="Verdana, sans-serif">Verdana</div>
+              <div class="font-dropdown-option" style="font-family: 'Trebuchet MS', sans-serif;" data-font="'Trebuchet MS', sans-serif">Trebuchet MS</div>
+              <div class="font-dropdown-option" style="font-family: 'Eagle Lake', cursive;" data-font="'Eagle Lake', cursive">Eagle Lake</div>
+              <div class="font-dropdown-option" style="font-family: 'Jacquard 24', cursive;" data-font="'Jacquard 24', cursive">Jacquard 24</div>
+              <div class="font-dropdown-option" style="font-family: 'Lucida Console', Monaco, monospace;" data-font="'Lucida Console', Monaco, monospace">Lucida Console</div>
+            </div>
+          </div><br>
+          <div class="text-size-wrapper">
+            <label for="text-size-range">size:</label>
+            <input type="range" id="text-size-range" min="8" max="150" value="32" style="width:90px;">
+            <input type="number" id="text-size" min="8" max="150" value="32" class="no-arrows">
+          </div>
+          <div class="text-rotation-wrapper">
+            <label for="text-rotation-range">rotation:</label>
+            <input type="range" id="text-rotation-range" min="-180" max="180" value="0" style="width:90px;">
+            <input type="number" id="text-rotation-number" min="-180" max="180" value="0" class="no-arrows">
+          </div>
+          <label>color: <input type="color" id="text-color" value="#000000"></label><br>
+          <textarea id="text-string" rows="2" style="width:95%;resize:vertical;background-color: #000;">your text</textarea>
+          <div id="text-toolbox-controls" style="display:flex;">
+            <button id="text-submit-btn">submit</button>
+            <button id="text-cancel-btn">cancel</button>
+          </div>
+        </div>
+
+        <div class="tool-option" id="spray-option">-spray</div>
+        <div class="tool-settings hidden" id="spray-settings">
+          <label>size: <input type="number" id="spray-size" min="1" max="25" value="3"></label><br>
+          <label>spread: <input type="range" id="spray-spread" min="1" max="50" value="16"></label><br>
+          <label>flow: <input type="range" id="spray-flow" min="1" max="100" value="50"></label><br>
+          <label>color: <input type="color" id="spray-color"></label>
+        </div>
+
+        <div class="tool-option" id="bucket-option">-bucket</div>
+        <div class="tool-settings hidden" id="bucket-settings">
+          <label>color: <input type="color" id="bucket-color" value="#000000"></label>
+        </div>
+
+        <div class="tool-option" id="eraser-option">-eraser</div>
+        <div class="tool-settings hidden" id="eraser-settings">
+          <label>size: <input type="number" id="eraser-size" min="1" max="25" value="3"></label>
+        </div>
+
+        <div class="tool-option clear-tool" id="clear-option">-clear</div>
+        <div class="tool-settings hidden" id="clear-settings">
+          <div class="clear-settings">
+            <button id="clear-yes">yes</button>
+            <button id="clear-back">back</button>
+          </div>
+        </div>
       </div>
-  </div>
-  <div class="tool-option" id="symbol-option">-symbol</div>
-  <div class="tool-settings hidden" id="symbol-settings">
-    <label>size: <input type="number" id="symbol-size" min="1" max="150" value="35"></label><br>
-    <label>color: <input type="color" id="symbol-color" value="#000000"></label><br>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:112px;">
-      <button class="symbol-btn symbol-selected force-plain-text" data-symbol="★&#xFE0E;" title="Black Star">★&#xFE0E;</button>
-      <button class="symbol-btn force-plain-text" data-symbol="☠&#xFE0E;" title="Skull">☠&#xFE0E;</button>
-      <button class="symbol-btn force-plain-text" data-symbol="☣&#xFE0E;" title="Biohazard">☣&#xFE0E;</button>
-      <button class="symbol-btn force-plain-text" data-symbol="✠&#xFE0E;" title="Maltese Cross">✠&#xFE0E;</button>
-      <button class="symbol-btn force-plain-text" data-symbol="☭&#xFE0E;" title="Hammer and Sickle">☭&#xFE0E;</button>
-      <button class="symbol-btn force-plain-text" data-symbol="☮&#xFE0E;" title="Peace">☮&#xFE0E;</button>
-    </div>
-  </div>
-  <div class="tool-option" id="text-option">-text</div>
-  <div class="tool-settings hidden" id="text-settings">
-    <div id="font-dropdown" class="font-dropdown" tabindex="0">
-      <div class="font-dropdown-selected" id="font-dropdown-selected">
-        <span id="font-dropdown-selected-name" style="font-family: Arial;">Arial</span>
-        <span class="font-dropdown-arrow">&#9660;</span>
+
+      <!-- Edit -->
+      <div class="menu-title" data-menu="edit">-edit</div>
+      <div class="dropdown hidden" id="edit-dropdown">
+        <div class="filters-section">- layers</div>
+        <div class="layers-grid" id="layers-grid"></div>
+      
+        <div class="layers-controls" style="margin-top:3px;display:flex;gap:6px;align-items:center;">
+          <button id="layer-add">+</button>
+          <button id="layer-remove">-</button>
+          <div style="margin-left:auto;color:#aaa;" id="layer-count">1/5</div>
+        </div>
+
+        <!-- TRANSFORM SECTION (hidden by default) -->
+        <div id="transform-section-wrapper" class="hidden">
+          <div class="transform-section">- transform active layer</div>
+          <div class="transform-controls">
+            <div class="transform-row">
+              <label style="min-width:48px;">rotate</label>
+              <input type="range" id="layer-rotation-range" min="-180" max="180" value="0" style="width:120px;">
+              <input type="number" id="layer-rotation-number" class="no-arrows" value="0" min="-180" max="180" style="width:60px;">
+            </div>
+            <div class="transform-row">
+              <label style="min-width:48px;">scale</label>
+              <input type="range" id="layer-scale" min="10" max="300" value="100">
+              <span id="layer-scale-value">100%</span>
+            </div>
+            <div class="transform-row">
+              <button id="layer-transform-apply">apply</button>
+              <button id="layer-transform-reset">reset □</button>
+              <button id="layer-transform-exit" style="background:#400;color:#fff;border:1px solid #f00;">exit</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters (toggle) -->
+        <div class="filters-section" id="filters-toggle" style="cursor:pointer;display:flex;align-items:center;gap:8px;">- filters </span></div>
+        <div id="filters-grid" class="filters-grid hidden">
+          <button class="filter-btn" id="filter-invert">invert</button>
+          <button class="filter-btn" id="filter-bw">b&w</button>
+          <button class="filter-btn" id="filter-blur">blur</button>
+          <button class="filter-btn" id="filter-sharpen">sharpen</button>
+        </div>
+
+        <!-- Select controls -->
+        <div class="select-section menu-title" data-menu="select">- ⛶ select</div>
+        <div class="dropdown hidden" id="select-dropdown">
+          <div class="select-controls">
+            <div style="font-size:12px;color:#aaa;margin-bottom:6px;">
+              Click & drag on the canvas to make a rectangular marquee
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button id="select-commit">apply</button>
+              <button id="select-clear-btn">erase</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="font-dropdown-list" id="font-dropdown-list">
-        <div class="font-dropdown-option" style="font-family: Arial;" data-font="Arial">Arial</div>
-        <div class="font-dropdown-option" style="font-family: 'Courier New', Courier, monospace;" data-font="'Courier New', Courier, monospace">Courier New</div>
-        <div class="font-dropdown-option" style="font-family: 'Times New Roman', Times, serif;" data-font="'Times New Roman', Times, serif">Times New Roman</div>
-        <div class="font-dropdown-option" style="font-family: 'Roboto Mono', monospace;" data-font="'Roboto Mono', monospace">Roboto Mono</div>
-        <div class="font-dropdown-option" style="font-family: 'Comic Sans MS', cursive, sans-serif;" data-font="'Comic Sans MS', cursive, sans-serif">Comic Sans MS</div>
-        <div class="font-dropdown-option" style="font-family: 'Georgia', serif;" data-font="Georgia, serif">Georgia</div>
-        <div class="font-dropdown-option" style="font-family: 'Impact', fantasy;" data-font="Impact, fantasy">Impact</div>
-        <div class="font-dropdown-option" style="font-family: Helvetica, Arial, sans-serif;" data-font="Helvetica, Arial, sans-serif">Helvetica</div>
-        <div class="font-dropdown-option" style="font-family: Papyrus, fantasy;" data-font="Papyrus, fantasy">Papyrus</div>
-        <div class="font-dropdown-option" style="font-family: Stencil, fantasy;" data-font="Stencil, fantasy">Stencil</div>
-        <div class="font-dropdown-option" style="font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;" data-font="Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace">Menlo</div>
-        <div class="font-dropdown-option" style="font-family: 'Verdana', sans-serif;" data-font="Verdana, sans-serif">Verdana</div>
-        <div class="font-dropdown-option" style="font-family: 'Trebuchet MS', sans-serif;" data-font="'Trebuchet MS', sans-serif">Trebuchet MS</div>
-        <div class="font-dropdown-option" style="font-family: 'Eagle Lake', cursive;" data-font="'Eagle Lake', cursive">Eagle Lake</div>
-        <div class="font-dropdown-option" style="font-family: 'Jacquard 24', cursive;" data-font="'Jacquard 24', cursive">Jacquard 24</div>
-        <div class="font-dropdown-option" style="font-family: 'Lucida Console', Monaco, monospace;" data-font="'Lucida Console', Monaco, monospace">Lucida Console</div>
+
+      <div class="menu-title" data-menu="import">-import</div>
+      <div class="dropdown hidden" id="import-dropdown">
+        <label class="import-label" for="import-image-file">upload<input type="file" id="import-image-file" accept="image/*"></label>
+        <div id="import-settings" class="hidden" style="margin-top:6px;">
+          <label>size: <input type="range" id="import-size" min="1" max="400" value="50" style="width:90px;"> <span id="import-size-value">50</span>%</label><br>
+          <label>opacity: <input type="range" id="import-opacity" min="10" max="100" value="75" style="width:90px;"> <span id="import-opacity-value">75</span>%</label><br>
+          <div class="rotation-control">
+            <label for="import-rotation">rotation:</label>
+            <input type="range" id="import-rotation" min="-180" max="180" value="0" style="width:90px;">
+            <input type="number" id="import-rotation-number" min="-180" max="180" value="0" class="no-arrows">
+          </div>
+          <div class="flip-btns">
+            <button id="import-flip-h">flip horizontal</button>
+            <button id="import-flip-v">flip vertical</button>
+          </div>
+          <button id="import-stamp-btn">submit</button>
+          <button id="import-cancel-btn">cancel</button>
+          <div style="font-size:11px;color:#aaa;margin-top:3px;">drag image to position, then stamp</div>
+        </div>
       </div>
-    </div><br>
-    <div class="text-size-wrapper">
-      <label for="text-size-range">size:</label>
-      <input type="range" id="text-size-range" min="8" max="150" value="32" style="width:90px;">
-      <input type="number" id="text-size" min="8" max="150" value="32" class="no-arrows">
+
+      <div class="menu-title" data-menu="export">-export</div>
+      <div class="dropdown hidden" id="export-dropdown">
+        <label class="export-settings">file name: <input type="text" id="file-name" value="pixel-art"></label><br>
+        <label class="export-settings"><input type="checkbox" id="transparent-bg" checked> transparent background</label><br>
+        <button class="export-settings" id="export-btn">save</button>
+        <button class="export-settings" id="export-back">back</button>
+      </div>
+      <div class="menu-title" id="undo-btn">-undo</div>
     </div>
-    <div class="text-rotation-wrapper">
-      <label for="text-rotation-range">rotation:</label>
-      <input type="range" id="text-rotation-range" min="-180" max="180" value="0" style="width:90px;">
-      <input type="number" id="text-rotation-number" min="-180" max="180" value="0" class="no-arrows">
+
+    <div id="text-preview-overlay">
+      <div id="text-preview-content">your text</div>
     </div>
-    <label>color: <input type="color" id="text-color" value="#000000"></label><br>
-    <textarea id="text-string" rows="2" style="width:95%;resize:vertical;background-color: #000;">your text</textarea>
-    <div id="text-toolbox-controls" style="display:flex;">
-      <button id="text-submit-btn">submit</button>
-      <button id="text-cancel-btn">cancel</button>
-    </div>
-  </div>
-  <div class="tool-option" id="spray-option">-spray</div>
-  <div class="tool-settings hidden" id="spray-settings">
-    <label>size: <input type="number" id="spray-size" min="1" max="25" value="3"></label><br>
-    <label>spread: <input type="range" id="spray-spread" min="1" max="50" value="16"></label><br>
-    <label>flow: <input type="range" id="spray-flow" min="1" max="100" value="50"></label><br>
-    <label>color: <input type="color" id="spray-color"></label>
-  </div>
-  <div class="tool-option" id="bucket-option">-bucket</div>
-  <div class="tool-settings hidden" id="bucket-settings">
-    <label>color: <input type="color" id="bucket-color"></label>
-  </div>
-  <div class="tool-option" id="eraser-option">-eraser</div>
-  <div class="tool-settings hidden" id="eraser-settings">
-    <label>size: <input type="number" id="eraser-size" min="1" max="25" value="3"></label>
-  </div>
-  <div class="tool-option clear-tool" id="clear-option">-clear</div>
-  <div class="tool-settings hidden" id="clear-settings">
-    <div class="clear-settings">
-      <button id="clear-yes">yes</button>
-      <button id="clear-back">back</button>
+
+    <div id="selection-preview">
+      <img id="selection-preview-img" style="display:none;">
     </div>
   </div>
-</div>
+  <script>
+/* ==== FULL FIXED JS ==== */
 
-<!-- New Edit dropdown -->
-<div class="menu-title" data-menu="edit">-edit</div>
-<div class="dropdown hidden" id="edit-dropdown">
-  <!-- Layers UI -->
-  <div style="font-size:13px;text-transform:lowercase;">- layers</div>
-  <div class="layers-grid" id="layers-grid"></div>
-  <div class="layers-controls">
-    <button id="layer-add">+</button>
-    <button id="layer-remove">-</button>
-    <div style="margin-left:auto;color:#aaa;" id="layer-count">1/5</div>
-  </div>
-
-  <!-- Filters UI -->
-  <div style="font-size:13px;text-transform:lowercase;margin-top:8px;">- filters</div>
-  <div class="filters-grid">
-    <button class="filter-btn" id="filter-invert">invert</button>
-    <button class="filter-btn" id="filter-bw">b&w</button>
-    <button class="filter-btn" id="filter-blur">blur</button>
-    <button class="filter-btn" id="filter-sharpen">sharpen</button>
-  </div>
-
-  <!-- Select UI -->
-  <div style="font-size:13px;text-transform:lowercase;margin-top:8px;">- select</div>
-  <div class="tool-settings">
-    <div class="select-info">Use the rectangular marquee to select an area on the active layer. After selection you can move/scale/rotate the selection. Click the canvas to start selecting.</div>
-    <div style="margin-top:6px;">
-      <button id="select-cancel">cancel selection</button>
-      <button id="select-commit">stamp selection</button>
-    </div>
-  </div>
-</div>
-
-<div class="menu-title" data-menu="import">-import</div>
-<div class="dropdown hidden" id="import-dropdown">
-  <label class="import-label" for="import-image-file">upload<input type="file" id="import-image-file" accept="image/*"></label>
-  <div id="import-settings" class="hidden" style="margin-top:6px;">
-    <label>size: <input type="range" id="import-size" min="1" max="400" value="50" style="width:90px;"> <span id="import-size-value">50</span>%</label><br>
-    <label>opacity: <input type="range" id="import-opacity" min="10" max="100" value="75" style="width:90px;"> <span id="import-opacity-value">75</span>%</label><br>
-    <div class="rotation-control">
-      <label for="import-rotation">rotation:</label>
-      <input type="range" id="import-rotation" min="-180" max="180" value="0" style="width:90px;">
-      <input type="number" id="import-rotation-number" min="-180" max="180" value="0" class="no-arrows">
-    </div>
-    <div class="flip-btns">
-      <button id="import-flip-h">flip horizontal</button>
-      <button id="import-flip-v">flip vertical</button>
-    </div>
-    <button id="import-stamp-btn">submit</button>
-    <button id="import-cancel-btn">cancel</button>
-    <div style="font-size:11px;color:#aaa;margin-top:3px;">drag image to position, then stamp</div>
-  </div>
-</div>
-<div id="text-preview-overlay">
-  <div id="text-preview-content"></div>
-</div>
-
-<!-- selection preview overlay -->
-<div id="selection-preview"><img id="selection-preview-img"></div>
-
-<div class="menu-title" data-menu="export">-export</div>
-<div class="dropdown hidden" id="export-dropdown">
-  <label class="export-settings">file name: <input type="text" id="file-name" value="pixel-art"></label><br>
-  <label class="export-settings"><input type="checkbox" id="transparent-bg" checked> transparent background</label><br>
-  <button class="export-settings" id="export-btn">save</button>
-  <button class="export-settings" id="export-back">back</button>
-</div>
-<div class="menu-title" id="undo-btn">-undo</div>
-</div>
-</div>
-<script>
-/*
-  Major changes:
-  - Added -edit dropdown with Layers (1-5), Filters, and Select tool
-  - Implemented per-layer canvases (up to 5), active layer selection and highlighting
-  - Drawing, text, import, bucket, etc. are applied to the active layer
-  - Composite rendering onto the visible main canvas
-  - Undo now stores per-layer snapshots and active layer index
-  - Selection tool: rectangular marquee -> floating transformable selection (scale/rotate) -> stamp back to active layer
-  - Filters (invert, b&w, blur, sharpen) apply to active layer
-  - Preserved earlier fixes: restored marker/spray/eraser implementations, text placement center fix
-*/
-
+const container = document.getElementById('app-container');
 const canvas = document.getElementById('paint-canvas'), mainCtx = canvas.getContext('2d');
-canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; mainCtx.imageSmoothingEnabled = false;
+
+function initCanvasSize(){
+  const r = canvas.getBoundingClientRect();
+  canvas.width = Math.round(r.width) || 800;
+  canvas.height = Math.round(r.height) || 600;
+  mainCtx.imageSmoothingEnabled = false;
+}
+initCanvasSize();
 
 let MAX_UNDO = 20;
 let undoStack = [];
 
-// Layers: up to 5
+// ---------- LAYERS ----------
 const MAX_LAYERS = 5;
-let layers = []; // each item: {canvas, ctx}
+let layers = [];
 let activeLayerIndex = 0;
 
-// Create a layer canvas sized to main canvas, initially transparent
-function createLayer() {
+const layersGrid = document.getElementById('layers-grid');
+const layerAddBtn = document.getElementById('layer-add');
+const layerRemoveBtn = document.getElementById('layer-remove');
+const layerCountLabel = document.getElementById('layer-count');
+const layerOutline = document.getElementById('layer-outline');
+const selectionPreview = document.getElementById('selection-preview');
+const selectionPreviewImg = document.getElementById('selection-preview-img');
+
+function createLayer(){
   const c = document.createElement('canvas');
-  c.width = canvas.width;
-  c.height = canvas.height;
-  const cctx = c.getContext('2d');
-  cctx.imageSmoothingEnabled = false;
-  // initially transparent
-  cctx.clearRect(0,0,c.width,c.height);
-  layers.push({canvas: c, ctx: cctx});
+  c.width = canvas.width; c.height = canvas.height;
+  const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0,0,c.width,c.height);
+  layers.push({canvas:c, ctx});
+  activeLayerIndex = layers.length - 1;
   updateLayerUI();
   renderComposite();
   return layers.length - 1;
 }
-
-function removeLayer(index) {
-  if (layers.length <= 1) return;
-  layers.splice(index,1);
-  if (activeLayerIndex >= layers.length) activeLayerIndex = layers.length-1;
-  updateLayerUI();
-  renderComposite();
+function removeLayer(i){
+  if(layers.length<=1) return;
+  layers.splice(i,1);
+  if(activeLayerIndex>=layers.length) activeLayerIndex = layers.length-1;
+  updateLayerUI(); renderComposite();
 }
-
-// Composite all layers in order onto the main canvas
-function renderComposite() {
+function renderComposite(){
   mainCtx.clearRect(0,0,canvas.width,canvas.height);
-  // Draw layers in order
-  for (let i=0;i<layers.length;i++){
-    mainCtx.drawImage(layers[i].canvas, 0, 0);
-  }
+  layers.forEach(l=>mainCtx.drawImage(l.canvas,0,0));
 }
+function getActiveCtx(){ return layers[activeLayerIndex].ctx; }
 
-// Ensure we draw to active layer context for painting operations
-function getActiveCtx() {
-  return layers[activeLayerIndex].ctx;
-}
-
-// Undo system: save snapshot of all layers (ImageData) and active index
-function saveState() {
-  try {
-    const snapshot = {
+// ---------- UNDO ----------
+function saveState(){
+  try{
+    const snap = {
       activeIndex: activeLayerIndex,
-      layersData: layers.map(l => l.ctx.getImageData(0,0,canvas.width,canvas.height))
+      layersData: layers.map(l=>l.ctx.getImageData(0,0,canvas.width,canvas.height))
     };
-    if (undoStack.length >= MAX_UNDO) undoStack.shift();
-    undoStack.push(snapshot);
-  } catch (e) {
-    // Some operations (CORS) can taint canvas; ignore but don't crash
-    console.warn("saveState failed:", e);
-  }
+    if(undoStack.length>=MAX_UNDO) undoStack.shift();
+    undoStack.push(snap);
+  }catch(e){ console.warn('saveState',e); }
 }
-function undo() {
-  if (undoStack.length === 0) return;
-  const snapshot = undoStack.pop();
-  // restore each layer imageData
-  for (let i=0;i<layers.length && i<snapshot.layersData.length;i++){
-    layers[i].ctx.putImageData(snapshot.layersData[i], 0, 0);
-  }
-  // if snapshot had more layers than current, ignore extras; if fewer, clear remaining
-  for (let i=snapshot.layersData.length;i<layers.length;i++){
-    layers[i].ctx.clearRect(0,0,canvas.width,canvas.height);
-  }
-  activeLayerIndex = Math.min(snapshot.activeIndex, layers.length-1);
-  updateLayerUI();
-  renderComposite();
-}
-
-// Resize handling - scale layer contents to new size
-function resizeCanvasAndLayers() {
-  const r = canvas.getBoundingClientRect();
-  const newW = Math.round(r.width);
-  const newH = Math.round(r.height);
-  // For each layer, draw into temp then resize and draw back
-  layers.forEach((l)=> {
-    const temp = document.createElement('canvas');
-    temp.width = newW;
-    temp.height = newH;
-    const tctx = temp.getContext('2d');
-    tctx.imageSmoothingEnabled = false;
-    // draw existing content scaled to new size
-    tctx.drawImage(l.canvas, 0, 0, newW, newH);
-    l.canvas.width = newW;
-    l.canvas.height = newH;
-    l.ctx = l.canvas.getContext('2d');
-    l.ctx.imageSmoothingEnabled = false;
-    l.ctx.drawImage(temp, 0, 0);
+function undo(){
+  if(!undoStack.length) return;
+  const snap = undoStack.pop();
+  layers.forEach((l,i)=>{
+    if(i<snap.layersData.length) l.ctx.putImageData(snap.layersData[i],0,0);
+    else l.ctx.clearRect(0,0,canvas.width,canvas.height);
   });
-  canvas.width = newW;
-  canvas.height = newH;
-  mainCtx.imageSmoothingEnabled = false;
+  activeLayerIndex = Math.min(snap.activeIndex,layers.length-1);
+  updateLayerUI(); renderComposite();
+}
+
+// ---------- RESIZE ----------
+function resizeCanvasAndLayers(){
+  const r = canvas.getBoundingClientRect();
+  const nw = Math.round(r.width)||canvas.width;
+  const nh = Math.round(r.height)||canvas.height;
+  layers.forEach(l=>{
+    const tmp = document.createElement('canvas');
+    tmp.width=nw; tmp.height=nh;
+    const tctx = tmp.getContext('2d'); tctx.imageSmoothingEnabled=false;
+    tctx.drawImage(l.canvas,0,0,nw,nh);
+    l.canvas.width=nw; l.canvas.height=nh;
+    l.ctx = l.canvas.getContext('2d'); l.ctx.imageSmoothingEnabled=false;
+    l.ctx.drawImage(tmp,0,0);
+  });
+  canvas.width=nw; canvas.height=nh;
+  mainCtx.imageSmoothingEnabled=false;
   renderComposite();
 }
 
-// initial single layer
-createLayer();
+// ---------- BBOX ----------
+function computeActivePixelBBox(layerCanvas){
+  const ctx = layerCanvas.getContext('2d');
+  const w = layerCanvas.width, h = layerCanvas.height;
+  let img;
+  try{ img = ctx.getImageData(0,0,w,h); }catch(e){ return {x:0,y:0,w:w,h:h,empty:true}; }
+  const d = img.data;
+  let minX=w, minY=h, maxX=-1, maxY=-1;
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    if(d[(y*w+x)*4+3]!==0){
+      if(x<minX) minX=x; if(y<minY) minY=y;
+      if(x>maxX) maxX=x; if(y>maxY) maxY=y;
+    }
+  }
+  if(maxX===-1) return {x:0,y:0,w:0,h:0,empty:true};
+  return {x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1,empty:false};
+}
 
-// basic tool state
-let drawing = false, currentTool = 'marker';
-let markerSize = 3, eraserSize = 3, color = '#000000', bucketColor = '#000000', flow = 2500;
-let spraySize = 3, spraySpread = 16, sprayFlow = 50, sprayColor = '#000000';
-let calligraphySize = 20, calligraphyFlow = 2500, calligraphyBrushType = 0, calligraphyColor = '#000000';
-let symbolSize = 35, symbolCharType = 0, symbolColor = '#000000';
+// ---------- LAYER TRANSFORM ----------
+let layerTransform = {
+  enabled:false, posX:0, posY:0, rotation:0, scale:1.0,
+  dragging:false, offsetX:0, offsetY:0,
+  bboxCss:{left:0,top:0,w:0,h:0}
+};
+
+function updateLayerOutline(){
+  const editDropdown = document.getElementById('edit-dropdown');
+  if(!editDropdown || editDropdown.classList.contains('hidden')){
+    layerOutline.style.display='none'; return;
+  }
+  if(!layers.length){ layerOutline.style.display='none'; return; }
+  const layer = layers[activeLayerIndex];
+  const bbox = computeActivePixelBBox(layer.canvas);
+  if(bbox.empty){ layerOutline.style.display='none'; return; }
+
+  const scaleX = container.offsetWidth / layer.canvas.width;
+  const scaleY = container.offsetHeight / layer.canvas.height;
+  const left = Math.round(bbox.x*scaleX);
+  const top  = Math.round(bbox.y*scaleY);
+  const w = Math.max(1,Math.round(bbox.w*scaleX));
+  const h = Math.max(1,Math.round(bbox.h*scaleY));
+
+  layerOutline.style.left = left+'px';
+  layerOutline.style.top  = top+'px';
+  layerOutline.style.width  = w+'px';
+  layerOutline.style.height = h+'px';
+  layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
+  layerOutline.style.display = 'block';
+  layerTransform.posX = left; layerTransform.posY = top;
+  layerTransform.bboxCss = {left,top,w,h};
+  layerOutline.style.cursor = layerTransform.enabled?'grab':'default';
+}
+
+function setActiveLayer(i, enableTransform = false){
+    activeLayerIndex = i;
+    updateLayerUI();
+    renderComposite();
+
+    const wrapper = document.getElementById('transform-section-wrapper');
+    if(enableTransform && wrapper){
+        wrapper.classList.remove('hidden');
+        layerTransform.enabled = true;
+        layerOutline.style.pointerEvents = 'auto';
+        layerOutline.style.cursor = 'grab';
+        layerOutline.style.display = 'block'; // always show while editing
+    } else if(wrapper){
+        wrapper.classList.add('hidden');
+        layerTransform.enabled = false;
+        layerOutline.style.pointerEvents = 'none';
+        layerOutline.style.cursor = 'default';
+        layerOutline.style.display = 'none';
+    }
+    updateLayerOutline();
+}
+
+
+function updateLayerUI(){
+  layersGrid.innerHTML = '';
+  for(let display=layers.length-1; display>=0; display--){
+    const i = display;
+    const cell = document.createElement('div');
+    cell.className = 'layer-cell' + (i===activeLayerIndex?' active':'');
+    if(layerTransform.enabled && i===activeLayerIndex) cell.classList.add('transform-active');
+    cell.dataset.index = i;
+
+    const label = document.createElement('div');
+    label.textContent = `Layer ${i+1}`;
+    label.style.flex='1 1 auto';
+    label.style.overflow='hidden';
+    label.style.textOverflow='ellipsis';
+    label.style.whiteSpace='nowrap';
+
+    const actions = document.createElement('div');
+    actions.className='layer-actions';
+
+    const up = document.createElement('button'); up.innerHTML='▲'; up.title='bring up';
+    up.onclick = ev=>{ev.stopPropagation(); moveLayerUp(i);};
+    const down = document.createElement('button'); down.innerHTML='▼'; down.title='send down';
+    down.onclick = ev=>{ev.stopPropagation(); moveLayerDown(i);};
+    const sel = document.createElement('button'); sel.innerHTML='●'; sel.title='enter transform mode';
+    sel.onclick = ev=>{ev.stopPropagation(); setActiveLayer(i,true);};
+
+    actions.append(up,down,sel);
+    cell.append(label,actions);
+    cell.onclick = ()=>setActiveLayer(i);
+    layersGrid.appendChild(cell);
+  }
+  layerCountLabel.textContent = `${layers.length}/${MAX_LAYERS}`;
+  layerAddBtn.disabled = layers.length>=MAX_LAYERS;
+  layerRemoveBtn.disabled = layers.length<=1;
+  updateLayerOutline();
+}
+function moveLayerUp(i){
+  if(i>=layers.length-1) return;
+  [layers[i],layers[i+1]] = [layers[i+1],layers[i]];
+  if(activeLayerIndex===i) activeLayerIndex=i+1;
+  else if(activeLayerIndex===i+1) activeLayerIndex=i;
+  updateLayerUI(); renderComposite();
+}
+function moveLayerDown(i){
+  if(i<=0) return;
+  [layers[i-1],layers[i]] = [layers[i],layers[i-1]];
+  if(activeLayerIndex===i) activeLayerIndex=i-1;
+  else if(activeLayerIndex===i-1) activeLayerIndex=i;
+  updateLayerUI(); renderComposite();
+}
+document.getElementById('layer-transform-exit')?.addEventListener('click',()=>{
+  const w = document.getElementById('transform-section-wrapper');
+  if(w) w.classList.add('hidden');
+  layerTransform.enabled = false;
+  updateLayerOutline(); updateLayerUI();
+});
+
+// ---------- TOOLS ----------
+let drawing=false, currentTool='marker';
+let markerSize=3, eraserSize=3, color='#000000', bucketColor='#000000', flow=2500;
+let spraySize=3, spraySpread=16, sprayFlow=50, sprayColor='#000000';
+let calligraphySize=20, calligraphyFlow=2500, calligraphyBrushType=0, calligraphyColor='#000000';
+let symbolSize=35, symbolCharType=0, symbolColor='#000000';
 let textFont="Arial", textSize=32, textColor="#000000", textString="your text";
-const calligraphyBrushes=[ "♥\uFE0E", "⎸\uFE0E", "✦\uFE0E", "◢\uFE0E", "◣\uFE0E", "♦\uFE0E" ];
-const symbolChars=[ "★\uFE0E", "☠\uFE0E", "☣\uFE0E", "✠\uFE0E", "☭\uFE0E", "☮\uFE0E" ];
 
-// UI hooks
-document.querySelectorAll('.calligraphy-btn').forEach((btn,i)=>{btn.onclick=()=>{document.querySelectorAll('.calligraphy-btn').forEach(b=>b.classList.remove('calligraphy-selected'));btn.classList.add('calligraphy-selected');calligraphyBrushType=i;}});
-document.querySelectorAll('.symbol-btn').forEach((btn,i)=>{btn.onclick=()=>{document.querySelectorAll('.symbol-btn').forEach(b=>b.classList.remove('symbol-selected'));btn.classList.add('symbol-selected');symbolCharType=i;}});
-document.getElementById('marker-size').oninput=e=>{markerSize=+e.target.value;};
-document.getElementById('marker-flow').oninput=e=>{flow=+e.target.value;};
+const calligraphyBrushes = ["HEART","VERTICAL","STAR","TRIANGLE-R","TRIANGLE-L","DIAMOND"];
+const symbolChars = ["STAR","SKULL","BIOHAZARD","CROSS","HAMMER","PEACE"];
+
+document.querySelectorAll('.calligraphy-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.calligraphy-btn').forEach(x=>x.classList.remove('calligraphy-selected'));b.classList.add('calligraphy-selected');calligraphyBrushType=i;});
+document.querySelectorAll('.symbol-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.symbol-btn').forEach(x=>x.classList.remove('symbol-selected'));b.classList.add('symbol-selected');symbolCharType=i;});
+
+document.getElementById('marker-size').oninput=e=>markerSize=+e.target.value;
+document.getElementById('marker-flow').oninput=e=>flow=+e.target.value;
 document.getElementById('color-picker').oninput=e=>color=e.target.value;
-document.getElementById('calligraphy-size').oninput=e=>{calligraphySize=+e.target.value;};
-document.getElementById('calligraphy-flow').oninput=e=>{calligraphyFlow=+e.target.value;};
-document.getElementById('calligraphy-color').oninput=e=>{calligraphyColor=e.target.value;};
+document.getElementById('calligraphy-size').oninput=e=>calligraphySize=+e.target.value;
+document.getElementById('calligraphy-flow').oninput=e=>calligraphyFlow=+e.target.value;
+document.getElementById('calligraphy-color').oninput=e=>calligraphyColor=e.target.value;
 document.getElementById('symbol-size').oninput=e=>symbolSize=+e.target.value;
-document.getElementById('symbol-color').oninput=e=>{symbolColor=e.target.value;};
+document.getElementById('symbol-color').oninput=e=>symbolColor=e.target.value;
 
-// Font dropdown & text UI
-const fontDropdown=document.getElementById("font-dropdown"), fontDropdownList=document.getElementById("font-dropdown-list"), fontDropdownSelectedName=document.getElementById("font-dropdown-selected-name");
-Array.from(fontDropdownList.children).forEach(opt=>{opt.onclick=function(){Array.from(fontDropdownList.children).forEach(o=>o.classList.remove("selected"));this.classList.add("selected");textFont = this.getAttribute("data-font");fontDropdownSelectedName.textContent = this.textContent;fontDropdownSelectedName.style.fontFamily = textFont;fontDropdown.classList.remove("open");if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};});
-document.getElementById("font-dropdown-selected").onclick = function(){fontDropdown.classList.toggle("open");};
-fontDropdown.onblur=function(){fontDropdown.classList.remove("open");};
-
-const textSizeRange=document.getElementById('text-size-range'), textSizeInput=document.getElementById('text-size');
-function setTextSize(v){v=Math.max(8,Math.min(150,Number(v)||32));textSize=v;textSizeRange.value=v;textSizeInput.value=v;if(textPreviewActive)updateTextPreviewContent(textString,textFont,textSize,textColor);}
-textSizeRange.addEventListener('input',function(){setTextSize(this.value);});
-textSizeInput.addEventListener('input',function(){setTextSize(this.value);});
-document.getElementById('text-color').oninput=e=>{textColor=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);}
-document.getElementById('text-string').oninput=e=>{textString=e.target.value;if(textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);};
-
-// calligraphy & symbol draw functions use activeCtx
+// ----- DRAW HELPERS -----
 function drawCalligraphy(x,y){
-  const ctx = getActiveCtx();
-  ctx.save();
-  ctx.font = `${calligraphySize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = calligraphyColor;
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.fillText(calligraphyBrushes[calligraphyBrushType], x, y);
+  const ctx=getActiveCtx(); ctx.save();
+  ctx.font=`${calligraphySize}px 'Roboto Mono',monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=calligraphyColor;
+  ctx.fillText(calligraphyBrushes[calligraphyBrushType],x,y);
   ctx.restore();
 }
 function drawCalligraphyFlowLine(x0,y0,x1,y1){
   let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy;
   while(true){
     drawCalligraphy(x0,y0);
-    if(x0===x1&&y0===y1)break;
-    let e2=2*err;if(e2>-dy){err-=dy;x0+=sx;}if(e2<dx){err+=dx;y0+=sy;}
+    if(x0===x1 && y0===y1) break;
+    let e2=2*err;
+    if(e2>-dy){err-=dy;x0+=sx;}
+    if(e2<dx){err+=dx;y0+=sy;}
   }
 }
 function drawSymbol(x,y){
-  const ctx = getActiveCtx();
-  ctx.save();
-  ctx.font = `${symbolSize}px 'Roboto Mono', 'DejaVu Sans Mono', 'Liberation Mono', 'Consolas', 'Courier', 'monospace', 'Arial', 'sans-serif'`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = symbolColor;
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.fillText(symbolChars[symbolCharType], x, y);
+  const ctx=getActiveCtx(); ctx.save();
+  ctx.font=`${symbolSize}px 'Roboto Mono',monospace`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=symbolColor;
+  ctx.fillText(symbolChars[symbolCharType],x,y);
+  ctx.restore();
+}
+function drawAt(x,y){
+  const ctx=getActiveCtx(); ctx.save();
+  if(currentTool==='eraser'){
+    ctx.globalCompositeOperation='destination-out';
+    ctx.beginPath(); ctx.arc(x,y,eraserSize/2,0,Math.PI*2); ctx.fill();
+  }else{
+    ctx.globalCompositeOperation='source-over';
+    ctx.beginPath(); ctx.arc(x,y,markerSize/2,0,Math.PI*2);
+    ctx.fillStyle=color; ctx.fill();
+  }
+  ctx.restore();
+}
+function drawLine(x0,y0,x1,y1){
+  const ctx=getActiveCtx(); ctx.save();
+  ctx.strokeStyle = currentTool==='eraser'?'rgba(0,0,0,1)':color;
+  ctx.lineWidth = currentTool==='eraser'?eraserSize:markerSize;
+  ctx.lineCap='round';
+  if(currentTool==='eraser') ctx.globalCompositeOperation='destination-out';
+  ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+  ctx.restore();
+}
+function sprayAt(x,y){
+  const ctx=getActiveCtx(); ctx.save(); ctx.fillStyle=sprayColor;
+  for(let i=0;i<sprayFlow;i++){
+    const a=Math.random()*Math.PI*2, r=Math.random()*spraySpread;
+    ctx.beginPath(); ctx.arc(x+Math.cos(a)*r, y+Math.sin(a)*r, spraySize/2,0,Math.PI*2); ctx.fill();
+  }
   ctx.restore();
 }
 
-// Text preview overlay & placement (kept the earlier "center of DOM text" approach)
-function getTextBBox(text,font,size){
-  const off=document.createElement('canvas');
-  const offCtx=off.getContext('2d');
-  offCtx.font=`${size}px ${font}`;
-  const lines=text.split('\n');
-  let width=0;
-  for(let l of lines){const m=offCtx.measureText(l);width=Math.max(width,m.width);}
-  return {width,height:lines.length*size*1.15};
+// ----- CANVAS INPUT -----
+let lastPos=null;
+function getCanvasCoords(e){
+  const r=canvas.getBoundingClientRect();
+  const clientX = e.touches?e.touches[0].clientX:e.clientX;
+  const clientY = e.touches?e.touches[0].clientY:e.clientY;
+  return {
+    x:Math.floor((clientX-r.left)*canvas.width/r.width),
+    y:Math.floor((clientY-r.top)*canvas.height/r.height)
+  };
 }
+canvas.addEventListener('mousedown', e=>{
+  if(currentTool==='select'){ startMarquee(e.clientX,e.clientY); return; }
+  if(currentTool==='bucket'){ saveState(); floodFillActiveLayer(getCanvasCoords(e).x,getCanvasCoords(e).y,bucketColor); return; }
+  saveState();
+  const {x,y}=getCanvasCoords(e);
+  if(currentTool==='calligraphy'){ drawing=true; lastPos={x,y}; drawCalligraphy(x,y); renderComposite(); }
+  else if(currentTool==='symbol'){ drawSymbol(x,y); renderComposite(); }
+  else if(currentTool==='spray'){ drawing=true; lastPos={x,y}; sprayAt(x,y); renderComposite(); }
+  else if(['eraser','marker'].includes(currentTool)){ drawing=true; lastPos={x,y}; drawAt(x,y); renderComposite(); }
+});
+canvas.addEventListener('mousemove', e=>{
+  if(!drawing || ['bucket','symbol','text','select'].includes(currentTool)) return;
+  const {x,y}=getCanvasCoords(e);
+  if(currentTool==='calligraphy'){
+    if(lastPos){
+      if(calligraphyFlow>=1000) drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
+      else{
+        const dist=Math.hypot(x-lastPos.x,y-lastPos.y);
+        const step=Math.max(1,Math.floor(1000/calligraphyFlow));
+        if(dist>step){
+          const steps=Math.floor(dist/step);
+          for(let i=1;i<=steps;i++){
+            const nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps);
+            const ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);
+            drawCalligraphy(nx,ny);
+          }
+        }else drawCalligraphy(x,y);
+      }
+    }else drawCalligraphy(x,y);
+    renderComposite();
+  }else if(currentTool==='spray'){ sprayAt(x,y); renderComposite(); }
+  else if(['eraser','marker'].includes(currentTool)){
+    if(flow>=1000 && lastPos) drawLine(lastPos.x,lastPos.y,x,y);
+    else drawAt(x,y);
+    renderComposite();
+  }
+  lastPos={x,y};
+});
+canvas.addEventListener('mouseup',()=>{drawing=false; lastPos=null;});
+canvas.addEventListener('mouseout',()=>{drawing=false; lastPos=null;});
+
+canvas.addEventListener('touchstart', e=>{ e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousedown', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY})); });
+canvas.addEventListener('touchmove',  e=>{ e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousemove', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY})); });
+canvas.addEventListener('touchend',   ()=>{ canvas.dispatchEvent(new MouseEvent('mouseup')); });
+
+// ----- BUCKET -----
+function hexToRgb(hex){ const b=parseInt(hex.slice(1),16); return [(b>>16)&255,(b>>8)&255,b&255]; }
+function getPixel(imgData,x,y){ const i=(y*imgData.width+x)*4; return [imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]]; }
+function colorsMatch(a,b){ return a.every((v,i)=>v===b[i]); }
+function floodFillActiveLayer(x,y,fillHex){
+  const layer=layers[activeLayerIndex];
+  let img; try{ img=layer.ctx.getImageData(0,0,canvas.width,canvas.height); }catch(e){alert('Bucket unavailable (tainted canvas)');return;}
+  const target=getPixel(img,x,y);
+  const fill=hexToRgb(fillHex).concat(255);
+  if(colorsMatch(target,fill)) return;
+  const stack=[[x,y]];
+  while(stack.length){
+    const [cx,cy]=stack.pop();
+    if(cx<0||cy<0||cx>=canvas.width||cy>=canvas.height) continue;
+    if(!colorsMatch(getPixel(img,cx,cy),target)) continue;
+    const i=(cy*canvas.width+cx)*4; img.data.set(fill,i);
+    stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+  }
+  layer.ctx.putImageData(img,0,0);
+  renderComposite();
+}
+
+// ---------- MENU TITLE (non-tool menus) ----------
+document.querySelectorAll('.menu-title').forEach(title=>{
+  const menu=title.dataset.menu;
+  if(!menu) return;
+  title.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const dropdown=document.getElementById(`${menu}-dropdown`);
+    const isSubMenu = title.closest('.dropdown');
+    const isOpen = dropdown && !dropdown.classList.contains('hidden');
+    if (isSubMenu) {
+      if (isOpen) {
+        dropdown.classList.add('hidden');
+      } else {
+        dropdown.classList.remove('hidden');
+      }
+    } else {
+      document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
+      if (!isOpen && dropdown) dropdown.classList.remove('hidden');
+    }
+    if(menu!=='import') importResetState();
+    if(menu==='edit') setTimeout(()=>updateLayerOutline(),40);
+    else layerOutline.style.display='none';
+    if (menu === 'select') {
+      selectSectionOpen = dropdown && !dropdown.classList.contains('hidden');
+      if (!selectSectionOpen) clearSelection();
+      currentTool = 'select';
+    }
+  });
+});
+
+// ---------- TOOL OPTIONS (fixed – stop propagation) ----------
+/* ==== TOOL OPTIONS – FIXED ==== */
+document.querySelectorAll('.tool-option').forEach(opt => {
+  // Remove any old listeners that might still be attached
+  opt.replaceWith(opt.cloneNode(true));
+});
+document.querySelectorAll('.tool-option').forEach(opt => {
+  opt.addEventListener('click', e => {
+    e.stopPropagation();   // <-- STOP BUBBLE TO MENU TITLE
+    e.preventDefault();    // <-- extra safety for some browsers
+
+    const tool = opt.id.split('-')[0];
+    const settings = document.getElementById(`${tool}-settings`);
+
+    // ---- toggle the same tool's panel ----
+    if (currentTool === tool) {
+      if (settings) settings.classList.toggle('hidden');
+      if (tool === 'select') selectSectionOpen = !settings.classList.contains('hidden');
+      if (!selectSectionOpen && tool === 'select') clearSelection();
+      return;
+    }
+
+    // ---- switch to a new tool ----
+    currentTool = tool;
+    setToolHighlight(currentTool);
+
+    if (tool === 'text') {
+      showTextPreviewOverlay(textString, textFont, textSize, textColor, true);
+    } else {
+      hideTextPreviewOverlay();
+    }
+
+    // keep the Tools dropdown open
+    const toolsDropdown = document.getElementById('tools-dropdown');
+    if (toolsDropdown && toolsDropdown.classList.contains('hidden')) {
+      document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
+      toolsDropdown.classList.remove('hidden');
+    }
+  });
+});
+
+function setToolHighlight(tool){
+  ['marker','calligraphy','symbol','text','spray','eraser','bucket','clear','select'].forEach(t=>{
+    const s=document.getElementById(`${t}-settings`);
+    const o=document.getElementById(`${t}-option`);
+    if(s) s.classList.add('hidden');
+    if(o) o.classList.remove('selected');
+  });
+  const s=document.getElementById(`${tool}-settings`);
+  const o=document.getElementById(`${tool}-option`);
+  if(s) s.classList.remove('hidden');
+  if(o) o.classList.add('selected');
+
+  if(tool!=='select') clearSelection();
+}
+
+// ---------- CLEAR ----------
+document.getElementById('clear-yes').addEventListener('click',()=>{ saveState(); getActiveCtx().clearRect(0,0,canvas.width,canvas.height); document.getElementById('clear-settings').classList.add('hidden'); renderComposite(); });
+document.getElementById('clear-back').addEventListener('click',()=>{ document.getElementById('clear-settings').classList.add('hidden'); });
+
+// ---------- EXPORT ----------
+document.getElementById('export-btn').addEventListener('click',()=>{
+  const name=document.getElementById('file-name').value||'pixel-art';
+  const transparent=document.getElementById('transparent-bg').checked;
+  const link=document.createElement('a');
+  const tmp=document.createElement('canvas'); tmp.width=canvas.width; tmp.height=canvas.height;
+  const tctx=tmp.getContext('2d'); tctx.imageSmoothingEnabled=false;
+  if(!transparent){ tctx.fillStyle='#fff'; tctx.fillRect(0,0,tmp.width,tmp.height); }
+  layers.forEach(l=>tctx.drawImage(l.canvas,0,0));
+  link.download=name+'.png';
+  link.href=tmp.toDataURL('image/png');
+  link.click();
+});
+
+// ---------- UNDO ----------
+document.getElementById('undo-btn').addEventListener('click',undo);
+document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z') undo(); });
+
+// ---------- FILTERS ----------
+document.getElementById('filter-invert').addEventListener('click',()=>applyFilterToActiveLayer('invert'));
+document.getElementById('filter-bw').addEventListener('click',()=>applyFilterToActiveLayer('bw'));
+document.getElementById('filter-blur').addEventListener('click',()=>applyFilterToActiveLayer('blur'));
+document.getElementById('filter-sharpen').addEventListener('click',()=>applyFilterToActiveLayer('sharpen'));
+
+function applyFilterToActiveLayer(type){
+  saveState();
+  const layer=layers[activeLayerIndex];
+  let data=layer.ctx.getImageData(0,0,layer.canvas.width,layer.canvas.height);
+  const d=data.data;
+  if(type==='invert'){
+    for(let i=0;i<d.length;i+=4){ d[i]=255-d[i]; d[i+1]=255-d[i+1]; d[i+2]=255-d[i+2]; }
+  }else if(type==='bw'){
+    for(let i=0;i<d.length;i+=4){
+      const v=Math.round(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]);
+      d[i]=d[i+1]=d[i+2]=v;
+    }
+  }else if(type==='blur'||type==='sharpen'){
+    const kernel = type==='blur'?[1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9]:[0,-1,0,-1,5,-1,0,-1,0];
+    data=convolve(data,layer.canvas.width,layer.canvas.height,kernel);
+  }
+  layer.ctx.putImageData(data,0,0);
+  renderComposite();
+}
+function convolve(imgData,w,h,kernel){
+  const side=Math.round(Math.sqrt(kernel.length)), half=Math.floor(side/2);
+  const src=imgData.data, out=new Uint8ClampedArray(src.length);
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    let r=0,g=0,b=0,a=0;
+    for(let ky=0;ky<side;ky++) for(let kx=0;kx<side;kx++){
+      const ix=x+kx-half, iy=y+ky-half;
+      if(ix>=0&&iy>=0&&ix<w&&iy<h){
+        const idx=(iy*w+ix)*4;
+        const kv=kernel[ky*side+kx];
+        r+=src[idx]*kv; g+=src[idx+1]*kv; b+=src[idx+2]*kv; a+=src[idx+3]*kv;
+      }
+    }
+    const i=(y*w+x)*4;
+    out[i]=clamp(Math.round(r),0,255);
+    out[i+1]=clamp(Math.round(g),0,255);
+    out[i+2]=clamp(Math.round(b),0,255);
+    out[i+3]=clamp(Math.round(a),0,255)||src[i+3];
+  }
+  return new ImageData(out,w,h);
+}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+// ---------- SELECT TOOL ----------
+let selectSectionOpen = false;
+let selStart=null, selRect=null, isSelecting=false;
+let selectionImage=null;
+let selectionTransform={posX:0,posY:0,scale:1,rotation:0,dragging:false,offsetX:0,offsetY:0};
+
+function startMarquee(clientX,clientY){
+  if(!selectSectionOpen) return;
+  const rect=container.getBoundingClientRect();
+  selStart={x:clientX-rect.left, y:clientY-rect.top};
+  isSelecting=true;
+  selRect={x:selStart.x,y:selStart.y,w:0,h:0};
+  selectionPreview.classList.add('marching');
+  selectionPreview.style.display='block';
+  selectionRectDraw();
+
+  const onMove=ev=>{
+    if(!isSelecting) return;
+    const mx=(ev.touches?ev.touches[0].clientX:ev.clientX)-rect.left;
+    const my=(ev.touches?ev.touches[0].clientY:ev.clientY)-rect.top;
+    selRect={x:Math.min(selStart.x,mx), y:Math.min(selStart.y,my), w:Math.abs(mx-selStart.x), h:Math.abs(my-selStart.y)};
+    selectionRectDraw();
+  };
+  const onUp=()=>{
+    if(isSelecting){
+      isSelecting=false;
+      selectionPreview.classList.remove('marching');
+      if(selRect && selRect.w>0 && selRect.h>0) finalizeMarquee();
+      else selectionPreview.style.display='none';
+    }
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onUp);
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('touchend',onUp);
+  };
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('touchend',onUp);
+}
+function selectionRectDraw(){
+  if(!selRect) return;
+  selectionPreview.style.left=selRect.x+'px';
+  selectionPreview.style.top=selRect.y+'px';
+  selectionPreview.style.width=selRect.w+'px';
+  selectionPreview.style.height=selRect.h+'px';
+}
+function finalizeMarquee(){
+  const layer=layers[activeLayerIndex];
+  const scaleX=layer.canvas.width/container.offsetWidth;
+  const scaleY=layer.canvas.height/container.offsetHeight;
+  const sx=Math.round(selRect.x*scaleX), sy=Math.round(selRect.y*scaleY);
+  const sw=Math.max(1,Math.round(selRect.w*scaleX)), sh=Math.max(1,Math.round(selRect.h*scaleY));
+
+  const off=document.createElement('canvas'); off.width=sw; off.height=sh;
+  const offCtx=off.getContext('2d'); offCtx.imageSmoothingEnabled=false;
+  offCtx.drawImage(layer.canvas,sx,sy,sw,sh,0,0,sw,sh);
+
+  saveState();
+  layer.ctx.clearRect(sx,sy,sw,sh);
+  renderComposite();
+
+  selectionImage=off;
+  selectionPreviewImg.src=off.toDataURL();
+
+  selectionTransform.posX=selRect.x; selectionTransform.posY=selRect.y;
+  selectionTransform.scale=1; selectionTransform.rotation=0;
+
+  selectionPreview.style.left=selRect.x+'px';
+  selectionPreview.style.top=selRect.y+'px';
+  selectionPreview.style.width=selRect.w+'px';
+  selectionPreview.style.height=selRect.h+'px';
+  selectionPreview.style.display='block';
+  selectionPreview.classList.remove('marching');
+
+  enableFloatingDrag();
+}
+function enableFloatingDrag(){
+  selectionPreview.onmousedown=e=>{
+    selectionTransform.dragging=true;
+    const r=selectionPreview.getBoundingClientRect();
+    selectionTransform.offsetX=e.clientX-r.left;
+    selectionTransform.offsetY=e.clientY-r.top;
+    selectionPreview.style.cursor='grabbing';
+  };
+  selectionPreview.ontouchstart=e=>{
+    if(e.touches.length!==1) return;
+    selectionTransform.dragging=true;
+    const r=selectionPreview.getBoundingClientRect();
+    const t=e.touches[0];
+    selectionTransform.offsetX=t.clientX-r.left;
+    selectionTransform.offsetY=t.clientY-r.top;
+    selectionPreview.style.cursor='grabbing';
+  };
+  const move = e => {
+    if (!selectionTransform.dragging) return;
+    const rect = container.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    selectionTransform.posX = cx - selectionTransform.offsetX;
+    selectionTransform.posY = cy - selectionTransform.offsetY;
+
+    selectionPreview.style.opacity = 0.25; // live preview
+    updateFloatingTransform();
+    e.preventDefault();
+};
+
+const up = () => {
+    selectionTransform.dragging = false;
+    selectionPreview.style.cursor = 'grab';
+    selectionPreview.style.opacity = 1; // restore full opacity when dropped
+};
+
+
+  const keyHandler=ev=>{
+    if(!selectionImage) return;
+    if(ev.key==='['){ selectionTransform.rotation-=5; updateFloatingTransform(); }
+    if(ev.key===']'){ selectionTransform.rotation+=5; updateFloatingTransform(); }
+    if(ev.key==='-'||ev.key==='_'){ selectionTransform.scale=Math.max(0.1,selectionTransform.scale-0.05); updateFloatingTransform(); }
+    if(ev.key==='+'||ev.key==='='){ selectionTransform.scale=Math.min(5,selectionTransform.scale+0.05); updateFloatingTransform(); }
+  };
+  window.addEventListener('keydown',keyHandler);
+}
+function updateFloatingTransform(){
+  selectionPreview.style.left=selectionTransform.posX+'px';
+  selectionPreview.style.top=selectionTransform.posY+'px';
+  selectionPreview.style.transform=`rotate(${selectionTransform.rotation}deg) scale(${selectionTransform.scale})`;
+}
+function commitSelection(){
+  if(!selectionImage) return;
+  const layer=layers[activeLayerIndex];
+  const scaleX=layer.canvas.width/container.offsetWidth;
+  const scaleY=layer.canvas.height/container.offsetHeight;
+  const cssW=Number(selectionPreview.style.width.replace('px',''))||selectionImage.width;
+  const cssH=Number(selectionPreview.style.height.replace('px',''))||selectionImage.height;
+  const targetW=Math.round(cssW*selectionTransform.scale*scaleX);
+  const targetH=Math.round(cssH*selectionTransform.scale*scaleY);
+  const px=Math.round(selectionTransform.posX*scaleX);
+  const py=Math.round(selectionTransform.posY*scaleY);
+  saveState();
+  layer.ctx.drawImage(selectionImage,0,0,selectionImage.width,selectionImage.height,px,py,targetW,targetH);
+  clearSelection(); renderComposite();
+}
+function clearSelection(){
+  selectionPreview.style.display='none';
+  selectionPreviewImg.src='';
+  selectionImage=null;
+  selectionTransform={posX:0,posY:0,scale:1,rotation:0,dragging:false,offsetX:0,offsetY:0};
+}
+document.getElementById('select-commit').addEventListener('click',commitSelection);
+document.getElementById('select-clear-btn').addEventListener('click',clearSelection);
+
+canvas.addEventListener('mousedown',e=>{ if(currentTool==='select') startMarquee(e.clientX,e.clientY); });
+canvas.addEventListener('touchstart',e=>{ if(currentTool==='select'){ e.preventDefault(); startMarquee(e.touches[0].clientX,e.touches[0].clientY); }});
+
+// ---------- IMPORT MODULE ----------
+let importImg = null;
+let importPreview = null;
+let importDragging = false;
+let importOffsetX = 0;
+let importOffsetY = 0;
+let importPosX = 0;
+let importPosY = 0;
+let importScale = 0.5;
+let importRotation = 0;
+let importOpacity = 0.75;
+let importFlipH = 1;
+let importFlipV = 1;
+let importImgNaturalWidth = 0;
+let importImgNaturalHeight = 0;
+
+// Elements
+const importSettingsDiv = document.getElementById('import-settings');
+const importFileInput = document.getElementById('import-image-file');
+const importSizeSlider = document.getElementById('import-size');
+const importSizeValue = document.getElementById('import-size-value');
+const importOpacitySlider = document.getElementById('import-opacity');
+const importOpacityValue = document.getElementById('import-opacity-value');
+const importRotationSlider = document.getElementById('import-rotation');
+const importRotationNumber = document.getElementById('import-rotation-number');
+const importFlipHBtn = document.getElementById('import-flip-h');
+const importFlipVBtn = document.getElementById('import-flip-v');
+const importStampBtn = document.getElementById('import-stamp-btn');
+const importCancelBtn = document.getElementById('import-cancel-btn');
+
+// ----------------- FUNCTIONS -----------------
+
+function hideImportPreview() {
+    if (importPreview && importPreview.parentNode) {
+        importPreview.parentNode.removeChild(importPreview);
+        importPreview = null;
+    }
+}
+
+function showImportPreview() {
+    hideImportPreview();
+    if (!importImg) return;
+
+    importPreview = document.createElement('img');
+    importPreview.id = 'import-preview-img';
+    importPreview.src = importImg.src;
+    importPreview.draggable = false;
+    importPreview.style.position = 'absolute';
+    importPreview.style.zIndex = 16;
+    importPreview.style.cursor = 'grab';
+    importPreview.style.boxSizing = 'border-box';
+
+    container.appendChild(importPreview);
+    updateImportPreviewTransform();
+
+    // Remove old listeners
+    document.removeEventListener('mousemove', imagePreviewDragMove);
+    document.removeEventListener('mouseup', imagePreviewDragEnd);
+    document.removeEventListener('touchmove', imagePreviewDragMove);
+    document.removeEventListener('touchend', imagePreviewDragEnd);
+
+    importPreview.onmousedown = (e) => {
+        e.preventDefault();
+        importDragging = true;
+        const r = importPreview.getBoundingClientRect();
+        importOffsetX = e.clientX - r.left;
+        importOffsetY = e.clientY - r.top;
+    };
+
+    importPreview.ontouchstart = (e) => {
+        if (e.touches.length !== 1) return;
+        e.preventDefault();
+        importDragging = true;
+        const r = importPreview.getBoundingClientRect();
+        const t = e.touches[0];
+        importOffsetX = t.clientX - r.left;
+        importOffsetY = t.clientY - r.top;
+    };
+
+    document.addEventListener('mousemove', imagePreviewDragMove);
+    document.addEventListener('mouseup', imagePreviewDragEnd);
+    document.addEventListener('touchmove', imagePreviewDragMove, { passive: false });
+    document.addEventListener('touchend', imagePreviewDragEnd);
+}
+
+
+function imagePreviewDragMove(e) {
+    if (!importDragging || !importPreview) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    const rect = container.getBoundingClientRect();
+    importPosX = clientX - rect.left - importOffsetX;
+    importPosY = clientY - rect.top - importOffsetY;
+
+    updateImportPreviewTransform();
+    if (e.cancelable) e.preventDefault();
+}
+
+function imagePreviewDragEnd() {
+    importDragging = false;
+    if (importPreview) importPreview.style.cursor = 'grab';
+}
+
+function updateImportPreviewTransform() {
+    if (!importPreview) return;
+
+    const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+    const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
+
+    importPreview.style.width = w + 'px';
+    importPreview.style.height = h + 'px';
+    importPreview.style.left = importPosX + 'px';
+    importPreview.style.top = importPosY + 'px';
+    importPreview.style.opacity = importOpacity;
+    importPreview.style.transform = `rotate(${importRotation}deg) scale(${importFlipH},${importFlipV})`;
+}
+
+function stampImageToActiveLayer() {
+    if (!importImg || !importPreview) return;
+    saveState(); // Undo support
+
+    const scaleX = canvas.width / container.offsetWidth;
+    const scaleY = canvas.height / container.offsetHeight;
+
+    const w = Math.max(1, Math.round(importPreview.offsetWidth * scaleX));
+    const h = Math.max(1, Math.round(importPreview.offsetHeight * scaleY));
+    const px = Math.round(importPosX * scaleX);
+    const py = Math.round(importPosY * scaleY);
+
+    const ctx = getActiveCtx();
+    ctx.save();
+    ctx.globalAlpha = importOpacity;
+    ctx.translate(px + w / 2, py + h / 2);
+    ctx.rotate(importRotation * Math.PI / 180);
+    ctx.scale(importFlipH, importFlipV);
+    ctx.drawImage(importImg, -w / 2, -h / 2, w, h);
+    ctx.restore();
+
+    hideImportPreview();
+    importImg = null;
+    importSettingsDiv.classList.add('hidden');
+    renderComposite();
+}
+
+function importResetState() {
+    importImg = null;
+    importImgNaturalWidth = 0;
+    importImgNaturalHeight = 0;
+    importScale = 0.5;
+    importRotation = 0;
+    importOpacity = 0.75;
+    importFlipH = 1;
+    importFlipV = 1;
+    importPosX = (container.offsetWidth / 2) - 50;
+    importPosY = (container.offsetHeight / 2) - 50;
+    hideImportPreview();
+    importSettingsDiv.classList.add('hidden');
+}
+
+// ----------------- EVENT LISTENERS -----------------
+
+importFileInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    importResetState();
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            importImg = img;
+            importImgNaturalWidth = img.naturalWidth;
+            importImgNaturalHeight = img.naturalHeight;
+
+            importScale = 0.5;
+            importSizeSlider.value = 50;
+            importSizeValue.textContent = 50;
+
+            importOpacity = parseInt(importOpacitySlider.value, 10) / 100;
+            importRotation = parseInt(importRotationSlider.value, 10);
+            importRotationNumber.value = importRotation;
+
+            importFlipH = 1;
+            importFlipV = 1;
+
+            // Center image
+            const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+            const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
+            importPosX = (container.offsetWidth - w) / 2;
+            importPosY = (container.offsetHeight - h) / 2;
+
+            importOpacityValue.textContent = importOpacitySlider.value;
+            importSettingsDiv.classList.remove('hidden');
+            showImportPreview();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+// Slider & Input listeners
+importSizeSlider.addEventListener('input', function () {
+    importScale = parseInt(this.value, 10) / 100;
+    importSizeValue.textContent = this.value;
+    updateImportPreviewTransform();
+});
+
+importOpacitySlider.addEventListener('input', function () {
+    importOpacity = parseInt(this.value, 10) / 100;
+    importOpacityValue.textContent = this.value;
+    updateImportPreviewTransform();
+});
+
+importRotationSlider.addEventListener('input', function () {
+    importRotation = parseInt(this.value, 10);
+    importRotationNumber.value = importRotation;
+    updateImportPreviewTransform();
+});
+
+importRotationNumber.addEventListener('input', function () {
+    importRotation = parseInt(this.value, 10);
+    importRotationSlider.value = importRotation;
+    updateImportPreviewTransform();
+});
+
+importFlipHBtn.addEventListener('click', function () {
+    importFlipH *= -1;
+    updateImportPreviewTransform();
+});
+
+importFlipVBtn.addEventListener('click', function () {
+    importFlipV *= -1;
+    updateImportPreviewTransform();
+});
+
+importStampBtn.addEventListener('click', stampImageToActiveLayer);
+importCancelBtn.addEventListener('click', importResetState);
+
+
+// ---------- TEXT TOOL ----------
 const textPreviewOverlay=document.getElementById('text-preview-overlay');
 const textPreviewContent=document.getElementById('text-preview-content');
 const textSubmitBtn=document.getElementById('text-submit-btn');
 const textCancelBtn=document.getElementById('text-cancel-btn');
-const textToolboxControls=document.getElementById('text-toolbox-controls');
-const textRotationRange=document.getElementById('text-rotation-range');
-const textRotationNumber=document.getElementById('text-rotation-number');
-let textPreviewActive=false,textPreviewDragging=false,textPreviewOffsetX=0,textPreviewOffsetY=0,textPreviewPosX=0,textPreviewPosY=0,textPreviewInit=false,textPreviewInitX=0,textPreviewInitY=0,textRotation=0;
-function showTextPreviewOverlay(text,font,size,color,forceCenter){
-  textPreviewActive=true;textPreviewOverlay.style.display="block";textPreviewOverlay.style.boxSizing="border-box";
-  textPreviewContent.textContent=text.replace(/\n/g,"\n");
-  textPreviewOverlay.style.fontFamily=font;textPreviewOverlay.style.fontSize=size+"px";textPreviewOverlay.style.color=color;
-  textPreviewContent.style.fontFamily=font;textPreviewContent.style.fontSize=size+"px";textPreviewContent.style.color=color;
-  let box=getTextBBox(text,font,size);
-  textPreviewOverlay.style.width=box.width+"px";textPreviewOverlay.style.height=box.height+"px";
-  textPreviewOverlay.style.transformOrigin="center center";
+let textPreviewActive=false, textPreviewDragging=false, textPreviewOffsetX=0, textPreviewOffsetY=0,
+    textPreviewPosX=0, textPreviewPosY=0, textPreviewInit=false, textPreviewInitX=0, textPreviewInitY=0,
+    textRotation=0;
+
+function showTextPreviewOverlay(txt,fnt,sz,col,forceCenter){
+  textPreviewActive=true; textPreviewOverlay.style.display='block';
+  textPreviewContent.textContent=txt.replace(/\n/g,'\n');
+  textPreviewOverlay.style.fontFamily=fnt; textPreviewOverlay.style.fontSize=sz+'px';
+  textPreviewOverlay.style.color=col;
+  textPreviewContent.style.fontFamily=fnt; textPreviewContent.style.fontSize=sz+'px';
+  textPreviewContent.style.color=col;
+  const box=getTextBBox(txt,fnt,sz);
+  textPreviewOverlay.style.width=box.width+'px'; textPreviewOverlay.style.height=box.height+'px';
   if(forceCenter||!textPreviewInit){
-    let container=document.getElementById('app-container');
     textPreviewPosX=(container.offsetWidth-box.width)/2;
     textPreviewPosY=(container.offsetHeight-box.height)/2;
-    textPreviewInitX=textPreviewPosX;textPreviewInitY=textPreviewPosY;textPreviewInit=true;
+    textPreviewInitX=textPreviewPosX; textPreviewInitY=textPreviewPosY; textPreviewInit=true;
   }
-  textPreviewOverlay.style.left=textPreviewPosX+"px";
-  textPreviewOverlay.style.top=textPreviewPosY+"px";
-  textToolboxControls.style.display="flex";
+  textPreviewOverlay.style.left=textPreviewPosX+'px';
+  textPreviewOverlay.style.top=textPreviewPosY+'px';
   updateTextPreviewTransform();
 }
-function updateTextPreviewContent(text,font,size,color){
-  textPreviewContent.textContent=text.replace(/\n/g,"\n");
-  textPreviewOverlay.style.fontFamily=font;textPreviewOverlay.style.fontSize=size+"px";textPreviewOverlay.style.color=color;
-  textPreviewContent.style.fontFamily=font;textPreviewContent.style.fontSize=size+"px";textPreviewContent.style.color=color;
-  let box=getTextBBox(text,font,size);
-  textPreviewOverlay.style.width=box.width+"px";textPreviewOverlay.style.height=box.height+"px";
-  textPreviewOverlay.style.left=textPreviewPosX+"px";textPreviewOverlay.style.top=textPreviewPosY+"px";
+function getTextBBox(txt,fnt,sz){
+  const off=document.createElement('canvas'), ctx=off.getContext('2d');
+  ctx.font=`${sz}px ${fnt}`;
+  const lines=txt.split('\n');
+  let w=0;
+  for(const l of lines) w=Math.max(w,ctx.measureText(l).width);
+  return {width:w, height:lines.length*sz*1.15};
+}
+function updateTextPreviewContent(txt,fnt,sz,col){
+  textPreviewContent.textContent=txt.replace(/\n/g,'\n');
+  textPreviewOverlay.style.fontFamily=fnt; textPreviewOverlay.style.fontSize=sz+'px';
+  textPreviewOverlay.style.color=col;
+  const box=getTextBBox(txt,fnt,sz);
+  textPreviewOverlay.style.width=box.width+'px'; textPreviewOverlay.style.height=box.height+'px';
+  textPreviewOverlay.style.left=textPreviewPosX+'px'; textPreviewOverlay.style.top=textPreviewPosY+'px';
   updateTextPreviewTransform();
 }
-function updateTextPreviewTransform(){textPreviewOverlay.style.transform=`rotate(${textRotation}deg)`;}
-function hideTextPreviewOverlay(){textPreviewActive=false;textPreviewOverlay.style.display="none";textToolboxControls.style.display="none";textPreviewInit=false;textPreviewPosX=0;textPreviewPosY=0;}
-textPreviewOverlay.onmousedown=function(e){e.preventDefault();textPreviewDragging=true;textPreviewOverlay.style.cursor='grabbing';let rect=textPreviewOverlay.getBoundingClientRect();textPreviewOffsetX=e.clientX-rect.left;textPreviewOffsetY=e.clientY-rect.top;};
-textPreviewOverlay.ontouchstart=function(e){if(e.touches.length!==1)return;e.preventDefault();textPreviewDragging=true;textPreviewOverlay.style.cursor='grabbing';let rect=textPreviewOverlay.getBoundingClientRect();let t=e.touches[0];textPreviewOffsetX=t.clientX-rect.left;textPreviewOffsetY=t.clientY-rect.top;};
-document.addEventListener('mousemove',function(e){if(!textPreviewDragging||!textPreviewActive)return;let containerRect=document.getElementById('app-container').getBoundingClientRect();let mouseX=e.clientX-containerRect.left,mouseY=e.clientY-containerRect.top,posX=mouseX-textPreviewOffsetX,posY=mouseY-textPreviewOffsetY;textPreviewPosX=posX;textPreviewPosY=posY;textPreviewOverlay.style.left=textPreviewPosX+"px";textPreviewOverlay.style.top=textPreviewPosY+"px";});
-document.addEventListener('mouseup',function(){textPreviewDragging=false;textPreviewOverlay.style.cursor='grab';});
-document.addEventListener('touchmove',function(e){if(!textPreviewDragging||!textPreviewActive)return;let containerRect=document.getElementById('app-container').getBoundingClientRect();let t=e.touches[0];let touchX=t.clientX-containerRect.left,touchY=t.clientY-containerRect.top,posX=touchX-textPreviewOffsetX,posY=touchY-textPreviewOffsetY;textPreviewPosX=posX;textPreviewPosY=posY;textPreviewOverlay.style.left=textPreviewPosX+"px";textPreviewOverlay.style.top=textPreviewPosY+"px";if(e.cancelable)e.preventDefault();},{passive:false});
-document.addEventListener('touchend',function(){textPreviewDragging=false;textPreviewOverlay.style.cursor='grab';});
-function setTextRotation(val){let v=Math.max(-180,Math.min(180,Number(val)||0));textRotation=v;textRotationRange.value=v;textRotationNumber.value=v;updateTextPreviewTransform();}
-textRotationRange.addEventListener('input',function(){setTextRotation(this.value);});
-textRotationNumber.addEventListener('input',function(){setTextRotation(this.value);});
+function updateTextPreviewTransform(){ textPreviewOverlay.style.transform=`rotate(${textRotation}deg)`; }
+function hideTextPreviewOverlay(){
+  textPreviewActive=false; textPreviewOverlay.style.display='none';
+  textPreviewInit=false; textPreviewPosX=0; textPreviewPosY=0;
+}
+textPreviewOverlay.addEventListener('mousedown',e=>{
+  e.preventDefault(); textPreviewDragging=true;
+  const r=textPreviewOverlay.getBoundingClientRect();
+  textPreviewOffsetX=e.clientX-r.left; textPreviewOffsetY=e.clientY-r.top;
+  textPreviewOverlay.style.cursor='grabbing';
+});
+document.addEventListener('mousemove',e=>{
+  if(!textPreviewDragging||!textPreviewActive) return;
+  const rect=container.getBoundingClientRect();
+  textPreviewPosX=e.clientX-rect.left-textPreviewOffsetX;
+  textPreviewPosY=e.clientY-rect.top-textPreviewOffsetY;
+  textPreviewOverlay.style.left=textPreviewPosX+'px';
+  textPreviewOverlay.style.top=textPreviewPosY+'px';
+});
+document.addEventListener('mouseup',()=>{ textPreviewDragging=false; textPreviewOverlay.style.cursor='grab'; });
 
-// Submit text: stamp to active layer using the DOM preview center for pixel-perfect alignment (kept from earlier patch)
-textSubmitBtn.onclick=function(){
-  if(!textPreviewActive)return;
+function setTextRotation(v){
+  textRotation=Math.max(-180,Math.min(180,Number(v)||0));
+  updateTextPreviewTransform();
+}
+document.getElementById('text-rotation-range').addEventListener('input',e=>{ setTextRotation(e.target.value); document.getElementById('text-rotation-number').value=e.target.value; });
+document.getElementById('text-rotation-number').addEventListener('input',e=>{ setTextRotation(e.target.value); document.getElementById('text-rotation-range').value=e.target.value; });
+
+textSubmitBtn.addEventListener('click',()=>{
+  if(!textPreviewActive) return;
   saveState();
-  let contentElem = document.getElementById('text-preview-content');
-  let contentRect = contentElem.getBoundingClientRect();
-  let canvasRect = canvas.getBoundingClientRect();
-  let centerX = contentRect.left + contentRect.width/2;
-  let centerY = contentRect.top + contentRect.height/2;
-  let px = (centerX - canvasRect.left) * (canvas.width / canvasRect.width);
-  let py = (centerY - canvasRect.top) * (canvas.height / canvasRect.height);
-  const ctx = getActiveCtx();
-  ctx.save();
-  ctx.translate(px,py);
-  ctx.rotate(textRotation*Math.PI/180);
-  ctx.font = `${textSize}px ${textFont}`;
-  ctx.fillStyle = textColor;
-  ctx.textBaseline = "middle";
-  ctx.textAlign = "center";
-  let lines=textString.split('\n');
-  let blockHeight = lines.length * textSize * 1.15;
-  let offsetY = -blockHeight/2 + textSize*1.15/2;
-  for(let i=0;i<lines.length;i++){
-    ctx.fillText(lines[i], 0, offsetY + i*textSize*1.15);
-  }
-  ctx.restore();
-  // refresh visible composite
-  renderComposite();
-  // Reset text preview position
+  const content=document.getElementById('text-preview-content');
+  const cr=content.getBoundingClientRect();
+  const canvR=canvas.getBoundingClientRect();
+  const cx=cr.left+cr.width/2, cy=cr.top+cr.height/2;
+  const px=(cx-canvR.left)*(canvas.width/canvR.width);
+  const py=(cy-canvR.top)*(canvas.height/canvR.height);
+  const ctx=getActiveCtx(); ctx.save();
+  ctx.translate(px,py); ctx.rotate(textRotation*Math.PI/180);
+  ctx.font=`${textSize}px ${textFont}`; ctx.fillStyle=textColor;
+  ctx.textBaseline='middle'; ctx.textAlign='center';
+  const lines=textString.split('\n');
+  const blockH=lines.length*textSize*1.15;
+  const offY=-blockH/2+textSize*1.15/2;
+  for(let i=0;i<lines.length;i++) ctx.fillText(lines[i],0,offY+i*textSize*1.15);
+  ctx.restore(); renderComposite();
   showTextPreviewOverlay(textString,textFont,textSize,textColor,false);
-  textPreviewPosX=textPreviewInitX;textPreviewPosY=textPreviewInitY;
-  textPreviewOverlay.style.left=textPreviewPosX+"px";
-  textPreviewOverlay.style.top=textPreviewPosY+"px";
-};
-textCancelBtn.onclick=hideTextPreviewOverlay;
-
-// Basic restored marker/spray/eraser implementations (applied to active layer ctx)
-function drawAt(x, y) {
-  const ctx = getActiveCtx();
-  ctx.save();
-  if (currentTool === "eraser") {
-    // Erase to transparent
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(x, y, eraserSize / 2, 0, 2 * Math.PI);
-    ctx.fillStyle = 'rgba(0,0,0,1)';
-    ctx.fill();
-  } else {
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.beginPath();
-    ctx.arc(x, y, markerSize / 2, 0, 2 * Math.PI);
-    ctx.fillStyle = color;
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-function drawLine(x0, y0, x1, y1) {
-  const ctx = getActiveCtx();
-  ctx.save();
-  ctx.strokeStyle = currentTool === "eraser" ? "rgba(0,0,0,1)" : color;
-  ctx.lineWidth = currentTool === "eraser" ? eraserSize : markerSize;
-  ctx.lineCap = "round";
-  if (currentTool === "eraser") ctx.globalCompositeOperation = 'destination-out'; else ctx.globalCompositeOperation = 'source-over';
-  ctx.beginPath();
-  ctx.moveTo(x0, y0);
-  ctx.lineTo(x1, y1);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function sprayAt(x, y) {
-  const ctx = getActiveCtx();
-  ctx.save();
-  ctx.fillStyle = sprayColor;
-  ctx.globalCompositeOperation = 'source-over';
-  for (let i = 0; i < sprayFlow; i++) {
-    const angle = Math.random() * 2 * Math.PI;
-    const radius = Math.random() * spraySpread;
-    ctx.beginPath();
-    ctx.arc(
-      x + Math.cos(angle) * radius,
-      y + Math.sin(angle) * radius,
-      spraySize / 2,
-      0,
-      2 * Math.PI
-    );
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-// Mouse/touch event handlers for tools (paint into active layer then composite)
-let lastPos = null;
-canvas.addEventListener('mousedown',e=>{
-  const r=canvas.getBoundingClientRect(),
-        x=Math.floor((e.clientX-r.left)*canvas.width/r.width),
-        y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
-  if(currentTool==='bucket'){
-    saveState();
-    floodFillActiveLayer(x,y,bucketColor);
-  }else if(currentTool==='select'){
-    // start selection marquee
-    startSelection(e.clientX, e.clientY);
-  }else{
-    saveState();
-    if(currentTool==='calligraphy'){
-      drawing=true;lastPos={x,y};drawCalligraphy(x,y);renderComposite();
-    }else if(currentTool==='symbol'){
-      drawSymbol(x,y);renderComposite();
-    }else if(currentTool==='text'){
-      // do nothing (text handled via overlay)
-    }else if(currentTool==='spray'){
-      drawing=true;lastPos={x,y};sprayAt(x,y);renderComposite();
-    }else if(currentTool==='eraser' || currentTool==='marker'){
-      drawing=true;lastPos={x,y};drawAt(x,y);renderComposite();
-    }
-  }
+  textPreviewPosX=textPreviewInitX; textPreviewPosY=textPreviewInitY;
+  textPreviewOverlay.style.left=textPreviewPosX+'px'; textPreviewOverlay.style.top=textPreviewPosY+'px';
 });
-canvas.addEventListener('mousemove',e=>{
-  if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text'||currentTool==='select')return;
-  const r=canvas.getBoundingClientRect(),
-        x=Math.floor((e.clientX-r.left)*canvas.width/r.width),
-        y=Math.floor((e.clientY-r.top)*canvas.height/r.height);
-  if(currentTool==='calligraphy'){
-    if(lastPos){
-      if(calligraphyFlow>=1000){
-        drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
-      }else{
-        let dist=Math.hypot(x-lastPos.x,y-lastPos.y);
-        let step=Math.max(1,Math.floor(1000/calligraphyFlow));
-        if(dist>step){
-          let steps=Math.floor(dist/step);
-          for(let i=1;i<=steps;i++){
-            let nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps),
-                ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);
-            drawCalligraphy(nx,ny);
-          }
-        }else{
-          drawCalligraphy(x,y);
-        }
-      }
-    }else{
-      drawCalligraphy(x,y);
-    }
-    renderComposite();
-  }else if(currentTool==='spray'){
-    sprayAt(x,y);
-    renderComposite();
-  }else if(currentTool==='eraser' || currentTool==='marker'){
-    if(flow>=1000&&lastPos){
-      drawLine(lastPos.x,lastPos.y,x,y);
-    }else{
-      drawAt(x,y);
-    }
-    renderComposite();
-  }
-  lastPos={x,y};
-});
-canvas.addEventListener('mouseup',()=>{drawing=false;});
-canvas.addEventListener('mouseout',()=>{drawing=false;});
+textCancelBtn.addEventListener('click',hideTextPreviewOverlay);
 
-function getCanvasCoordsTouch(e){
-  const r=canvas.getBoundingClientRect(),t=e.touches[0];
-  return{
-    x:Math.floor((t.clientX-r.left)*canvas.width/r.width),
-    y:Math.floor((t.clientY-r.top)*canvas.height/r.height)
+// ---------- FONT DROPDOWN ----------
+const fontDropdown=document.getElementById('font-dropdown');
+const fontList=document.getElementById('font-dropdown-list');
+const fontSelName=document.getElementById('font-dropdown-selected-name');
+Array.from(fontList.children).forEach(opt=>{
+  opt.onclick=()=>{
+    Array.from(fontList.children).forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+    textFont=opt.dataset.font;
+    fontSelName.textContent=opt.textContent;
+    fontSelName.style.fontFamily=textFont;
+    fontDropdown.classList.remove('open');
+    if(textPreviewActive) updateTextPreviewContent(textString,textFont,textSize,textColor);
   };
-}
-canvas.addEventListener('touchstart',e=>{
-  e.preventDefault();
-  const{x,y}=getCanvasCoordsTouch(e);
-  if(currentTool==='bucket'){
-    saveState();floodFillActiveLayer(x,y,bucketColor);
-  }else if(currentTool==='select'){
-    startSelection(e.touches[0].clientX, e.touches[0].clientY);
-  }else{
-    saveState();
-    if(currentTool==='calligraphy'){
-      drawing=true;lastPos={x,y};drawCalligraphy(x,y);renderComposite();
-    }else if(currentTool==='symbol'){
-      drawSymbol(x,y);renderComposite();
-    }else if(currentTool==='text'){
-      // nothing
-    }else if(currentTool==='spray'){
-      drawing=true;lastPos={x,y};sprayAt(x,y);renderComposite();
-    }else if(currentTool==='eraser' || currentTool==='marker'){
-      drawing=true;lastPos={x,y};drawAt(x,y);renderComposite();
-    }
-  }
 });
-canvas.addEventListener('touchmove',e=>{
-  e.preventDefault();
-  if(!drawing||currentTool==='bucket'||currentTool==='symbol'||currentTool==='text'||currentTool==='select')return;
-  const{x,y}=getCanvasCoordsTouch(e);
-  if(currentTool==='calligraphy'){
-    if(lastPos){
-      if(calligraphyFlow>=1000){
-        drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
-      }else{
-        let dist=Math.hypot(x-lastPos.x,y-lastPos.y);
-        let step=Math.max(1,Math.floor(1000/calligraphyFlow));
-        if(dist>step){
-          let steps=Math.floor(dist/step);
-          for(let i=1;i<=steps;i++){
-            let nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps),
-                ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);
-            drawCalligraphy(nx,ny);
-          }
-        }else{
-          drawCalligraphy(x,y);
-        }
-      }
-    }else{
-      drawCalligraphy(x,y);
-    }
-    renderComposite();
-  }else if(currentTool==='spray'){
-    sprayAt(x,y);
-    renderComposite();
-  }else if(currentTool==='eraser' || currentTool==='marker'){
-    if(flow>=1000&&lastPos){
-      drawLine(lastPos.x,lastPos.y,x,y);
-    }else{
-      drawAt(x,y);
-    }
-    renderComposite();
-  }
-  lastPos={x,y};
-},{passive:false});
-canvas.addEventListener('touchend',()=>{drawing=false;});
+document.getElementById('font-dropdown-selected').onclick=()=>{ fontDropdown.classList.toggle('open'); };
+fontDropdown.onblur=()=>{ fontDropdown.classList.remove('open'); };
 
-// Bucket fill applied to active layer
-function floodFillActiveLayer(x,y,fillHex){
-  let layer = layers[activeLayerIndex];
-  let imgData;
-  try {
-    imgData = layer.ctx.getImageData(0,0,canvas.width,canvas.height);
-  } catch (e) {
-    alert("Bucket fill unavailable: Canvas is tainted (see console). Only use local or CORS-enabled assets.");
-    return;
-  }
-  const targetColor = getPixelColor(x,y,imgData), fillColor = hexToRgb(fillHex).concat(255);
-  if(colorsMatch(targetColor,fillColor)) return;
-  const stack = [[x,y]];
-  while(stack.length){
-    const [cx,cy] = stack.pop();
-    if(cx<0||cy<0||cx>=canvas.width||cy>=canvas.height) continue;
-    const currentColor = getPixelColor(cx,cy,imgData);
-    if(!colorsMatch(currentColor,targetColor)) continue;
-    const i = (cy*canvas.width+cx)*4;
-    imgData.data.set(fillColor, i);
-    stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
-  }
-  layer.ctx.putImageData(imgData,0,0);
-  renderComposite();
+// ---------- TEXT SIZE ----------
+const textSizeRange=document.getElementById('text-size-range');
+const textSizeInput=document.getElementById('text-size');
+function setTextSize(v){
+  v=Math.max(8,Math.min(150,Number(v)||32));
+  textSize=v; textSizeRange.value=v; textSizeInput.value=v;
+  if(textPreviewActive) updateTextPreviewContent(textString,textFont,textSize,textColor);
 }
-function hexToRgb(hex){const b=parseInt(hex.slice(1),16);return[(b>>16)&255,(b>>8)&255,b&255];}
-function getPixelColor(x,y,imgData){const i=(y*imgData.width+x)*4;return[imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]];}
-function colorsMatch(a,b){return a.every((v,i)=>v===b[i]);}
+textSizeRange.addEventListener('input',e=>setTextSize(e.target.value));
+textSizeInput.addEventListener('input',e=>setTextSize(e.target.value));
+document.getElementById('text-color').addEventListener('input',e=>{ textColor=e.target.value; if(textPreviewActive) updateTextPreviewContent(textString,textFont,textSize,textColor); });
+document.getElementById('text-string').addEventListener('input',e=>{ textString=e.target.value; if(textPreviewActive) updateTextPreviewContent(textString,textFont,textSize,textColor); });
 
-// ---- import image logic (stamps to active layer now) ----
-let importImg=null,importImgNaturalWidth=0,importImgNaturalHeight=0,importPreview=null,importDragging=false,importOffsetX=0,importOffsetY=0,importPosX=0,importPosY=0,importScale=0.5,importRotation=0,importOpacity=0.75,importFlipH=1,importFlipV=1;
-const importSettingsDiv=document.getElementById('import-settings'),importFileInput=document.getElementById('import-image-file'),importSizeSlider=document.getElementById('import-size'),importSizeValue=document.getElementById('import-size-value'),importOpacitySlider=document.getElementById('import-opacity'),importOpacityValue=document.getElementById('import-opacity-value'),importRotationSlider=document.getElementById('import-rotation'),importRotationNumber=document.getElementById('import-rotation-number'),importFlipHBtn=document.getElementById('import-flip-h'),importFlipVBtn=document.getElementById('import-flip-v'),importStampBtn=document.getElementById('import-stamp-btn'),importCancelBtn=document.getElementById('import-cancel-btn'),importDropdown=document.getElementById('import-dropdown');
-function hideImportPreview(){if(importPreview&&importPreview.parentNode){importPreview.parentNode.removeChild(importPreview);importPreview=null;}}
-function showImportPreview(){hideImportPreview();if(!importImg)return;importPreview=document.createElement('img');importPreview.id='import-preview-img';importPreview.src=importImg.src;importPreview.draggable=false;importPreview.style.position='absolute';importPreview.style.opacity=importOpacity.toString();importPreview.style.pointerEvents='auto';importPreview.style.cursor='grab';importPreview.style.zIndex=5;importPreview.style.boxSizing='border-box';let container=document.getElementById('app-container');container.appendChild(importPreview);updateImportPreviewTransform();importPreview.onmousedown=function(e){e.preventDefault();importDragging=true;let rect=importPreview.getBoundingClientRect();importOffsetX=e.clientX-rect.left;importOffsetY=e.clientY-rect.top;};document.addEventListener('mousemove',imagePreviewDragMove);document.addEventListener('mouseup',imagePreviewDragEnd);importPreview.ontouchstart=function(e){if(e.touches.length!==1)return;e.preventDefault();importDragging=true;let rect=importPreview.getBoundingClientRect();let t=e.touches[0];importOffsetX=t.clientX-rect.left;importOffsetY=t.clientY-rect.top;};document.addEventListener('touchmove',imagePreviewDragMove,{passive:false});document.addEventListener('touchend',imagePreviewDragEnd);}
-function imagePreviewDragMove(e){if(!importDragging||!importPreview)return;let container=document.getElementById('app-container');let clientX,clientY;if(e.touches&&e.touches.length){clientX=e.touches[0].clientX;clientY=e.touches[0].clientY;}else{clientX=e.clientX;clientY=e.clientY;}let posX=clientX-container.getBoundingClientRect().left-importOffsetX;let posY=clientY-container.getBoundingClientRect().top-importOffsetY;importPosX=posX;importPosY=posY;updateImportPreviewTransform();if(e.cancelable)e.preventDefault();}
-function imagePreviewDragEnd(e){if(importDragging){importDragging=false;if(importPreview)importPreview.style.cursor='grab';}}
-function updateImportPreviewTransform(){if(!importPreview)return;let w=Math.max(1,Math.round(importImgNaturalWidth*importScale)),h=Math.max(1,Math.round(importImgNaturalHeight*importScale));importPreview.style.width=w+'px';importPreview.style.height=h+'px';importPreview.style.left=importPosX+'px';importPreview.style.top=importPosY+'px';let rot=importRotation,scaleX=importFlipH,scaleY=importFlipV;importPreview.style.transform=`rotate(${rot}deg) scale(${scaleX},${scaleY})`;importPreview.style.opacity=importOpacity;}
-function stampImageToActiveLayer(){if(!importImg)return;saveState();let container=document.getElementById('app-container');let w=importPreview.offsetWidth,h=importPreview.offsetHeight;let px=(importPosX)*(canvas.width/container.offsetWidth),py=(importPosY)*(canvas.height/container.offsetHeight);const ctx = getActiveCtx();ctx.save();ctx.globalAlpha=importOpacity;ctx.translate(px+w/2,py+h/2);ctx.rotate(importRotation*Math.PI/180);ctx.scale(importFlipH,importFlipV);ctx.drawImage(importImg,-w/2,-h/2,w,h);ctx.restore();hideImportPreview();importImg=null;importSettingsDiv.classList.add('hidden');renderComposite();}
-function importResetState(){importImg=null;importImgNaturalWidth=0;importImgNaturalHeight=0;importScale=0.5;importRotation=0;importOpacity=0.75;importFlipH=1;importFlipV=1;let container=document.getElementById('app-container');importPosX=(container.offsetWidth/2)-50;importPosY=(container.offsetHeight/2)-50;hideImportPreview();importSettingsDiv.classList.add('hidden');}
-importFileInput.addEventListener('change',function(e){let file=this.files[0];if(!file)return;importResetState();let reader=new FileReader();reader.onload=function(evt){let img=new window.Image();img.onload=function(){importImg=img;importImgNaturalWidth=img.naturalWidth;importImgNaturalHeight=img.naturalHeight;let container=document.getElementById('app-container');importScale=0.5;importSizeSlider.value=50;importSizeValue.textContent=50;importOpacity=parseInt(importOpacitySlider.value,10)/100.0;importRotation=parseInt(importRotationSlider.value,10);importRotationNumber.value=importRotation;importFlipH=1;importFlipV=1;let w=Math.max(1,Math.round(importImgNaturalWidth*importScale)),h=Math.max(1,Math.round(importImgNaturalHeight*importScale));importPosX=(container.offsetWidth-w)/2;importPosY=(container.offsetHeight-h)/2;importOpacityValue.textContent=importOpacitySlider.value;importSettingsDiv.classList.remove('hidden');showImportPreview();};img.src=evt.target.result;};reader.readAsDataURL(file);});
-importSizeSlider.addEventListener('input',function(){importScale=parseInt(this.value,10)/100.0;importSizeValue.textContent=this.value;let container=document.getElementById('app-container');let w=Math.max(1,Math.round(importImgNaturalWidth*importScale)),h=Math.max(1,Math.round(importImgNaturalHeight*importScale));importPosX=(container.offsetWidth-w)/2;importPosY=(container.offsetHeight-h)/2;updateImportPreviewTransform();});
-importOpacitySlider.addEventListener('input',function(){importOpacity=parseInt(this.value,10)/100.0;importOpacityValue.textContent=this.value;if(importPreview)importPreview.style.opacity=importOpacity;});
-function setImportRotation(val){
-  let v=Math.max(-180,Math.min(180,Number(val)||0));
-  importRotation=v;
-  importRotationSlider.value = v;
-  importRotationNumber.value = v;
-  updateImportPreviewTransform();
-}
-importRotationSlider.addEventListener('input',function(){setImportRotation(this.value);});
-importRotationNumber.addEventListener('input',function(){setImportRotation(this.value);});
-importFlipHBtn.addEventListener('click',function(){importFlipH*=-1;updateImportPreviewTransform();});
-importFlipVBtn.addEventListener('click',function(){importFlipV*=-1;updateImportPreviewTransform();});
-importStampBtn.addEventListener('click',function(){stampImageToActiveLayer();});
-importCancelBtn.addEventListener('click',function(){importResetState();});
+// ---------- FILTERS TOGGLE ----------
+const filtersToggle=document.getElementById('filters-toggle');
+const filtersGrid=document.getElementById('filters-grid');
+const filtersArrow=document.getElementById('filters-arrow');
+filtersToggle.addEventListener('click',()=>{ filtersGrid.classList.toggle('hidden'); filtersArrow.textContent=filtersGrid.classList.contains('hidden')?'RIGHT TRIANGLE':'DOWN TRIANGLE'; });
 
-// Menu toggles + other UI wiring
-document.querySelectorAll('.menu-title').forEach(title=>{title.addEventListener('click',()=>{if(title.id==="undo-btn")return;const menu=title.dataset.menu,dropdown=document.getElementById(`${menu}-dropdown`),isAlreadyOpen=!dropdown.classList.contains('hidden');document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));if(!isAlreadyOpen)dropdown.classList.remove('hidden');if(menu!=='import')importResetState();});});
-document.getElementById('export-back').addEventListener('click',()=>{document.getElementById('export-dropdown').classList.add('hidden');});
-document.getElementById('undo-btn').addEventListener('click',()=>{undo();});
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z')undo();});
-document.querySelectorAll('.tool-option').forEach(opt=>{opt.addEventListener('click',()=>{const tool=opt.id.split('-')[0],settings=document.getElementById(`${tool}-settings`);if(currentTool===tool){if(settings)settings.classList.toggle('hidden');return;}currentTool=tool;setToolHighlight(currentTool);if(tool==="text"){showTextPreviewOverlay(textString,textFont,textSize,textColor,true);}else{hideTextPreviewOverlay();}});});
-function setToolHighlight(tool){['marker','calligraphy','symbol','text','spray','eraser','bucket','clear'].forEach(t=>{const settings=document.getElementById(`${t}-settings`),option=document.getElementById(`${t}-option`);if(settings)settings.classList.add('hidden');if(option)option.classList.remove('selected');});const settings=document.getElementById(`${tool}-settings`),option=document.getElementById(`${tool}-option`);if(settings)settings.classList.remove('hidden');if(option)option.classList.add('selected');}
-document.getElementById('clear-yes').addEventListener('click',()=>{saveState();layers[activeLayerIndex].ctx.clearRect(0,0,canvas.width,canvas.height);document.getElementById('clear-settings').classList.add('hidden');renderComposite();});
-document.getElementById('clear-back').addEventListener('click',()=>{document.getElementById('clear-settings').classList.add('hidden');});
+// ---------- LAYER ADD/REMOVE ----------
+layerAddBtn.addEventListener('click',()=>{ if(layers.length>=MAX_LAYERS) return; createLayer(); });
+layerRemoveBtn.addEventListener('click',()=>{ if(layers.length<=1) return; saveState(); removeLayer(activeLayerIndex); });
 
-// Export now composites layers in order, with transparent option
-document.getElementById('export-btn').addEventListener('click',()=>{
-  const filename=document.getElementById('file-name').value||'pixel-art',transparent=document.getElementById('transparent-bg').checked;
-  const link=document.createElement('a');
-  if(!transparent){
-    const tempCanvas=document.createElement('canvas');
-    tempCanvas.width=canvas.width; tempCanvas.height=canvas.height;
-    const tempCtx=tempCanvas.getContext('2d');
-    tempCtx.fillStyle="#fff";
-    tempCtx.fillRect(0,0,tempCanvas.width,tempCanvas.height);
-    layers.forEach(l=> tempCtx.drawImage(l.canvas,0,0));
-    link.download=filename+'.png';
-    link.href=tempCanvas.toDataURL('image/png');
-    link.click();
-  } else {
-    const tempCanvas=document.createElement('canvas');
-    tempCanvas.width=canvas.width; tempCanvas.height=canvas.height;
-    const tempCtx=tempCanvas.getContext('2d');
-    layers.forEach(l=> tempCtx.drawImage(l.canvas,0,0));
-    link.download=filename+'.png';
-    link.href=tempCanvas.toDataURL('image/png');
-    link.click();
-  }
-});
+// ---------- TRANSFORM CONTROLS ----------
+const rotRange=document.getElementById('layer-rotation-range');
+const rotNumber=document.getElementById('layer-rotation-number');
+const scaleInput=document.getElementById('layer-scale');
+const scaleValue=document.getElementById('layer-scale-value');
+const transformApply=document.getElementById('layer-transform-apply');
+const transformReset=document.getElementById('layer-transform-reset');
 
-// ----------------- Layers UI logic -----------------
-const layersGrid = document.getElementById('layers-grid');
-const layerAddBtn = document.getElementById('layer-add');
-const layerRemoveBtn = document.getElementById('layer-remove');
-const layerCountLabel = document.getElementById('layer-count');
+rotRange.addEventListener('input',()=>{ layerTransform.rotation=parseFloat(rotRange.value||0); rotNumber.value=layerTransform.rotation; layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`; });
+rotNumber.addEventListener('input',()=>{ const v=Math.max(-180,Math.min(180,Number(rotNumber.value)||0)); layerTransform.rotation=v; rotRange.value=v; layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`; });
 
-function updateLayerUI(){
-  layersGrid.innerHTML = '';
-  for(let i=0;i<layers.length;i++){
-    const cell = document.createElement('div');
-    cell.className = 'layer-cell' + (i===activeLayerIndex ? ' active' : '');
-    cell.dataset.index = i;
-    cell.textContent = `Layer ${i+1}`;
-    cell.onclick = ()=>{ activeLayerIndex = i; updateLayerUI(); renderComposite(); if(document.getElementById('edit-dropdown') && !document.getElementById('edit-dropdown').classList.contains('hidden')) showLayerPreviewTransform();};
-    layersGrid.appendChild(cell);
-  }
-  layerCountLabel.textContent = `${activeLayerIndex+1}/${MAX_LAYERS}`;
-  // update add/remove enablement
-  layerAddBtn.disabled = layers.length >= MAX_LAYERS;
-  layerRemoveBtn.disabled = layers.length <= 1;
-}
+scaleInput.addEventListener('input',()=>{ layerTransform.scale=parseInt(scaleInput.value,10)/100; scaleValue.textContent=scaleInput.value+'%'; layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`; });
 
-layerAddBtn.addEventListener('click', ()=> {
-  if (layers.length >= MAX_LAYERS) return;
-  // insert new empty layer on top
-  createLayer();
-  activeLayerIndex = layers.length - 1;
-  updateLayerUI();
-  renderComposite();
-  showLayerPreviewTransform();
-});
-layerRemoveBtn.addEventListener('click', ()=> {
-  if (layers.length <= 1) return;
-  saveState();
-  removeLayer(activeLayerIndex);
-  updateLayerUI();
-  renderComposite();
-});
+transformToggle.addEventListener('click',()=>{ layerTransform.enabled=!layerTransform.enabled; transformToggle.textContent=layerTransform.enabled?'disable':'enable'; layerOutline.style.pointerEvents=layerTransform.enabled?'auto':'none'; layerOutline.style.cursor=layerTransform.enabled?'grab':'default'; updateLayerOutline(); });
 
-// When edit dropdown open, show preview overlay for active layer with scale/rotation controls
-let layerPreviewImg = null;
-function showLayerPreviewTransform(){
-  // create or update an import-like preview for the active layer
-  const container = document.getElementById('app-container');
-  // remove existing preview if any
-  let existing = document.getElementById('import-preview-img');
-  if (existing) existing.remove();
-  // create image from layer canvas
-  const dataUrl = layers[activeLayerIndex].canvas.toDataURL();
-  importImg = new Image();
-  importImg.onload = function(){
-    importImgNaturalWidth = importImg.naturalWidth;
-    importImgNaturalHeight = importImg.naturalHeight;
-    importPreview = document.createElement('img');
-    importPreview.id='import-preview-img';
-    importPreview.src = dataUrl;
-    importPreview.draggable=false;
-    importPreview.style.position='absolute';
-    importPreview.style.opacity='0.9';
-    importPreview.style.pointerEvents='auto';
-    importPreview.style.cursor='grab';
-    importPreview.style.zIndex=5;
-    importPreview.style.boxSizing='border-box';
-    container.appendChild(importPreview);
-    // initial transform state
-    importScale = 1.0;
-    importSizeSlider.value = Math.round(importScale*100);
-    importSizeValue.textContent = importSizeSlider.value;
-    importRotation = 0;
-    importRotationNumber.value = 0;
-    importFlipH = 1; importFlipV = 1;
-    importOpacity = 1;
-    let w = Math.max(1, Math.round(importImgNaturalWidth*importScale)), h = Math.max(1, Math.round(importImgNaturalHeight*importScale));
-    importPosX = (container.offsetWidth - w)/2;
-    importPosY = (container.offsetHeight - h)/2;
-    updateImportPreviewTransform();
-    // enable dragging
-    importPreview.onmousedown = function(e){ e.preventDefault(); importDragging=true; let rect=importPreview.getBoundingClientRect(); importOffsetX=e.clientX-rect.left; importOffsetY=e.clientY-rect.top; };
-    document.addEventListener('mousemove', imagePreviewDragMove);
-    document.addEventListener('mouseup', imagePreviewDragEnd);
-  };
-  importImg.src = dataUrl;
-}
+transformApply.addEventListener('click',applyLayerTransformToActiveLayer);
+transformReset.addEventListener('click',()=>{ layerTransform.rotation=0; layerTransform.scale=1; rotRange.value=0; rotNumber.value=0; scaleInput.value=100; scaleValue.textContent='100%'; updateLayerOutline(); });
 
 function applyLayerTransformToActiveLayer(){
-  // stamp the transformed preview back to the active layer canvas (overwrite whole layer)
-  if(!importPreview || !importImg) return;
+  if(!layers.length) return;
+  const layer=layers[activeLayerIndex];
+  const bbox=computeActivePixelBBox(layer.canvas);
+  if(bbox.empty){ layerTransform.enabled=false; updateLayerOutline(); return; }
   saveState();
-  const layer = layers[activeLayerIndex];
-  // create temp canvas same size as layer
-  const temp = document.createElement('canvas');
-  temp.width = layer.canvas.width;
-  temp.height = layer.canvas.height;
-  const tctx = temp.getContext('2d');
-  tctx.imageSmoothingEnabled = false;
-  // draw transformed importImg onto temp at appropriate scaled size
-  const w = importPreview.offsetWidth, h = importPreview.offsetHeight;
-  // compute px/py in layer coordinates
-  const container = document.getElementById('app-container');
-  const px = Math.round(importPosX * (layer.canvas.width / container.offsetWidth));
-  const py = Math.round(importPosY * (layer.canvas.height / container.offsetHeight));
-  tctx.save();
-  tctx.translate(px + (w/2) * (layer.canvas.width / container.offsetWidth), py + (h/2) * (layer.canvas.height / container.offsetHeight));
-  tctx.rotate(importRotation * Math.PI / 180);
-  // scale to layer pixels
-  const scaledW = w * (layer.canvas.width / container.offsetWidth);
-  const scaledH = h * (layer.canvas.height / container.offsetHeight);
-  tctx.scale(importFlipH, importFlipV);
-  // draw image centered
-  // convert importImg to an offscreen image scaled to scaledW/scaledH
-  tctx.drawImage(importImg, -scaledW/2, -scaledH/2, scaledW, scaledH);
-  tctx.restore();
-  // replace layer content with temp (we consider transform to be a replacement of entire layer)
-  layer.ctx.clearRect(0,0,layer.canvas.width,layer.canvas.height);
-  layer.ctx.drawImage(temp,0,0);
+  const src=document.createElement('canvas'); src.width=bbox.w; src.height=bbox.h;
+  const sctx=src.getContext('2d'); sctx.imageSmoothingEnabled=false;
+  sctx.drawImage(layer.canvas,bbox.x,bbox.y,bbox.w,bbox.h,0,0,bbox.w,bbox.h);
+  layer.ctx.clearRect(bbox.x,bbox.y,bbox.w,bbox.h);
+  const scaleX=layer.canvas.width/container.offsetWidth;
+  const scaleY=layer.canvas.height/container.offsetHeight;
+  const targetW=Math.round(layerTransform.bboxCss.w*layerTransform.scale*scaleX);
+  const targetH=Math.round(layerTransform.bboxCss.h*layerTransform.scale*scaleY);
+  const targetPx=Math.round(layerTransform.posX*scaleX);
+  const targetPy=Math.round(layerTransform.posY*scaleY);
+  layer.ctx.save();
+  layer.ctx.translate(targetPx+targetW/2,targetPy+targetH/2);
+  layer.ctx.rotate(layerTransform.rotation*Math.PI/180);
+  layer.ctx.drawImage(src,-targetW/2,-targetH/2,targetW,targetH);
+  layer.ctx.restore();
   renderComposite();
-  hideImportPreview();
-  importImg = null;
+  layerTransform.enabled=false; updateLayerUI();
 }
 
-// Hook apply transform button when user is in edit -> layers mode and wants to commit transform
-// We'll reuse import-stamp-btn as "apply" when the preview is created via layer preview
-importStampBtn.addEventListener('click', function(){
-  if(importImg && importPreview && document.getElementById('edit-dropdown') && !document.getElementById('edit-dropdown').classList.contains('hidden')){
-    applyLayerTransformToActiveLayer();
-  } else {
-    stampImageToActiveLayer();
-  }
+// ---------- LAYER OUTLINE DRAG ----------
+layerOutline.addEventListener('mousedown',e=>{
+  if(!layerTransform.enabled) return;
+  layerTransform.dragging=true;
+  const r=layerOutline.getBoundingClientRect();
+  layerTransform.offsetX=e.clientX-r.left;
+  layerTransform.offsetY=e.clientY-r.top;
+  layerOutline.style.cursor='grabbing';
 });
-
-// When leaving edit dropdown hide layer preview
-document.querySelectorAll('.menu-title').forEach(title=>{
-  title.addEventListener('click', ()=>{
-    if(title.dataset.menu !== 'edit') {
-      // hide layer preview if present
-      const existing = document.getElementById('import-preview-img');
-      if(existing) existing.remove();
-    } else {
-      // entering edit: show preview for active layer
-      setTimeout(()=>showLayerPreviewTransform(), 60);
-    }
-  });
+document.addEventListener('mousemove',e=>{
+  if(!layerTransform.dragging) return;
+  const cr=container.getBoundingClientRect();
+  layerTransform.posX=e.clientX-cr.left-layerTransform.offsetX;
+  layerTransform.posY=e.clientY-cr.top-layerTransform.offsetY;
+  layerOutline.style.left=layerTransform.posX+'px';
+  layerOutline.style.top=layerTransform.posY+'px';
+  layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
 });
+document.addEventListener('mouseup',()=>{ if(layerTransform.dragging){ layerTransform.dragging=false; layerOutline.style.cursor='grab'; }});
 
-// ----------------- Filters (apply to active layer) -----------------
-function applyFilterToActiveLayer(type) {
-  saveState();
-  const layer = layers[activeLayerIndex];
-  let imgData = layer.ctx.getImageData(0,0,layer.canvas.width,layer.canvas.height);
-  const data = imgData.data;
-  if(type === 'invert'){
-    for(let i=0;i<data.length;i+=4){
-      data[i]=255-data[i]; data[i+1]=255-data[i+1]; data[i+2]=255-data[i+2];
-    }
-  } else if(type === 'bw'){
-    for(let i=0;i<data.length;i+=4){
-      const v = Math.round(0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2]);
-      data[i]=data[i+1]=data[i+2]=v;
-    }
-  } else if(type === 'blur' || type === 'sharpen'){
-    // small convolution kernel
-    const kernel = type === 'blur' ? 
-      [1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9] :
-      [0,-1,0,-1,5,-1,0,-1,0]; // sharpen
-    imgData = convolve(imgData, layer.canvas.width, layer.canvas.height, kernel);
-  }
-  layer.ctx.putImageData(imgData,0,0);
-  renderComposite();
-}
-
-function convolve(imgData, width, height, kernel){
-  const side = Math.round(Math.sqrt(kernel.length));
-  const half = Math.floor(side/2);
-  const src = imgData.data;
-  const out = new Uint8ClampedArray(src.length);
-  for(let y=0;y<height;y++){
-    for(let x=0;x<width;x++){
-      let r=0,g=0,b=0,a=0;
-      for(let ky=0;ky<side;ky++){
-        for(let kx=0;kx<side;kx++){
-          const ix = x + kx - half;
-          const iy = y + ky - half;
-          if(ix>=0 && iy>=0 && ix<width && iy<height){
-            const idx = (iy*width + ix)*4;
-            const kval = kernel[ky*side + kx];
-            r += src[idx] * kval;
-            g += src[idx+1] * kval;
-            b += src[idx+2] * kval;
-            a += src[idx+3] * kval;
-          }
-        }
-      }
-      const outIdx = (y*width + x)*4;
-      out[outIdx] = clamp(Math.round(r),0,255);
-      out[outIdx+1] = clamp(Math.round(g),0,255);
-      out[outIdx+2] = clamp(Math.round(b),0,255);
-      out[outIdx+3] = clamp(Math.round(a),0,255) || src[outIdx+3];
-    }
-  }
-  const newImg = new ImageData(out, width, height);
-  return newImg;
-}
-function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
-
-document.getElementById('filter-invert').addEventListener('click', ()=> applyFilterToActiveLayer('invert'));
-document.getElementById('filter-bw').addEventListener('click', ()=> applyFilterToActiveLayer('bw'));
-document.getElementById('filter-blur').addEventListener('click', ()=> applyFilterToActiveLayer('blur'));
-document.getElementById('filter-sharpen').addEventListener('click', ()=> applyFilterToActiveLayer('sharpen'));
-
-// ----------------- Selection tool -----------------
-const selectionPreview = document.getElementById('selection-preview');
-const selectionPreviewImg = document.getElementById('selection-preview-img');
-let selStart = null, selRect = null, isSelecting = false;
-let selectionImage = null; // offscreen image (canvas) of selection
-let selectionTransform = {posX:0,posY:0,scale:1,rotation:0,dragging:false,offsetX:0,offsetY:0};
-
-function startSelection(clientX, clientY){
-  if(currentTool !== 'select') {
-    // switch tool to select if not already
-    currentTool = 'select';
-    setToolHighlight('select');
-  }
-  const containerRect = document.getElementById('app-container').getBoundingClientRect();
-  selStart = {x: clientX - containerRect.left, y: clientY - containerRect.top};
-  isSelecting = true;
-  // hide existing selection preview while dragging marquee
-  selectionPreview.style.display = 'none';
-  selectionRectDraw();
-  const onMove = (ev) => {
-    if(!isSelecting) return;
-    const moveX = (ev.touches ? ev.touches[0].clientX : ev.clientX) - containerRect.left;
-    const moveY = (ev.touches ? ev.touches[0].clientY : ev.clientY) - containerRect.top;
-    selRect = {x: Math.min(selStart.x, moveX), y: Math.min(selStart.y, moveY), w: Math.abs(moveX - selStart.x), h: Math.abs(moveY - selStart.y)};
-    selectionRectDraw();
-  };
-  const onUp = (ev) => {
-    if(isSelecting){
-      isSelecting = false;
-      if(selRect && selRect.w>0 && selRect.h>0){
-        // capture selection from active layer
-        finalizeSelection();
-      }
-    }
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    document.removeEventListener('touchmove', onMove);
-    document.removeEventListener('touchend', onUp);
-  };
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
-  document.addEventListener('touchmove', onMove, {passive:false});
-  document.addEventListener('touchend', onUp);
-}
-
-function selectionRectDraw(){
-  if(!selRect){ return; }
-  // show ephemeral dashed rect on main canvas via composite overlay (we'll use selectionPreview)
-  selectionPreview.style.display = 'block';
-  selectionPreview.style.left = selRect.x + 'px';
-  selectionPreview.style.top = selRect.y + 'px';
-  selectionPreview.style.width = selRect.w + 'px';
-  selectionPreview.style.height = selRect.h + 'px';
-  selectionPreview.style.transform = 'none';
-  selectionPreview.style.border = '2px dashed #39ff14';
-  selectionPreviewImg.src = '';
-}
-
-function finalizeSelection(){
-  // read pixels from active layer for the selection rectangle and create an image element
-  const layer = layers[activeLayerIndex];
-  // convert selRect from container coordinates to layer canvas coords
-  const container = document.getElementById('app-container');
-  const scaleX = layer.canvas.width / container.offsetWidth;
-  const scaleY = layer.canvas.height / container.offsetHeight;
-  const sx = Math.round(selRect.x * scaleX);
-  const sy = Math.round(selRect.y * scaleY);
-  const sw = Math.max(1, Math.round(selRect.w * scaleX));
-  const sh = Math.max(1, Math.round(selRect.h * scaleY));
-  // create offscreen canvas for selection
-  const off = document.createElement('canvas');
-  off.width = sw;
-  off.height = sh;
-  const offCtx = off.getContext('2d');
-  offCtx.imageSmoothingEnabled = false;
-  offCtx.clearRect(0,0,sw,sh);
-  offCtx.drawImage(layer.canvas, sx, sy, sw, sh, 0, 0, sw, sh);
-  // clear the area from the layer (so moving selection looks like cut/move)
-  saveState();
-  layer.ctx.clearRect(sx, sy, sw, sh);
-  renderComposite();
-  // show selection preview overlay (image) that is transformable (scale & rotate)
-  const dataUrl = off.toDataURL();
-  selectionPreviewImg.src = dataUrl;
-  selectionPreview.style.left = selRect.x + 'px';
-  selectionPreview.style.top = selRect.y + 'px';
-  selectionPreview.style.width = selRect.w + 'px';
-  selectionPreview.style.height = selRect.h + 'px';
-  selectionPreview.style.display = 'block';
-  selectionTransform.posX = selRect.x;
-  selectionTransform.posY = selRect.y;
-  selectionTransform.scale = 1;
-  selectionTransform.rotation = 0;
-  selectionImage = off;
-  // make the preview draggable
-  selectionPreview.onmousedown = (e) => {
-    selectionTransform.dragging = true;
-    const rect = selectionPreview.getBoundingClientRect();
-    selectionTransform.offsetX = e.clientX - rect.left;
-    selectionTransform.offsetY = e.clientY - rect.top;
-    selectionPreview.style.cursor = 'grabbing';
-  };
-  document.addEventListener('mousemove', selectionMove);
-  document.addEventListener('mouseup', selectionUp);
-  // touch support
-  selectionPreview.ontouchstart = (e) => {
-    if(e.touches.length!==1) return;
-    selectionTransform.dragging = true;
-    const rect = selectionPreview.getBoundingClientRect();
-    const t = e.touches[0];
-    selectionTransform.offsetX = t.clientX - rect.left;
-    selectionTransform.offsetY = t.clientY - rect.top;
-    selectionPreview.style.cursor = 'grabbing';
-  };
-  document.addEventListener('touchmove', selectionMove, {passive:false});
-  document.addEventListener('touchend', selectionUp);
-  // simple keyboard shortcuts: [ and ] rotate
-  window.addEventListener('keydown', selectionKeyHandler);
-}
-
-function selectionMove(e){
-  if(!selectionTransform.dragging) return;
-  const containerRect = document.getElementById('app-container').getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  const posX = clientX - containerRect.left - selectionTransform.offsetX;
-  const posY = clientY - containerRect.top - selectionTransform.offsetY;
-  selectionTransform.posX = posX;
-  selectionTransform.posY = posY;
-  updateSelectionTransform();
-  if(e.cancelable) e.preventDefault();
-}
-function selectionUp(){
-  selectionTransform.dragging = false;
-  if(selectionPreview) selectionPreview.style.cursor = 'grab';
-}
-function selectionKeyHandler(e){
-  if(!selectionImage) return;
-  if(e.key === '['){ selectionTransform.rotation -= 5; updateSelectionTransform(); }
-  if(e.key === ']'){ selectionTransform.rotation += 5; updateSelectionTransform(); }
-  if(e.key === '-' || e.key === '_'){ selectionTransform.scale = Math.max(0.1, selectionTransform.scale - 0.05); updateSelectionTransform(); }
-  if(e.key === '+' || e.key === '='){ selectionTransform.scale = Math.min(5, selectionTransform.scale + 0.05); updateSelectionTransform(); }
-}
-
-function updateSelectionTransform(){
-  selectionPreview.style.left = selectionTransform.posX + 'px';
-  selectionPreview.style.top = selectionTransform.posY + 'px';
-  const w = Number(selectionPreview.style.width.replace('px','')) || selectionImage.width;
-  const h = Number(selectionPreview.style.height.replace('px','')) || selectionImage.height;
-  selectionPreview.style.transform = `rotate(${selectionTransform.rotation}deg) scale(${selectionTransform.scale})`;
-}
-
-// commit (stamp) selection back to active layer at current transform
-function commitSelectionToActiveLayer(){
-  if(!selectionImage) return;
-  const layer = layers[activeLayerIndex];
-  const container = document.getElementById('app-container');
-  // compute target position in layer pixels
-  const posX = selectionTransform.posX;
-  const posY = selectionTransform.posY;
-  const sw = selectionImage.width;
-  const sh = selectionImage.height;
-  const targetW = (Number(selectionPreview.style.width.replace('px','')) || selRect.w) * selectionTransform.scale;
-  const targetH = (Number(selectionPreview.style.height.replace('px','')) || selRect.h) * selectionTransform.scale;
-  const px = Math.round(posX * (layer.canvas.width / container.offsetWidth));
-  const py = Math.round(posY * (layer.canvas.height / container.offsetHeight));
-  const tW = Math.round(targetW * (layer.canvas.width / container.offsetWidth));
-  const tH = Math.round(targetH * (layer.canvas.height / container.offsetHeight));
-  // draw onto layer with rotation and scale
-  saveState();
-  const tcanvas = document.createElement('canvas');
-  tcanvas.width = layer.canvas.width;
-  tcanvas.height = layer.canvas.height;
-  const tctx = tcanvas.getContext('2d');
-  tctx.imageSmoothingEnabled = false;
-  tctx.drawImage(layer.canvas, 0, 0); // start with current layer (which had selection area cleared earlier)
-  tctx.save();
-  // transform origin at center of target placement
-  tctx.translate(px + tW/2, py + tH/2);
-  tctx.rotate(selectionTransform.rotation * Math.PI / 180);
-  tctx.drawImage(selectionImage, -tW/2, -tH/2, tW, tH);
-  tctx.restore();
-  // replace layer with new content
-  layer.ctx.clearRect(0,0,layer.canvas.width,layer.canvas.height);
-  layer.ctx.drawImage(tcanvas, 0, 0);
-  // cleanup selection UI
-  clearSelection();
-  renderComposite();
-}
-
-function clearSelection(){
-  selectionPreview.style.display = 'none';
-  selectionPreviewImg.src = '';
-  selectionImage = null;
-  selStart = selRect = null;
-  selectionTransform = {posX:0,posY:0,scale:1,rotation:0,dragging:false,offsetX:0,offsetY:0};
-  document.removeEventListener('mousemove', selectionMove);
-  document.removeEventListener('mouseup', selectionUp);
-  document.removeEventListener('touchmove', selectionMove);
-  document.removeEventListener('touchend', selectionUp);
-  window.removeEventListener('keydown', selectionKeyHandler);
-}
-
-document.getElementById('select-cancel').addEventListener('click', function(){
-  // restore selection area by doing nothing (we cleared the layer area on selection finalize, so we need to restore from undo)
-  // easiest approach: undo last action (which was saved when selection was finalized), but only if undo stack has something
-  if(undoStack.length>0){
-    undo();
-  } else {
-    clearSelection();
-    renderComposite();
-  }
-});
-document.getElementById('select-commit').addEventListener('click', function(){ commitSelectionToActiveLayer(); });
-
-// ----------------- Layer initialization UI update -----------------
-updateLayerUI();
-
-// Ensure layer preview hides when import canceled
-importCancelBtn.addEventListener('click', ()=> { hideImportPreview(); importResetState(); });
-
-// Ensure preview removed when leaving edit dropdown explicitly
-document.getElementById('edit-dropdown').addEventListener('click', ()=>{ /* keep open handling */ });
-
-// Attach layer preview on open of edit (already handled above when clicking menu-title)
-
-// Wire filter buttons style (neon green inline strokes already in CSS)
-document.getElementById('filter-invert').addEventListener('click', ()=>{/* handled earlier */});
-document.getElementById('filter-bw').addEventListener('click', ()=>{/* handled earlier */});
-document.getElementById('filter-blur').addEventListener('click', ()=>{/* handled earlier */});
-document.getElementById('filter-sharpen').addEventListener('click', ()=>{/* handled earlier */});
-
-// Resize behavior: update canvases when container size changes
-function resizeCanvas(){
-  resizeCanvasAndLayers();
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-// Keep some existing UI behavior intact for tool switching
-document.querySelectorAll('.tool-option').forEach(opt=>{
-  opt.addEventListener('click', ()=>{
-    // existing handling already wired above
-  });
-});
-
-// Final notes:
-// - Many operations (import, selection, layer transforms) create temporary DOM image elements that are used to present a transform UI, and when committed they stamp back onto the active layer.
-// - Undo snapshots capture whole-layer ImageData which allows restoring cleared selection areas when user cancels selection (undo used).
-// - Eraser uses destination-out for true transparency erasing on layers.
-// - Filters (blur/sharpen) use a simple convolution; heavy images may be slow but work for typical canvas sizes.
-
-</script>
-<div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
+// ---------- INITIALISE ----------
+createLayer();
+window.addEventListener('resize',()=>{ resizeCanvasAndLayers(); updateLayerOutline(); });
+filtersGrid.classList.add('hidden'); filtersArrow.textContent='RIGHT TRIANGLE';
+  </script>
+  <div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
 </body>
 </html>
