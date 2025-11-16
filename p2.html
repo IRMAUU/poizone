@@ -360,6 +360,7 @@
   <script>
 /* ==== FULL FIXED JS ==== */
 
+
 const container = document.getElementById('app-container');
 const canvas = document.getElementById('paint-canvas'), mainCtx = canvas.getContext('2d');
 
@@ -1498,6 +1499,42 @@ createLayer();
 window.addEventListener('resize',()=>{ resizeCanvasAndLayers(); updateLayerOutline(); });
 filtersGrid.classList.add('hidden'); filtersArrow.textContent='RIGHT TRIANGLE';
   </script>
+  <script>
+    /* --------------------------------------------------------------
+       PATCH – put this *anywhere* after the original <script> block
+       -------------------------------------------------------------- */
+    
+    /* 1. Selection preview now shows the floating image */
+    selectionPreviewImg.style.display = 'block';          // <-- was hidden
+    selectionPreviewImg.style.maxWidth = 'none';
+    selectionPreviewImg.style.maxHeight = 'none';
+    
+    /* 2. Transform-section controls (apply / reset / exit) */
+    document.getElementById('layer-transform-apply')?.addEventListener('click', applyLayerTransformToActiveLayer);
+    document.getElementById('layer-transform-reset')?.addEventListener('click', () => {
+      layerTransform.rotation = 0;
+      layerTransform.scale   = 1;
+      rotRange.value         = 0;
+      rotNumber.value        = 0;
+      scaleInput.value       = 100;
+      scaleValue.textContent = '100%';
+      updateLayerOutline();
+    });
+    document.getElementById('layer-transform-exit')?.addEventListener('click', () => {
+      const w = document.getElementById('transform-section-wrapper');
+      if (w) w.classList.add('hidden');
+      layerTransform.enabled = false;
+      updateLayerOutline(); updateLayerUI();
+    });
+    
+    /* 3. Start on Layer 1 (no extra “add layer” needed) */
+    if (layers.length === 0) createLayer();   // create the first layer once
+    setActiveLayer(0);                        // force UI to show Layer 1
+    
+    /* --------------------------------------------------------------
+       END OF PATCH
+       -------------------------------------------------------------- */
+    </script>
   <div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
 </body>
 </html>
