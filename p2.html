@@ -79,7 +79,7 @@
     .rotation-control { display: flex; align-items: center; gap: 6px; margin-top: 2px; margin-bottom: 2px; }
     .rotation-control input[type="number"].no-arrows { width: 55px; background: #000; border: 1px solid #39ff14; color: #39ff14; font-size: 13px; text-align: right; padding:2px 4px; margin-left: 2px; }
     #text-preview-overlay { position: absolute; z-index: 45; pointer-events: auto; user-select: none; cursor: grab; min-width: 10px; min-height: 10px; will-change: transform; display: none; border: 2px solid #f00 !important; box-shadow: 0 0 0 2px #f00; background: transparent; opacity: 0.5; padding: 0; margin: 0; box-sizing: border-box; transform-origin: center center; }
-    #text-preview-content { font-weight: 700; display: inline-block; background: transparent; color: #000; pointer-events: none; user-select: none; padding: 0; margin: 0; min-width: 10px; min-height: 10px; font-family: inherit; font-size: inherit; white-space: pre; }
+    #text-preview-content { font-weight: 700; display: inline-block; background: transparent; color: #000; pointer-events: none; user-select: none; padding: 0; margin: 0; min-width: 10px; min-height: 10px; white-space: pre; }
     #text-toolbox-controls { display: flex; flex-direction: row; gap: 8px; margin-top: 7px; margin-bottom: 7px; }
     #text-toolbox-controls button { font-size:13px; background:#111; color:#39ff14; border:1px solid #39ff14; border-radius:3px; padding:3px 10px; cursor:pointer; }
     #text-toolbox-controls button:active { background:#333; }
@@ -166,11 +166,11 @@
           <label>color: <input type="color" id="calligraphy-color" value="#000000"></label><br>
           <label>flow: <input type="range" id="calligraphy-flow" min="1" max="3000" value="2500"></label><br>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:112px;">
-            <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="HEART">HEART</button>
+            <button class="calligraphy-btn calligraphy-selected force-plain-text" data-calligraphy="HEART">♥</button>
             <button class="calligraphy-btn force-plain-text" data-calligraphy="VERTICAL">|</button>
             <button class="calligraphy-btn force-plain-text" data-calligraphy="STAR">✦</button>
-            <button class="calligraphy-btn force-plain-text" data-calligraphy="TRIANGLE-R">TRIANGLE-R</button>
-            <button class="calligraphy-btn force-plain-text" data-calligraphy="TRIANGLE-L">TRIANGLE-L</button>
+            <button class="calligraphy-btn force-plain-text" data-calligraphy="TRIANGLE-R">◣</button>
+            <button class="calligraphy-btn force-plain-text" data-calligraphy="TRIANGLE-L">◢</button>
             <button class="calligraphy-btn force-plain-text" data-calligraphy="DIAMOND">◆</button>
           </div>
         </div>
@@ -198,21 +198,21 @@
             </div>
             <div class="font-dropdown-list" id="font-dropdown-list">
               <div class="font-dropdown-option" style="font-family: Arial;" data-font="Arial">Arial</div>
-              <div class="font-dropdown-option" style="font-family: 'Courier New', Courier, monospace;" data-font="'Courier New', Courier, monospace">Courier New</div>
-              <div class="font-dropdown-option" style="font-family: 'Times New Roman', Times, serif;" data-font="'Times New Roman', Times, serif">Times New Roman</div>
-              <div class="font-dropdown-option" style="font-family: 'Roboto Mono', monospace;" data-font="'Roboto Mono', monospace">Roboto Mono</div>
-              <div class="font-dropdown-option" style="font-family: 'Comic Sans MS', cursive, sans-serif;" data-font="'Comic Sans MS', cursive, sans-serif">Comic Sans MS</div>
+              <div class="font-dropdown-option" style="font-family: 'Courier New', Courier, monospace;" data-font="Courier New, Courier, monospace">Courier New</div>
+              <div class="font-dropdown-option" style="font-family: 'Times New Roman', Times, serif;" data-font="Times New Roman, Times, serif">Times New Roman</div>
+              <div class="font-dropdown-option" style="font-family: 'Roboto Mono', monospace;" data-font="Roboto Mono, monospace">Roboto Mono</div>
+              <div class="font-dropdown-option" style="font-family: 'Comic Sans MS', cursive, sans-serif;" data-font="Comic Sans MS, cursive, sans-serif">Comic Sans MS</div>
               <div class="font-dropdown-option" style="font-family: 'Georgia', serif;" data-font="Georgia, serif">Georgia</div>
               <div class="font-dropdown-option" style="font-family: 'Impact', fantasy;" data-font="Impact, fantasy">Impact</div>
               <div class="font-dropdown-option" style="font-family: Helvetica, Arial, sans-serif;" data-font="Helvetica, Arial, sans-serif">Helvetica</div>
               <div class="font-dropdown-option" style="font-family: Papyrus, fantasy;" data-font="Papyrus, fantasy">Papyrus</div>
               <div class="font-dropdown-option" style="font-family: Stencil, fantasy;" data-font="Stencil, fantasy">Stencil</div>
-              <div class="font-dropdown-option" style="font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;" data-font="Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace">Menlo</div>
+              <div class="font-dropdown-option" style="font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;" data-font="Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace">Menlo</div>
               <div class="font-dropdown-option" style="font-family: 'Verdana', sans-serif;" data-font="Verdana, sans-serif">Verdana</div>
-              <div class="font-dropdown-option" style="font-family: 'Trebuchet MS', sans-serif;" data-font="'Trebuchet MS', sans-serif">Trebuchet MS</div>
-              <div class="font-dropdown-option" style="font-family: 'Eagle Lake', cursive;" data-font="'Eagle Lake', cursive">Eagle Lake</div>
-              <div class="font-dropdown-option" style="font-family: 'Jacquard 24', cursive;" data-font="'Jacquard 24', cursive">Jacquard 24</div>
-              <div class="font-dropdown-option" style="font-family: 'Lucida Console', Monaco, monospace;" data-font="'Lucida Console', Monaco, monospace">Lucida Console</div>
+              <div class="font-dropdown-option" style="font-family: 'Trebuchet MS', sans-serif;" data-font="Trebuchet MS, sans-serif">Trebuchet MS</div>
+              <div class="font-dropdown-option" style="font-family: 'Eagle Lake', cursive;" data-font="Eagle Lake, cursive">Eagle Lake</div>
+              <div class="font-dropdown-option" style="font-family: 'Jacquard 24', cursive;" data-font="Jacquard 24, cursive">Jacquard 24</div>
+              <div class="font-dropdown-option" style="font-family: 'Lucida Console', Monaco, monospace;" data-font="Lucida Console, Monaco, monospace">Lucida Console</div>
             </div>
           </div><br>
           <div class="text-size-wrapper">
@@ -946,53 +946,64 @@ function selectionRectDraw(){
   selectionPreview.style.width=selRect.w+'px';
   selectionPreview.style.height=selRect.h+'px';
 }
+// ---- REPLACE finalizeMarquee() ----
 function finalizeMarquee(){
-  const layer=layers[activeLayerIndex];
-  const scaleX=layer.canvas.width/container.offsetWidth;
-  const scaleY=layer.canvas.height/container.offsetHeight;
-  const sx=Math.round(selRect.x*scaleX), sy=Math.round(selRect.y*scaleY);
-  const sw=Math.max(1,Math.round(selRect.w*scaleX)), sh=Math.max(1,Math.round(selRect.h*scaleY));
+  const layer = layers[activeLayerIndex];
+  const scaleX = layer.canvas.width / container.offsetWidth;
+  const scaleY = layer.canvas.height / container.offsetHeight;
+  const sx = Math.round(selRect.x * scaleX), sy = Math.round(selRect.y * scaleY);
+  const sw = Math.max(1, Math.round(selRect.w * scaleX)), sh = Math.max(1, Math.round(selRect.h * scaleY));
 
-  const off=document.createElement('canvas'); off.width=sw; off.height=sh;
-  const offCtx=off.getContext('2d'); offCtx.imageSmoothingEnabled=false;
-  offCtx.drawImage(layer.canvas,sx,sy,sw,sh,0,0,sw,sh);
+  const off = document.createElement('canvas'); off.width = sw; off.height = sh;
+  const offCtx = off.getContext('2d'); offCtx.imageSmoothingEnabled = false;
+  offCtx.drawImage(layer.canvas, sx, sy, sw, sh, 0, 0, sw, sh);
 
   saveState();
-  layer.ctx.clearRect(sx,sy,sw,sh);
+  layer.ctx.clearRect(sx, sy, sw, sh);
   renderComposite();
 
-  selectionImage=off;
-  selectionPreviewImg.src=off.toDataURL();
+  selectionImage = off;
+  selectionPreviewImg.src = off.toDataURL();
+  // make the preview image visible (it was initially display:none in the HTML)
+  selectionPreviewImg.style.display = 'block';
+  // ensure the image fills the overlay box
+  selectionPreviewImg.style.width = '100%';
+  selectionPreviewImg.style.height = '100%';
 
-  selectionTransform.posX=selRect.x; selectionTransform.posY=selRect.y;
-  selectionTransform.scale=1; selectionTransform.rotation=0;
+  selectionTransform.posX = selRect.x; selectionTransform.posY = selRect.y;
+  selectionTransform.scale = 1; selectionTransform.rotation = 0;
 
-  selectionPreview.style.left=selRect.x+'px';
-  selectionPreview.style.top=selRect.y+'px';
-  selectionPreview.style.width=selRect.w+'px';
-  selectionPreview.style.height=selRect.h+'px';
-  selectionPreview.style.display='block';
+  selectionPreview.style.left = selRect.x + 'px';
+  selectionPreview.style.top  = selRect.y + 'px';
+  selectionPreview.style.width = selRect.w + 'px';
+  selectionPreview.style.height = selRect.h + 'px';
+  selectionPreview.style.display = 'block';
   selectionPreview.classList.remove('marching');
 
   enableFloatingDrag();
 }
+
+// ---- REPLACE enableFloatingDrag() ----
 function enableFloatingDrag(){
-  selectionPreview.onmousedown=e=>{
-    selectionTransform.dragging=true;
-    const r=selectionPreview.getBoundingClientRect();
-    selectionTransform.offsetX=e.clientX-r.left;
-    selectionTransform.offsetY=e.clientY-r.top;
-    selectionPreview.style.cursor='grabbing';
+  // pointer-down handlers on the selection overlay
+  selectionPreview.onmousedown = e => {
+    selectionTransform.dragging = true;
+    const r = selectionPreview.getBoundingClientRect();
+    selectionTransform.offsetX = e.clientX - r.left;
+    selectionTransform.offsetY = e.clientY - r.top;
+    selectionPreview.style.cursor = 'grabbing';
   };
-  selectionPreview.ontouchstart=e=>{
-    if(e.touches.length!==1) return;
-    selectionTransform.dragging=true;
-    const r=selectionPreview.getBoundingClientRect();
-    const t=e.touches[0];
-    selectionTransform.offsetX=t.clientX-r.left;
-    selectionTransform.offsetY=t.clientY-r.top;
-    selectionPreview.style.cursor='grabbing';
+  selectionPreview.ontouchstart = e => {
+    if (e.touches.length !== 1) return;
+    selectionTransform.dragging = true;
+    const r = selectionPreview.getBoundingClientRect();
+    const t = e.touches[0];
+    selectionTransform.offsetX = t.clientX - r.left;
+    selectionTransform.offsetY = t.clientY - r.top;
+    selectionPreview.style.cursor = 'grabbing';
   };
+
+  // move handler (attached to document to ensure it keeps responding)
   const move = e => {
     if (!selectionTransform.dragging) return;
     const rect = container.getBoundingClientRect();
@@ -1001,27 +1012,39 @@ function enableFloatingDrag(){
     selectionTransform.posX = cx - selectionTransform.offsetX;
     selectionTransform.posY = cy - selectionTransform.offsetY;
 
-    selectionPreview.style.opacity = 0.25; // live preview
+    // live preview while dragging
+    selectionPreview.style.opacity = 0.25;
     updateFloatingTransform();
-    e.preventDefault();
-};
+    if (e.cancelable) e.preventDefault();
+  };
 
-const up = () => {
+  // up / release handler
+  const up = () => {
     selectionTransform.dragging = false;
     selectionPreview.style.cursor = 'grab';
-    selectionPreview.style.opacity = 1; // restore full opacity when dropped
-};
-
-
-  const keyHandler=ev=>{
-    if(!selectionImage) return;
-    if(ev.key==='['){ selectionTransform.rotation-=5; updateFloatingTransform(); }
-    if(ev.key===']'){ selectionTransform.rotation+=5; updateFloatingTransform(); }
-    if(ev.key==='-'||ev.key==='_'){ selectionTransform.scale=Math.max(0.1,selectionTransform.scale-0.05); updateFloatingTransform(); }
-    if(ev.key==='+'||ev.key==='='){ selectionTransform.scale=Math.min(5,selectionTransform.scale+0.05); updateFloatingTransform(); }
+    selectionPreview.style.opacity = 1; // restore full opacity
   };
-  window.addEventListener('keydown',keyHandler);
+
+  // Attach listeners (mouse and touch)
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', up);
+  document.addEventListener('touchmove', move, { passive: false });
+  document.addEventListener('touchend', up);
+
+  // keyboard controls for rotate/scale already present — keep them
+  const keyHandler = ev => {
+    if (!selectionImage) return;
+    if (ev.key === '[') { selectionTransform.rotation -= 5; updateFloatingTransform(); }
+    if (ev.key === ']') { selectionTransform.rotation += 5; updateFloatingTransform(); }
+    if (ev.key === '-' || ev.key === '_') { selectionTransform.scale = Math.max(0.1, selectionTransform.scale - 0.05); updateFloatingTransform(); }
+    if (ev.key === '+' || ev.key === '=') { selectionTransform.scale = Math.min(5, selectionTransform.scale + 0.05); updateFloatingTransform(); }
+  };
+  // ensure we don't double-add the handler; remove then add
+  window.removeEventListener('keydown', selectionPreview._keyHandler || function(){});
+  window.addEventListener('keydown', keyHandler);
+  selectionPreview._keyHandler = keyHandler;
 }
+
 function updateFloatingTransform(){
   selectionPreview.style.left=selectionTransform.posX+'px';
   selectionPreview.style.top=selectionTransform.posY+'px';
@@ -1295,132 +1318,205 @@ importCancelBtn.addEventListener('click', importResetState);
 
 
 // ---------- TEXT TOOL ----------
-const textPreviewOverlay=document.getElementById('text-preview-overlay');
-const textPreviewContent=document.getElementById('text-preview-content');
-const textSubmitBtn=document.getElementById('text-submit-btn');
-const textCancelBtn=document.getElementById('text-cancel-btn');
-let textPreviewActive=false, textPreviewDragging=false, textPreviewOffsetX=0, textPreviewOffsetY=0,
-    textPreviewPosX=0, textPreviewPosY=0, textPreviewInit=false, textPreviewInitX=0, textPreviewInitY=0,
-    textRotation=0;
+const textPreviewOverlay = document.getElementById('text-preview-overlay');
+const textPreviewContent = document.getElementById('text-preview-content');
+const textSubmitBtn = document.getElementById('text-submit-btn');
+const textCancelBtn = document.getElementById('text-cancel-btn');
+let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0,
+    textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0,
+    textRotation = 0;
 
-function showTextPreviewOverlay(txt,fnt,sz,col,forceCenter){
-  textPreviewActive=true; textPreviewOverlay.style.display='block';
-  textPreviewContent.textContent=txt.replace(/\n/g,'\n');
-  textPreviewOverlay.style.fontFamily=fnt; textPreviewOverlay.style.fontSize=sz+'px';
-  textPreviewOverlay.style.color=col;
-  textPreviewContent.style.fontFamily=fnt; textPreviewContent.style.fontSize=sz+'px';
-  textPreviewContent.style.color=col;
-  const box=getTextBBox(txt,fnt,sz);
-  textPreviewOverlay.style.width=box.width+'px'; textPreviewOverlay.style.height=box.height+'px';
-  if(forceCenter||!textPreviewInit){
-    textPreviewPosX=(container.offsetWidth-box.width)/2;
-    textPreviewPosY=(container.offsetHeight-box.height)/2;
-    textPreviewInitX=textPreviewPosX; textPreviewInitY=textPreviewPosY; textPreviewInit=true;
+// Show the preview overlay
+function showTextPreviewOverlay(txt, fnt, sz, col, forceCenter) {
+  textPreviewActive = true;
+  textPreviewOverlay.style.display = 'block';
+
+  updateTextPreviewContent(txt, fnt, sz, col);
+
+  // Center the preview initially if requested
+  if (forceCenter || !textPreviewInit) {
+    const box = getTextBBox(txt, fnt, sz);
+    const pad = 8;
+    textPreviewPosX = Math.round((container.offsetWidth - (box.width + pad)) / 2);
+    textPreviewPosY = Math.round((container.offsetHeight - (box.height + pad)) / 2);
+    textPreviewInitX = textPreviewPosX;
+    textPreviewInitY = textPreviewPosY;
+    textPreviewInit = true;
+    textPreviewOverlay.style.left = textPreviewPosX + 'px';
+    textPreviewOverlay.style.top  = textPreviewPosY + 'px';
   }
-  textPreviewOverlay.style.left=textPreviewPosX+'px';
-  textPreviewOverlay.style.top=textPreviewPosY+'px';
-  updateTextPreviewTransform();
 }
-function getTextBBox(txt,fnt,sz){
-  const off=document.createElement('canvas'), ctx=off.getContext('2d');
-  ctx.font=`${sz}px ${fnt}`;
-  const lines=txt.split('\n');
-  let w=0;
-  for(const l of lines) w=Math.max(w,ctx.measureText(l).width);
-  return {width:w, height:lines.length*sz*1.15};
-}
-function updateTextPreviewContent(txt,fnt,sz,col){
-  textPreviewContent.textContent=txt.replace(/\n/g,'\n');
-  textPreviewOverlay.style.fontFamily=fnt; textPreviewOverlay.style.fontSize=sz+'px';
-  textPreviewOverlay.style.color=col;
-  const box=getTextBBox(txt,fnt,sz);
-  textPreviewOverlay.style.width=box.width+'px'; textPreviewOverlay.style.height=box.height+'px';
-  textPreviewOverlay.style.left=textPreviewPosX+'px'; textPreviewOverlay.style.top=textPreviewPosY+'px';
-  updateTextPreviewTransform();
-}
-function updateTextPreviewTransform(){ textPreviewOverlay.style.transform=`rotate(${textRotation}deg)`; }
-function hideTextPreviewOverlay(){
-  textPreviewActive=false; textPreviewOverlay.style.display='none';
-  textPreviewInit=false; textPreviewPosX=0; textPreviewPosY=0;
-}
-textPreviewOverlay.addEventListener('mousedown',e=>{
-  e.preventDefault(); textPreviewDragging=true;
-  const r=textPreviewOverlay.getBoundingClientRect();
-  textPreviewOffsetX=e.clientX-r.left; textPreviewOffsetY=e.clientY-r.top;
-  textPreviewOverlay.style.cursor='grabbing';
-});
-document.addEventListener('mousemove',e=>{
-  if(!textPreviewDragging||!textPreviewActive) return;
-  const rect=container.getBoundingClientRect();
-  textPreviewPosX=e.clientX-rect.left-textPreviewOffsetX;
-  textPreviewPosY=e.clientY-rect.top-textPreviewOffsetY;
-  textPreviewOverlay.style.left=textPreviewPosX+'px';
-  textPreviewOverlay.style.top=textPreviewPosY+'px';
-});
-document.addEventListener('mouseup',()=>{ textPreviewDragging=false; textPreviewOverlay.style.cursor='grab'; });
 
-function setTextRotation(v){
-  textRotation=Math.max(-180,Math.min(180,Number(v)||0));
+// Get bounding box of multiline text
+function getTextBBox(txt, fnt, sz) {
+  const off = document.createElement('canvas');
+  const ctx = off.getContext('2d');
+  ctx.font = `${sz}px ${fnt}`;
+  const lines = txt.split('\n');
+  let w = 0;
+  for (const l of lines) {
+    w = Math.max(w, Math.ceil(ctx.measureText(l).width));
+  }
+  const h = Math.ceil(lines.length * sz * 1.15);
+  return { width: w, height: h };
+}
+
+// Update preview content, font, size, color, padding, and position
+function updateTextPreviewContent(txt, fnt, sz, col) {
+  textPreviewContent.textContent = txt.replace(/\n/g,'\n');
+
+  // Apply font and color
+  textPreviewOverlay.style.fontFamily = fnt;
+  textPreviewOverlay.style.fontSize = sz + 'px';
+  textPreviewOverlay.style.color = col;
+
+  textPreviewContent.style.fontFamily = fnt;
+  textPreviewContent.style.fontSize = sz + 'px';
+  textPreviewContent.style.color = col;
+
+  // Measure and apply overlay size + padding
+  const box = getTextBBox(txt, fnt, sz);
+  const pad = 8;
+  textPreviewOverlay.style.width = Math.ceil(box.width + pad) + 'px';
+  textPreviewOverlay.style.height = Math.ceil(box.height + pad) + 'px';
+  textPreviewContent.style.padding = (pad/2) + 'px';
+
+  // Keep current position and rotation
+  textPreviewOverlay.style.left = textPreviewPosX + 'px';
+  textPreviewOverlay.style.top  = textPreviewPosY + 'px';
   updateTextPreviewTransform();
 }
-document.getElementById('text-rotation-range').addEventListener('input',e=>{ setTextRotation(e.target.value); document.getElementById('text-rotation-number').value=e.target.value; });
-document.getElementById('text-rotation-number').addEventListener('input',e=>{ setTextRotation(e.target.value); document.getElementById('text-rotation-range').value=e.target.value; });
 
-textSubmitBtn.addEventListener('click',()=>{
-  if(!textPreviewActive) return;
+// Apply rotation
+function updateTextPreviewTransform() {
+  textPreviewOverlay.style.transform = `rotate(${textRotation}deg)`;
+}
+
+// Hide overlay
+function hideTextPreviewOverlay() {
+  textPreviewActive = false;
+  textPreviewOverlay.style.display = 'none';
+  textPreviewInit = false;
+  textPreviewPosX = 0;
+  textPreviewPosY = 0;
+}
+
+// Dragging
+textPreviewOverlay.addEventListener('mousedown', e => {
+  e.preventDefault();
+  textPreviewDragging = true;
+  const r = textPreviewOverlay.getBoundingClientRect();
+  textPreviewOffsetX = e.clientX - r.left;
+  textPreviewOffsetY = e.clientY - r.top;
+  textPreviewOverlay.style.cursor = 'grabbing';
+});
+
+document.addEventListener('mousemove', e => {
+  if (!textPreviewDragging || !textPreviewActive) return;
+  const rect = container.getBoundingClientRect();
+  textPreviewPosX = e.clientX - rect.left - textPreviewOffsetX;
+  textPreviewPosY = e.clientY - rect.top - textPreviewOffsetY;
+  textPreviewOverlay.style.left = textPreviewPosX + 'px';
+  textPreviewOverlay.style.top = textPreviewPosY + 'px';
+});
+
+document.addEventListener('mouseup', () => {
+  textPreviewDragging = false;
+  textPreviewOverlay.style.cursor = 'grab';
+});
+
+// Rotation
+function setTextRotation(v) {
+  textRotation = Math.max(-180, Math.min(180, Number(v) || 0));
+  updateTextPreviewTransform();
+}
+document.getElementById('text-rotation-range').addEventListener('input', e => {
+  setTextRotation(e.target.value);
+  document.getElementById('text-rotation-number').value = e.target.value;
+});
+document.getElementById('text-rotation-number').addEventListener('input', e => {
+  setTextRotation(e.target.value);
+  document.getElementById('text-rotation-range').value = e.target.value;
+});
+
+// Submit / place text
+textSubmitBtn.addEventListener('click', () => {
+  if (!textPreviewActive) return;
   saveState();
-  const content=document.getElementById('text-preview-content');
-  const cr=content.getBoundingClientRect();
-  const canvR=canvas.getBoundingClientRect();
-  const cx=cr.left+cr.width/2, cy=cr.top+cr.height/2;
-  const px=(cx-canvR.left)*(canvas.width/canvR.width);
-  const py=(cy-canvR.top)*(canvas.height/canvR.height);
-  const ctx=getActiveCtx(); ctx.save();
-  ctx.translate(px,py); ctx.rotate(textRotation*Math.PI/180);
-  ctx.font=`${textSize}px ${textFont}`; ctx.fillStyle=textColor;
-  ctx.textBaseline='middle'; ctx.textAlign='center';
-  const lines=textString.split('\n');
-  const blockH=lines.length*textSize*1.15;
-  const offY=-blockH/2+textSize*1.15/2;
-  for(let i=0;i<lines.length;i++) ctx.fillText(lines[i],0,offY+i*textSize*1.15);
-  ctx.restore(); renderComposite();
-  showTextPreviewOverlay(textString,textFont,textSize,textColor,false);
-  textPreviewPosX=textPreviewInitX; textPreviewPosY=textPreviewInitY;
-  textPreviewOverlay.style.left=textPreviewPosX+'px'; textPreviewOverlay.style.top=textPreviewPosY+'px';
+  const content = textPreviewContent;
+  const cr = content.getBoundingClientRect();
+  const canvR = canvas.getBoundingClientRect();
+  const cx = cr.left + cr.width/2, cy = cr.top + cr.height/2;
+  const px = (cx - canvR.left) * (canvas.width / canvR.width);
+  const py = (cy - canvR.top) * (canvas.height / canvR.height);
+  const ctx = getActiveCtx();
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(textRotation * Math.PI / 180);
+  ctx.font = `${textSize}px ${textFont}`;
+  ctx.fillStyle = textColor;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  const lines = textString.split('\n');
+  const blockH = lines.length * textSize * 1.15;
+  const offY = -blockH / 2 + textSize * 1.15 / 2;
+  for (let i = 0; i < lines.length; i++) ctx.fillText(lines[i], 0, offY + i * textSize * 1.15);
+  ctx.restore();
+  renderComposite();
+
+  // Reset preview position after placement
+  showTextPreviewOverlay(textString, textFont, textSize, textColor, false);
+  textPreviewPosX = textPreviewInitX;
+  textPreviewPosY = textPreviewInitY;
+  textPreviewOverlay.style.left = textPreviewPosX + 'px';
+  textPreviewOverlay.style.top = textPreviewPosY + 'px';
 });
-textCancelBtn.addEventListener('click',hideTextPreviewOverlay);
+
+textCancelBtn.addEventListener('click', hideTextPreviewOverlay);
 
 // ---------- FONT DROPDOWN ----------
-const fontDropdown=document.getElementById('font-dropdown');
-const fontList=document.getElementById('font-dropdown-list');
-const fontSelName=document.getElementById('font-dropdown-selected-name');
-Array.from(fontList.children).forEach(opt=>{
-  opt.onclick=()=>{
-    Array.from(fontList.children).forEach(o=>o.classList.remove('selected'));
+const fontDropdown = document.getElementById('font-dropdown');
+const fontList = document.getElementById('font-dropdown-list');
+const fontSelName = document.getElementById('font-dropdown-selected-name');
+
+Array.from(fontList.children).forEach(opt => {
+  opt.onclick = () => {
+    Array.from(fontList.children).forEach(o => o.classList.remove('selected'));
     opt.classList.add('selected');
-    textFont=opt.dataset.font;
-    fontSelName.textContent=opt.textContent;
-    fontSelName.style.fontFamily=textFont;
+    textFont = opt.dataset.font;
+    fontSelName.textContent = opt.textContent;
+    fontSelName.style.fontFamily = textFont;
     fontDropdown.classList.remove('open');
-    if(textPreviewActive) updateTextPreviewContent(textString,textFont,textSize,textColor);
+
+    // Immediately update preview when font changes
+    if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
   };
 });
-document.getElementById('font-dropdown-selected').onclick=()=>{ fontDropdown.classList.toggle('open'); };
-fontDropdown.onblur=()=>{ fontDropdown.classList.remove('open'); };
+
+document.getElementById('font-dropdown-selected').onclick = () => { fontDropdown.classList.toggle('open'); };
+fontDropdown.onblur = () => { fontDropdown.classList.remove('open'); };
 
 // ---------- TEXT SIZE ----------
-const textSizeRange=document.getElementById('text-size-range');
-const textSizeInput=document.getElementById('text-size');
-function setTextSize(v){
-  v=Math.max(8,Math.min(150,Number(v)||32));
-  textSize=v; textSizeRange.value=v; textSizeInput.value=v;
-  if(textPreviewActive) updateTextPreviewContent(textString,textFont,textSize,textColor);
+const textSizeRange = document.getElementById('text-size-range');
+const textSizeInput = document.getElementById('text-size');
+function setTextSize(v) {
+  v = Math.max(8, Math.min(150, Number(v) || 32));
+  textSize = v;
+  textSizeRange.value = v;
+  textSizeInput.value = v;
+  if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
 }
-textSizeRange.addEventListener('input',e=>setTextSize(e.target.value));
-textSizeInput.addEventListener('input',e=>setTextSize(e.target.value));
-document.getElementById('text-color').addEventListener('input',e=>{ textColor=e.target.value; if(textPreviewActive) updateTextPreviewContent(textString,textFont,textSize,textColor); });
-document.getElementById('text-string').addEventListener('input',e=>{ textString=e.target.value; if(textPreviewActive) updateTextPreviewContent(textString,textFont,textSize,textColor); });
+textSizeRange.addEventListener('input', e => setTextSize(e.target.value));
+textSizeInput.addEventListener('input', e => setTextSize(e.target.value));
 
+document.getElementById('text-color').addEventListener('input', e => {
+  textColor = e.target.value;
+  if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+});
+document.getElementById('text-string').addEventListener('input', e => {
+  textString = e.target.value;
+  if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+});
 // ---------- FILTERS TOGGLE ----------
 const filtersToggle=document.getElementById('filters-toggle');
 const filtersGrid=document.getElementById('filters-grid');
