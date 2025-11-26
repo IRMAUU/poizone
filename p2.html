@@ -21,7 +21,20 @@
     /* Container: allow the toggle tab to hang off the canvas without overlapping its content */
     #app-container{width:80vw;height:80vh;margin:auto;position:relative;top:1vh;background:#fff;display:flex;justify-content:center;align-items:center;overflow:visible;}
     canvas#paint-canvas{width:100%;height:100%;background:#fff;image-rendering:pixelated;border:1px solid #000;cursor:crosshair;display:block;position:relative;}
-    #tool-panel{position:absolute;top:10px;left:10px;background:#222;color:#39ff14;padding:8px;border:1px solid #555;z-index:40;user-select:none;border-radius:6px;max-width:420px;}
+    /* bring the toolbox above any floating overlays so it stays clickable on mobile */
+#tool-panel{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#222;
+  color:#39ff14;
+  padding:8px;
+  border:1px solid #555;
+  z-index:10050;           /* <-- raised so toolbox sits above selection/import/text overlays */
+  user-select:none;
+  border-radius:6px;
+  max-width:420px;
+}
     .menu-title{cursor:move;padding:4px;text-transform:lowercase;}
     .menu-title#undo-btn{cursor:pointer;color:#39ff14;}
     .dropdown{margin-top:5px;background:#444;padding:5px;border:1px solid #666;border-radius:6px;}
@@ -114,10 +127,12 @@
       box-shadow:0 0 0 2px rgba(255,0,0,0.12);
       display:none;
       background:transparent;
-      transform-origin:top left;
+      transform-origin:center center;
       cursor:grab;
       touch-action:none;
     }
+    /* show the layer content inside the outline so the user gets a live preview */
+    #layer-outline img{ display:block; width:100%; height:100%; object-fit:contain; image-rendering:pixelated; pointer-events:none; }
 
     /* selection preview overlay (rect marquee and floating selection) */
     #selection-preview{
@@ -147,7 +162,7 @@
     #toolbox-toggle-tab {
       position: absolute;
       right: 10px;       /* distance from container right (aligned with canvas right) */
-      bottom: -11px;     /* hang off the bottom edge so it doesn't overlap canvas */
+      bottom: -12px;     /* hang off the bottom edge so it doesn't overlap canvas */
       width: 44px;
       height: 20px;
       display: flex;
@@ -156,6 +171,7 @@
       background: #222;
       border: 1px solid #555;
       border-radius: 0 0 4px 4px;
+      border-top: 0;
       cursor: pointer;
       z-index: 60;
       font-size: 12px;
@@ -166,7 +182,7 @@
     }
     #toolbox-toggle-tab .color-stripe {
       width: 8px;
-      height: 110%;
+      height: 105%;
       border-radius: 0 0 0 0;
     }
     #toolbox-toggle-tab .eye-icon {
@@ -296,7 +312,7 @@
 
         <div class="tool-option" id="eraser-option">-eraser</div>
         <div class="tool-settings hidden" id="eraser-settings">
-          <label>size: <input type="number" id="eraser-size" min="1" max="25" value="3"></label>
+          <label>size: <input type="number" id="eraser-size" min="1" max="500" value="3" class="no-arrows" style="width:60px;"></label>
         </div>
 
         <div class="tool-option clear-tool" id="clear-option">-clear</div>
@@ -308,7 +324,6 @@
         </div>
       </div>
 
-      <!-- Edit -->
       <div class="menu-title" data-menu="edit">-edit</div>
       <div class="dropdown hidden" id="edit-dropdown">
         <div class="filters-section">- layers</div>
@@ -336,7 +351,6 @@
             </div>
             <div class="transform-row">
               <button id="layer-transform-apply">apply</button>
-              <button id="layer-transform-reset">reset □</button>
               <button id="layer-transform-exit" style="background:#400;color:#fff;border:1px solid #f00;">exit</button>
             </div>
           </div>
@@ -536,10 +550,34 @@ let layerTransform = {
   bboxCss:{left:0,top:0,w:0,h:0}
 };
 
+// enable/disable transform mode and set preview opacity when enabled
+function setTransformModeEnabled(enabled){
+  layerTransform.enabled = !!enabled;
+  const wrapper = document.getElementById('transform-section-wrapper');
+  if(enabled){
+    if(wrapper) wrapper.classList.remove('hidden');
+    layerOutline.style.pointerEvents = 'auto';
+    layerOutline.style.cursor = 'grab';
+    layerOutline.style.display = 'block';
+    layerOutline.style.opacity = '0.25';
+  }else{
+    if(wrapper) wrapper.classList.add('hidden');
+    layerOutline.style.pointerEvents = 'none';
+    layerOutline.style.cursor = 'default';
+    layerOutline.style.display = 'none';
+    layerOutline.style.opacity = '1';
+    // remove preview content if any
+    while (layerOutline.firstChild) layerOutline.removeChild(layerOutline.firstChild);
+  }
+  updateLayerUI();
+}
+
 function updateLayerOutline(){
   const editDropdown = document.getElementById('edit-dropdown');
+  // If edit dropdown is hidden AND transform mode is not enabled, hide outline and exit
   if(!editDropdown || editDropdown.classList.contains('hidden')){
-    layerOutline.style.display='none'; return;
+    if(!layerTransform.enabled){ layerOutline.style.display='none'; return; }
+    // otherwise continue and show outline because transform mode is active (user requested persistent transform)
   }
   if(!layers.length){ layerOutline.style.display='none'; return; }
   const layer = layers[activeLayerIndex];
@@ -557,10 +595,38 @@ function updateLayerOutline(){
   layerOutline.style.top  = top+'px';
   layerOutline.style.width  = w+'px';
   layerOutline.style.height = h+'px';
+  layerOutline.style.transformOrigin = 'center center';
   layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
-  layerOutline.style.display = 'block';
+  // display controlled by setTransformModeEnabled; ensure it is visible if enabled
+  if(layerTransform.enabled) layerOutline.style.display='block';
+
   layerTransform.posX = left; layerTransform.posY = top;
   layerTransform.bboxCss = {left,top,w,h};
+
+  // create a preview image inside the outline so the user sees the layer pixels
+  // clear previous
+  while (layerOutline.firstChild) layerOutline.removeChild(layerOutline.firstChild);
+
+  try {
+    const off = document.createElement('canvas');
+    off.width = bbox.w;
+    off.height = bbox.h;
+    const offCtx = off.getContext('2d'); offCtx.imageSmoothingEnabled = false;
+    offCtx.drawImage(layer.canvas, bbox.x, bbox.y, bbox.w, bbox.h, 0, 0, bbox.w, bbox.h);
+    const img = document.createElement('img');
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.display = 'block';
+    img.style.pointerEvents = 'none';
+    img.style.objectFit = 'contain';
+    img.style.imageRendering = 'pixelated';
+    img.src = off.toDataURL();
+    layerOutline.appendChild(img);
+  } catch (e) {
+    // if extraction fails, just leave the red border (no preview)
+    // console.warn('updateLayerOutline preview error', e);
+  }
+
   layerOutline.style.cursor = layerTransform.enabled?'grab':'default';
 }
 
@@ -569,19 +635,9 @@ function setActiveLayer(i, enableTransform = false){
     updateLayerUI();
     renderComposite();
 
-    const wrapper = document.getElementById('transform-section-wrapper');
-    if(enableTransform && wrapper){
-        wrapper.classList.remove('hidden');
-        layerTransform.enabled = true;
-        layerOutline.style.pointerEvents = 'auto';
-        layerOutline.style.cursor = 'grab';
-        layerOutline.style.display = 'block'; // always show while editing
-    } else if(wrapper){
-        wrapper.classList.add('hidden');
-        layerTransform.enabled = false;
-        layerOutline.style.pointerEvents = 'none';
-        layerOutline.style.cursor = 'default';
-        layerOutline.style.display = 'none';
+    // Only enable transform mode when explicitly requested; do not automatically disable it.
+    if (enableTransform) {
+      setTransformModeEnabled(true);
     }
     updateLayerOutline();
 }
@@ -641,7 +697,6 @@ function updateLayerUI(){
 }
 function moveLayerUp(i){
   if(i>=layers.length-1) return;
-  // swap layers in array so their name/color and content travel with the layer object
   [layers[i],layers[i+1]] = [layers[i+1],layers[i]];
   if(activeLayerIndex===i) activeLayerIndex=i+1;
   else if(activeLayerIndex===i+1) activeLayerIndex=i;
@@ -649,17 +704,13 @@ function moveLayerUp(i){
 }
 function moveLayerDown(i){
   if(i<=0) return;
-  // correct swap order (was previously a no-op)
   [layers[i-1],layers[i]] = [layers[i],layers[i-1]];
   if(activeLayerIndex===i) activeLayerIndex=i-1;
   else if(activeLayerIndex===i-1) activeLayerIndex=i;
   updateLayerUI(); renderComposite();
 }
 document.getElementById('layer-transform-exit')?.addEventListener('click',()=>{
-  const w = document.getElementById('transform-section-wrapper');
-  if(w) w.classList.add('hidden');
-  layerTransform.enabled = false;
-  updateLayerOutline(); updateLayerUI();
+  setTransformModeEnabled(false); updateLayerUI();
 });
 
 // ---------- TOOLS ----------
@@ -670,8 +721,8 @@ let calligraphySize=20, calligraphyFlow=2500, calligraphyBrushType=0, calligraph
 let symbolSize=35, symbolCharType=0, symbolColor='#000000';
 let textFont="Arial", textSize=32, textColor="#000000", textString="your text";
 
-const calligraphyBrushes = ["HEART","VERTICAL","STAR","TRIANGLE-R","TRIANGLE-L","DIAMOND"];
-const symbolChars = ["STAR","SKULL","BIOHAZARD","CROSS","HAMMER","PEACE"];
+const calligraphyBrushes = ["♥","|","✦","◣","◢","◆"];
+const symbolChars = ["★","☠","☣","✠","☭","☮"];
 
 document.querySelectorAll('.calligraphy-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.calligraphy-btn').forEach(x=>x.classList.remove('calligraphy-selected'));b.classList.add('calligraphy-selected');calligraphyBrushType=i;});
 document.querySelectorAll('.symbol-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.symbol-btn').forEach(x=>x.classList.remove('symbol-selected'));b.classList.add('symbol-selected');symbolCharType=i;});
@@ -684,6 +735,45 @@ document.getElementById('calligraphy-flow').oninput=e=>calligraphyFlow=+e.target
 document.getElementById('calligraphy-color').oninput=e=>calligraphyColor=e.target.value;
 document.getElementById('symbol-size').oninput=e=>symbolSize=+e.target.value;
 document.getElementById('symbol-color').oninput=e=>symbolColor=e.target.value;
+
+// Make spray/bucket colors follow the inputs and allow eraser size to be changed without a hard cap
+const sprayColorInput = document.getElementById('spray-color');
+if (sprayColorInput) {
+  sprayColor = sprayColorInput.value || sprayColor;
+  sprayColorInput.addEventListener('input', e => sprayColor = e.target.value);
+}
+const spraySizeInput = document.getElementById('spray-size');
+if (spraySizeInput) {
+  spraySize = Number(spraySizeInput.value) || spraySize;
+  spraySizeInput.addEventListener('input', e => { spraySize = Math.max(1, Number(e.target.value) || 1); });
+}
+const spraySpreadInput = document.getElementById('spray-spread');
+if (spraySpreadInput) {
+  spraySpread = Number(spraySpreadInput.value) || spraySpread;
+  spraySpreadInput.addEventListener('input', e => { spraySpread = Math.max(1, Number(e.target.value) || 1); });
+}
+const sprayFlowInput = document.getElementById('spray-flow');
+if (sprayFlowInput) {
+  sprayFlow = Number(sprayFlowInput.value) || sprayFlow;
+  sprayFlowInput.addEventListener('input', e => { sprayFlow = Math.max(1, Number(e.target.value) || 1); });
+}
+
+const bucketColorInput = document.getElementById('bucket-color');
+if (bucketColorInput) {
+  bucketColor = bucketColorInput.value || bucketColor;
+  bucketColorInput.addEventListener('input', e => bucketColor = e.target.value);
+}
+
+// Allow eraser size to be set (clamped to 500 via input attributes)
+const eraserSizeInput = document.getElementById('eraser-size');
+if (eraserSizeInput) {
+  eraserSize = Math.max(1, Number(eraserSizeInput.value) || 1);
+  eraserSizeInput.addEventListener('input', e => {
+    const v = Number(e.target.value) || 1;
+    eraserSize = Math.max(1, Math.min(500, v));
+    if (v > 500) e.target.value = 500;
+  });
+}
 
 // ----- DRAW HELPERS -----
 function drawCalligraphy(x,y){
@@ -839,9 +929,26 @@ document.querySelectorAll('.menu-title').forEach(title=>{
       document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
       if (!isOpen && dropdown) dropdown.classList.remove('hidden');
     }
-    if(menu!=='import') importResetState();
-    if(menu==='edit') setTimeout(()=>updateLayerOutline(),40);
-    else layerOutline.style.display='none';
+    if (menu!=='import') importResetState();
+    if (menu==='edit') setTimeout(()=>updateLayerOutline(),40);
+    else {
+      // do not automatically hide the outline if the transform mode is active;
+      // only hide it if transform is not active.
+      if(!layerTransform.enabled) layerOutline.style.display='none';
+    }
+
+    // If text settings are hidden, ensure text preview overlay is hidden.
+    // Also ensure the text tool is deactivated when the user switches out of the tools tab.
+    const textSettings = document.getElementById('text-settings');
+    if (menu !== 'tools') {
+      if (currentTool === 'text') {
+        currentTool = 'marker';
+        setToolHighlight('marker');
+      }
+      if (textSettings && textSettings.classList.contains('hidden')) hideTextPreviewOverlay();
+      else hideTextPreviewOverlay();
+    }
+
     if (menu === 'select') {
       selectSectionOpen = dropdown && !dropdown.classList.contains('hidden');
       if (!selectSectionOpen) clearSelection();
@@ -867,6 +974,11 @@ document.querySelectorAll('.tool-option').forEach(opt => {
     // ---- toggle the same tool's panel ----
     if (currentTool === tool) {
       if (settings) settings.classList.toggle('hidden');
+      if (tool === 'text') {
+        // if collapsed, hide preview; if opened, show preview
+        if (settings && settings.classList.contains('hidden')) hideTextPreviewOverlay();
+        else showTextPreviewOverlay(textString, textFont, textSize, textColor, true);
+      }
       if (tool === 'select') selectSectionOpen = !settings.classList.contains('hidden');
       if (!selectSectionOpen && tool === 'select') clearSelection();
       return;
@@ -1459,7 +1571,34 @@ document.addEventListener('mousemove', e => {
   textPreviewOverlay.style.left = textPreviewPosX + 'px';
   textPreviewOverlay.style.top = textPreviewPosY + 'px';
 });
+
 document.addEventListener('mouseup', () => {
+  textPreviewDragging = false;
+  textPreviewOverlay.style.cursor = 'grab';
+});
+textPreviewOverlay.addEventListener('touchstart', e => {
+  if (!e.touches || e.touches.length !== 1) return;
+  e.preventDefault(); // allow dragging
+  textPreviewDragging = true;
+  const r = textPreviewOverlay.getBoundingClientRect();
+  const t = e.touches[0];
+  textPreviewOffsetX = t.clientX - r.left;
+  textPreviewOffsetY = t.clientY - r.top;
+  textPreviewOverlay.style.cursor = 'grabbing';
+}, { passive: false });
+
+document.addEventListener('touchmove', e => {
+  if (!textPreviewDragging || !textPreviewActive) return;
+  const rect = container.getBoundingClientRect();
+  const t = e.touches ? e.touches[0] : e;
+  textPreviewPosX = t.clientX - rect.left - textPreviewOffsetX;
+  textPreviewPosY = t.clientY - rect.top - textPreviewOffsetY;
+  textPreviewOverlay.style.left = textPreviewPosX + 'px';
+  textPreviewOverlay.style.top = textPreviewPosY + 'px';
+  if (e.cancelable) e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('touchend', () => {
   textPreviewDragging = false;
   textPreviewOverlay.style.cursor = 'grab';
 });
@@ -1558,22 +1697,19 @@ const rotRange=document.getElementById('layer-rotation-range');
 const rotNumber=document.getElementById('layer-rotation-number');
 const scaleInput=document.getElementById('layer-scale');
 const scaleValue=document.getElementById('layer-scale-value');
-const transformApply=document.getElementById('layer-transform-apply');
-const transformReset=document.getElementById('layer-transform-reset');
 
 rotRange.addEventListener('input',()=>{ layerTransform.rotation=parseFloat(rotRange.value||0); rotNumber.value=layerTransform.rotation; layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`; });
 rotNumber.addEventListener('input',()=>{ const v=Math.max(-180,Math.min(180,Number(rotNumber.value)||0)); layerTransform.rotation=v; rotRange.value=v; layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`; });
 
 scaleInput.addEventListener('input',()=>{ layerTransform.scale=parseInt(scaleInput.value,10)/100; scaleValue.textContent=scaleInput.value+'%'; layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`; });
 
-transformApply.addEventListener('click',applyLayerTransformToActiveLayer);
-transformReset.addEventListener('click',()=>{ layerTransform.rotation=0; layerTransform.scale=1; rotRange.value=0; rotNumber.value=0; scaleInput.value=100; scaleValue.textContent='100%'; updateLayerOutline(); });
+document.getElementById('layer-transform-reset')?.removeEventListener?.('click',()=>{}); // reset button removed from DOM, ensure no lingering handlers
 
 function applyLayerTransformToActiveLayer(){
   if(!layers.length) return;
   const layer=layers[activeLayerIndex];
   const bbox=computeActivePixelBBox(layer.canvas);
-  if(bbox.empty){ layerTransform.enabled=false; updateLayerOutline(); return; }
+  if(bbox.empty){ setTransformModeEnabled(false); updateLayerOutline(); return; }
   saveState();
   const src=document.createElement('canvas'); src.width=bbox.w; src.height=bbox.h;
   const sctx=src.getContext('2d'); sctx.imageSmoothingEnabled=false;
@@ -1591,8 +1727,24 @@ function applyLayerTransformToActiveLayer(){
   layer.ctx.drawImage(src,-targetW/2,-targetH/2,targetW,targetH);
   layer.ctx.restore();
   renderComposite();
-  layerTransform.enabled=false; updateLayerUI();
+
+  // reset transform values and UI automatically after applying
+  layerTransform.rotation = 0;
+  layerTransform.scale = 1;
+  const rr=document.getElementById('layer-rotation-range');
+  const rn=document.getElementById('layer-rotation-number');
+  const si=document.getElementById('layer-scale');
+  const sv=document.getElementById('layer-scale-value');
+  if(rr) rr.value=0;
+  if(rn) rn.value=0;
+  if(si) si.value=100;
+  if(sv) sv.textContent='100%';
+
+  setTransformModeEnabled(false);
+  updateLayerUI();
 }
+
+document.getElementById('layer-transform-apply')?.addEventListener('click',applyLayerTransformToActiveLayer);
 
 layerOutline.addEventListener('mousedown',e=>{
   if(!layerTransform.enabled) return;
@@ -1620,7 +1772,6 @@ window.addEventListener('resize',()=>{ resizeCanvasAndLayers(); updateLayerOutli
 filtersGrid.classList.add('hidden'); if(filtersArrow) filtersArrow.textContent='RIGHT TRIANGLE';
 
 // ---------- TOOLBOX TOGGLE (fixed: now toggles the toolbox without changing selected tool) ----------
-// paths (place these PNGs next to paint.html)
 const EYE_OPEN_SRC   = 'eye-open.png';
 const EYE_CLOSED_SRC = 'eye-closed.png';
 
@@ -1628,16 +1779,12 @@ const toolPanel = document.getElementById('tool-panel');
 const toolboxToggleTab = document.getElementById('toolbox-toggle-tab');
 const eyeImg = document.getElementById('toolbox-eye');
 
-// preload images to avoid flicker
 const _preloadOpen = new Image(); _preloadOpen.src = EYE_OPEN_SRC;
 const _preloadClosed = new Image(); _preloadClosed.src = EYE_CLOSED_SRC;
 
-// ensure initial state matches current toolbox visibility
 let toolboxVisible = !(toolPanel.classList.contains('hidden')) && (toolPanel.style.display !== 'none');
 if (eyeImg) eyeImg.src = toolboxVisible ? EYE_OPEN_SRC : EYE_CLOSED_SRC;
 
-// Toggle behaviour: hide/show toolbox without changing selected tool and update icon
-// (If you have another handler for the tab, remove it first to avoid duplicate handlers)
 toolboxToggleTab.addEventListener('click', (e) => {
   e.stopPropagation();
   toolboxVisible = !toolboxVisible;
@@ -1653,4 +1800,4 @@ selectionPreviewImg.style.maxHeight = 'none';
   </script>
   <div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
 </body>
-</html> 
+</html>
