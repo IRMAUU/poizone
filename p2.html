@@ -17,8 +17,9 @@
     input[type="number"].no-arrows::-webkit-inner-spin-button,input[type="number"].no-arrows::-webkit-outer-spin-button{appearance:none;margin:0;}
     input[type="number"].no-arrows{-moz-appearance:textfield;}
     button{background:#000;color:#39ff14;border:1px solid #39ff14;padding:3px 6px;cursor:pointer;font-family:'Roboto Mono',monospace;font-weight:700;}
-    #app-container{width:80vw;height:80vh;margin:auto;position:relative;top:1vh;background:#fff;display:flex;justify-content:center;align-items:center;overflow:hidden;}
-    canvas#paint-canvas{width:100%;height:100%;background:#fff;image-rendering:pixelated;border:1px solid #000;cursor:crosshair;display:block;}
+    /* Container: allow the toggle tab to hang off the canvas without overlapping its content */
+    #app-container{width:80vw;height:80vh;margin:auto;position:relative;top:1vh;background:#fff;display:flex;justify-content:center;align-items:center;overflow:visible;}
+    canvas#paint-canvas{width:100%;height:100%;background:#fff;image-rendering:pixelated;border:1px solid #000;cursor:crosshair;display:block;position:relative;}
     #tool-panel{position:absolute;top:10px;left:10px;background:#222;color:#39ff14;padding:8px;border:1px solid #555;z-index:40;user-select:none;border-radius:6px;max-width:420px;}
     .menu-title{cursor:move;padding:4px;text-transform:lowercase;}
     .menu-title#undo-btn{cursor:pointer;color:#39ff14;}
@@ -86,6 +87,7 @@
     .text-rotation-wrapper,.text-size-wrapper { margin-top: 7px; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
     .text-rotation-wrapper label,.text-size-wrapper label { margin-right: 4px; }
     .text-rotation-wrapper input[type="number"].no-arrows, .text-size-wrapper input[type="number"].no-arrows { width: 45px; background: #000; border: 1px solid #39ff14; color: #39ff14; font-size: 13px; text-align: right; padding:2px 4px; }
+
     /* Edit dropdown layout + narrow stacked layers */
     #edit-dropdown{ width:245px; }
     #edit-dropdown .layers-grid{ display:flex; flex-direction:column; gap:6px; margin-top:4px; max-height:240px; overflow-y:auto; padding-right:4px; }
@@ -101,6 +103,7 @@
     .transform-controls{ display:flex; flex-direction:column; gap:6px; margin-top:6px; font-size:13px; }
     .transform-controls input[type="range"]{ width:100%; }
     .transform-row{ display:flex; gap:6px; align-items:center; }
+
     /* red outline for active pixel bbox in edit mode */
     #layer-outline{
       position:absolute;
@@ -114,6 +117,7 @@
       cursor:grab;
       touch-action:none;
     }
+
     /* selection preview overlay (rect marquee and floating selection) */
     #selection-preview{
       position:absolute;
@@ -132,36 +136,37 @@
   animation: march 0.6s steps(8) infinite;
 }
 @keyframes march {
-  0% { border-color: #39ff14; }
+  0%   { border-color: #39ff14; }
   100% { border-color: #000; }
 }
     /* Transform section hidden by default */
-    /* Transform section hidden by default */
 #transform-section-wrapper.hidden { display: none; }
-    /* New styles for toolbox toggle tab */
+
+    /* New styles for toolbox toggle tab: absolutely anchored to container's bottom-right so it visually hangs off canvas */
     #toolbox-toggle-tab {
       position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 40px;
+      right: 10px;       /* distance from container right (aligned with canvas right) */
+      bottom: -11px;     /* hang off the bottom edge so it doesn't overlap canvas */
+      width: 44px;
       height: 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       background: #222;
       border: 1px solid #555;
-      border-bottom: none;
-      border-radius: 4px 4px 0 0;
+      border-radius: 0 0 4px 4px;
       cursor: pointer;
-      z-index: 39;
+      z-index: 60;
       font-size: 12px;
       color: #39ff14;
-      padding: 0 2px;
+      padding: 0 4px;
+      box-sizing: border-box;
+      user-select: none;
     }
     #toolbox-toggle-tab .color-stripe {
       width: 8px;
-      height: 100%;
-      border-radius: 2px 0 0 2px;
+      height: 110%;
+      border-radius: 0 0 0 0;
     }
     #toolbox-toggle-tab .eye-icon {
       padding: 0 4px;
@@ -173,13 +178,25 @@
       margin-right: 4px;
       border-radius: 2px;
     }
+
+    /* eye icon as PNG (matches emoji size ~16px) */
+#toolbox-eye {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
   </style>
 </head>
 <body>
   <center><img src="ppt.png" width="13%"></center>
   <div id="app-container">
     <canvas id="paint-canvas"></canvas>
+
     <div id="layer-outline"></div>
+
     <div id="tool-panel">
       <div class="menu-title" id="tool-panel-header" data-menu="tools">-tools</div>
       <div class="dropdown hidden" id="tools-dropdown">
@@ -189,6 +206,7 @@
           <label>color: <input type="color" id="color-picker" value="#000000"></label><br>
           <label>flow: <input type="range" id="marker-flow" min="1" max="3000" value="2500"></label>
         </div>
+
         <div class="tool-option" id="calligraphy-option">-calligraphy</div>
         <div class="tool-settings hidden" id="calligraphy-settings">
           <label>size: <input type="number" id="calligraphy-size" min="1" max="64" value="20"></label><br>
@@ -203,6 +221,7 @@
             <button class="calligraphy-btn force-plain-text" data-calligraphy="DIAMOND">◆</button>
           </div>
         </div>
+
         <div class="tool-option" id="symbol-option">-symbol</div>
         <div class="tool-settings hidden" id="symbol-settings">
           <label>size: <input type="number" id="symbol-size" min="1" max="150" value="35"></label><br>
@@ -216,6 +235,7 @@
             <button class="symbol-btn force-plain-text" data-symbol="PEACE">☮</button>
           </div>
         </div>
+
         <div class="tool-option" id="text-option">-text</div>
         <div class="tool-settings hidden" id="text-settings">
           <div id="font-dropdown" class="font-dropdown" tabindex="0">
@@ -259,6 +279,7 @@
             <button id="text-cancel-btn">cancel</button>
           </div>
         </div>
+
         <div class="tool-option" id="spray-option">-spray</div>
         <div class="tool-settings hidden" id="spray-settings">
           <label>size: <input type="number" id="spray-size" min="1" max="25" value="3"></label><br>
@@ -266,14 +287,17 @@
           <label>flow: <input type="range" id="spray-flow" min="1" max="100" value="50"></label><br>
           <label>color: <input type="color" id="spray-color"></label>
         </div>
+
         <div class="tool-option" id="bucket-option">-bucket</div>
         <div class="tool-settings hidden" id="bucket-settings">
           <label>color: <input type="color" id="bucket-color" value="#000000"></label>
         </div>
+
         <div class="tool-option" id="eraser-option">-eraser</div>
         <div class="tool-settings hidden" id="eraser-settings">
           <label>size: <input type="number" id="eraser-size" min="1" max="25" value="3"></label>
         </div>
+
         <div class="tool-option clear-tool" id="clear-option">-clear</div>
         <div class="tool-settings hidden" id="clear-settings">
           <div class="clear-settings">
@@ -282,17 +306,19 @@
           </div>
         </div>
       </div>
+
       <!-- Edit -->
       <div class="menu-title" data-menu="edit">-edit</div>
       <div class="dropdown hidden" id="edit-dropdown">
         <div class="filters-section">- layers</div>
         <div class="layers-grid" id="layers-grid"></div>
-     
+      
         <div class="layers-controls" style="margin-top:3px;display:flex;gap:6px;align-items:center;">
           <button id="layer-add">+</button>
           <button id="layer-remove">-</button>
           <div style="margin-left:auto;color:#aaa;" id="layer-count">1/5</div>
         </div>
+
         <!-- TRANSFORM SECTION (hidden by default) -->
         <div id="transform-section-wrapper" class="hidden">
           <div class="transform-section">- transform active layer</div>
@@ -314,6 +340,7 @@
             </div>
           </div>
         </div>
+
         <!-- Filters (toggle) -->
         <div class="filters-section" id="filters-toggle" style="cursor:pointer;display:flex;align-items:center;gap:8px;">- filters </span></div>
         <div id="filters-grid" class="filters-grid hidden">
@@ -322,6 +349,7 @@
           <button class="filter-btn" id="filter-blur">blur</button>
           <button class="filter-btn" id="filter-sharpen">sharpen</button>
         </div>
+
         <!-- Select controls -->
         <div class="select-section menu-title" data-menu="select">- ⛶ select</div>
         <div class="dropdown hidden" id="select-dropdown">
@@ -336,6 +364,7 @@
           </div>
         </div>
       </div>
+
       <div class="menu-title" data-menu="import">-import</div>
       <div class="dropdown hidden" id="import-dropdown">
         <label class="import-label" for="import-image-file">upload<input type="file" id="import-image-file" accept="image/*"></label>
@@ -356,6 +385,7 @@
           <div style="font-size:11px;color:#aaa;margin-top:3px;">drag image to position, then stamp</div>
         </div>
       </div>
+
       <div class="menu-title" data-menu="export">-export</div>
       <div class="dropdown hidden" id="export-dropdown">
         <label class="export-settings">file name: <input type="text" id="file-name" value="pixel-art"></label><br>
@@ -365,22 +395,27 @@
       </div>
       <div class="menu-title" id="undo-btn">-undo</div>
     </div>
+
     <div id="text-preview-overlay">
       <div id="text-preview-content">your text</div>
     </div>
+
     <div id="selection-preview">
       <img id="selection-preview-img" style="display:none;">
     </div>
-    <!-- New toolbox toggle tab -->
+
+    <!-- toolbox toggle tab: child of container and anchored to container bottom-right (visually attached to canvas) -->
     <div id="toolbox-toggle-tab">
       <div id="layer-color-stripe" class="color-stripe"></div>
-      <span class="eye-icon">👁</span>
+<img id="toolbox-eye" src="eye-open.png" alt="toggle" />
     </div>
   </div>
   <script>
-/* ==== FULL FIXED JS ==== */
+/* ==== FULL JS (fixed) ==== */
+
 const container = document.getElementById('app-container');
 const canvas = document.getElementById('paint-canvas'), mainCtx = canvas.getContext('2d');
+
 function initCanvasSize(){
   const r = canvas.getBoundingClientRect();
   canvas.width = Math.round(r.width) || 800;
@@ -388,12 +423,19 @@ function initCanvasSize(){
   mainCtx.imageSmoothingEnabled = false;
 }
 initCanvasSize();
+
 let MAX_UNDO = 20;
 let undoStack = [];
+
 // ---------- LAYERS ----------
 const MAX_LAYERS = 5;
 let layers = [];
 let activeLayerIndex = 0;
+
+// Stable counter for naming/coloring layers so names/colors stick with layer objects after reorder
+let layerCounter = 1;
+const LAYER_COLORS = ['#ff0000', '#0000ff', '#ffff00', '#800080', '#ffa500'];
+
 const layersGrid = document.getElementById('layers-grid');
 const layerAddBtn = document.getElementById('layer-add');
 const layerRemoveBtn = document.getElementById('layer-remove');
@@ -401,12 +443,15 @@ const layerCountLabel = document.getElementById('layer-count');
 const layerOutline = document.getElementById('layer-outline');
 const selectionPreview = document.getElementById('selection-preview');
 const selectionPreviewImg = document.getElementById('selection-preview-img');
+
 function createLayer(){
   const c = document.createElement('canvas');
   c.width = canvas.width; c.height = canvas.height;
   const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0,0,c.width,c.height);
-  layers.push({canvas:c, ctx});
+  const name = `Layer ${layerCounter++}`; // stable name stored on the layer
+  const color = LAYER_COLORS[(layerCounter - 2) % LAYER_COLORS.length]; // pick color based on creation order
+  layers.push({canvas:c, ctx, name, color});
   activeLayerIndex = layers.length - 1;
   updateLayerUI();
   renderComposite();
@@ -423,6 +468,7 @@ function renderComposite(){
   layers.forEach(l=>mainCtx.drawImage(l.canvas,0,0));
 }
 function getActiveCtx(){ return layers[activeLayerIndex].ctx; }
+
 // ---------- UNDO ----------
 function saveState(){
   try{
@@ -444,6 +490,7 @@ function undo(){
   activeLayerIndex = Math.min(snap.activeIndex,layers.length-1);
   updateLayerUI(); renderComposite();
 }
+
 // ---------- RESIZE ----------
 function resizeCanvasAndLayers(){
   const r = canvas.getBoundingClientRect();
@@ -462,6 +509,7 @@ function resizeCanvasAndLayers(){
   mainCtx.imageSmoothingEnabled=false;
   renderComposite();
 }
+
 // ---------- BBOX ----------
 function computeActivePixelBBox(layerCanvas){
   const ctx = layerCanvas.getContext('2d');
@@ -479,12 +527,14 @@ function computeActivePixelBBox(layerCanvas){
   if(maxX===-1) return {x:0,y:0,w:0,h:0,empty:true};
   return {x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1,empty:false};
 }
+
 // ---------- LAYER TRANSFORM ----------
 let layerTransform = {
   enabled:false, posX:0, posY:0, rotation:0, scale:1.0,
   dragging:false, offsetX:0, offsetY:0,
   bboxCss:{left:0,top:0,w:0,h:0}
 };
+
 function updateLayerOutline(){
   const editDropdown = document.getElementById('edit-dropdown');
   if(!editDropdown || editDropdown.classList.contains('hidden')){
@@ -494,15 +544,17 @@ function updateLayerOutline(){
   const layer = layers[activeLayerIndex];
   const bbox = computeActivePixelBBox(layer.canvas);
   if(bbox.empty){ layerOutline.style.display='none'; return; }
+
   const scaleX = container.offsetWidth / layer.canvas.width;
   const scaleY = container.offsetHeight / layer.canvas.height;
   const left = Math.round(bbox.x*scaleX);
-  const top = Math.round(bbox.y*scaleY);
+  const top  = Math.round(bbox.y*scaleY);
   const w = Math.max(1,Math.round(bbox.w*scaleX));
   const h = Math.max(1,Math.round(bbox.h*scaleY));
+
   layerOutline.style.left = left+'px';
-  layerOutline.style.top = top+'px';
-  layerOutline.style.width = w+'px';
+  layerOutline.style.top  = top+'px';
+  layerOutline.style.width  = w+'px';
   layerOutline.style.height = h+'px';
   layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
   layerOutline.style.display = 'block';
@@ -510,10 +562,12 @@ function updateLayerOutline(){
   layerTransform.bboxCss = {left,top,w,h};
   layerOutline.style.cursor = layerTransform.enabled?'grab':'default';
 }
+
 function setActiveLayer(i, enableTransform = false){
     activeLayerIndex = i;
     updateLayerUI();
     renderComposite();
+
     const wrapper = document.getElementById('transform-section-wrapper');
     if(enableTransform && wrapper){
         wrapper.classList.remove('hidden');
@@ -530,49 +584,63 @@ function setActiveLayer(i, enableTransform = false){
     }
     updateLayerOutline();
 }
+
+
 function updateLayerUI(){
   layersGrid.innerHTML = '';
-  const layerColors = ['#ff0000', '#0000ff', '#ffff00', '#800080', '#ffa500']; // red, blue, yellow, purple, orange
+  // Render top-most layer first for visual stack order
   for(let display=layers.length-1; display>=0; display--){
     const i = display;
+    const layer = layers[i];
     const cell = document.createElement('div');
     cell.className = 'layer-cell' + (i===activeLayerIndex?' active':'');
     if(layerTransform.enabled && i===activeLayerIndex) cell.classList.add('transform-active');
     cell.dataset.index = i;
+
     const colorIndicator = document.createElement('div');
     colorIndicator.className = 'layer-color-indicator';
-    colorIndicator.style.background = layerColors[i] || '#ccc';
+    colorIndicator.style.background = layer.color || '#ccc';
+
     const label = document.createElement('div');
-    label.textContent = `Layer ${i+1}`;
+    label.textContent = layer.name; // stable name stays with layer object
     label.style.flex='1 1 auto';
     label.style.overflow='hidden';
     label.style.textOverflow='ellipsis';
     label.style.whiteSpace='nowrap';
+
     const actions = document.createElement('div');
     actions.className='layer-actions';
+
     const up = document.createElement('button'); up.innerHTML='▲'; up.title='bring up';
-    up.onclick = ev=>{ev.stopPropagation(); moveLayerUp(i);};
+    up.dataset.index = i;
+    up.addEventListener('click', ev => { ev.stopPropagation(); moveLayerUp(Number(ev.currentTarget.dataset.index)); });
+
     const down = document.createElement('button'); down.innerHTML='▼'; down.title='send down';
-    down.onclick = ev=>{ev.stopPropagation(); moveLayerDown(i);};
+    down.dataset.index = i;
+    down.addEventListener('click', ev => { ev.stopPropagation(); moveLayerDown(Number(ev.currentTarget.dataset.index)); });
+
     const sel = document.createElement('button'); sel.innerHTML='●'; sel.title='enter transform mode';
-    sel.onclick = ev=>{ev.stopPropagation(); setActiveLayer(i,true);};
+    sel.addEventListener('click', ev => { ev.stopPropagation(); setActiveLayer(i, true); });
+
     actions.append(up,down,sel);
     cell.append(colorIndicator, label, actions);
-    cell.onclick = ()=>setActiveLayer(i);
+    cell.addEventListener('click', ()=>setActiveLayer(i));
     layersGrid.appendChild(cell);
   }
   layerCountLabel.textContent = `${layers.length}/${MAX_LAYERS}`;
   layerAddBtn.disabled = layers.length>=MAX_LAYERS;
   layerRemoveBtn.disabled = layers.length<=1;
   updateLayerOutline();
-  // Update toolbox toggle tab color stripe
+
+  // Update toolbox toggle tab color stripe to the active layer's color
   const colorStripe = document.getElementById('layer-color-stripe');
-  if (colorStripe) {
-    colorStripe.style.background = layerColors[activeLayerIndex] || '#ccc';
+  if (colorStripe && layers[activeLayerIndex]) {
+    colorStripe.style.background = layers[activeLayerIndex].color || '#ccc';
   }
 }
 function moveLayerUp(i){
   if(i>=layers.length-1) return;
+  // swap layers in array so their name/color and content travel with the layer object
   [layers[i],layers[i+1]] = [layers[i+1],layers[i]];
   if(activeLayerIndex===i) activeLayerIndex=i+1;
   else if(activeLayerIndex===i+1) activeLayerIndex=i;
@@ -580,7 +648,8 @@ function moveLayerUp(i){
 }
 function moveLayerDown(i){
   if(i<=0) return;
-  [layers[i-1],layers[i]] = [layers[i-1],layers[i]];
+  // correct swap order (was previously a no-op)
+  [layers[i-1],layers[i]] = [layers[i],layers[i-1]];
   if(activeLayerIndex===i) activeLayerIndex=i-1;
   else if(activeLayerIndex===i-1) activeLayerIndex=i;
   updateLayerUI(); renderComposite();
@@ -591,6 +660,7 @@ document.getElementById('layer-transform-exit')?.addEventListener('click',()=>{
   layerTransform.enabled = false;
   updateLayerOutline(); updateLayerUI();
 });
+
 // ---------- TOOLS ----------
 let drawing=false, currentTool='marker';
 let markerSize=3, eraserSize=3, color='#000000', bucketColor='#000000', flow=2500;
@@ -598,10 +668,13 @@ let spraySize=3, spraySpread=16, sprayFlow=50, sprayColor='#000000';
 let calligraphySize=20, calligraphyFlow=2500, calligraphyBrushType=0, calligraphyColor='#000000';
 let symbolSize=35, symbolCharType=0, symbolColor='#000000';
 let textFont="Arial", textSize=32, textColor="#000000", textString="your text";
+
 const calligraphyBrushes = ["HEART","VERTICAL","STAR","TRIANGLE-R","TRIANGLE-L","DIAMOND"];
 const symbolChars = ["STAR","SKULL","BIOHAZARD","CROSS","HAMMER","PEACE"];
+
 document.querySelectorAll('.calligraphy-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.calligraphy-btn').forEach(x=>x.classList.remove('calligraphy-selected'));b.classList.add('calligraphy-selected');calligraphyBrushType=i;});
 document.querySelectorAll('.symbol-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.symbol-btn').forEach(x=>x.classList.remove('symbol-selected'));b.classList.add('symbol-selected');symbolCharType=i;});
+
 document.getElementById('marker-size').oninput=e=>markerSize=+e.target.value;
 document.getElementById('marker-flow').oninput=e=>flow=+e.target.value;
 document.getElementById('color-picker').oninput=e=>color=e.target.value;
@@ -610,6 +683,7 @@ document.getElementById('calligraphy-flow').oninput=e=>calligraphyFlow=+e.target
 document.getElementById('calligraphy-color').oninput=e=>calligraphyColor=e.target.value;
 document.getElementById('symbol-size').oninput=e=>symbolSize=+e.target.value;
 document.getElementById('symbol-color').oninput=e=>symbolColor=e.target.value;
+
 // ----- DRAW HELPERS -----
 function drawCalligraphy(x,y){
   const ctx=getActiveCtx(); ctx.save();
@@ -666,6 +740,7 @@ function sprayAt(x,y){
   }
   ctx.restore();
 }
+
 // ----- CANVAS INPUT -----
 let lastPos=null;
 function getCanvasCoords(e){
@@ -717,9 +792,11 @@ canvas.addEventListener('mousemove', e=>{
 });
 canvas.addEventListener('mouseup',()=>{drawing=false; lastPos=null;});
 canvas.addEventListener('mouseout',()=>{drawing=false; lastPos=null;});
+
 canvas.addEventListener('touchstart', e=>{ e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousedown', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY})); });
-canvas.addEventListener('touchmove', e=>{ e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousemove', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY})); });
-canvas.addEventListener('touchend', ()=>{ canvas.dispatchEvent(new MouseEvent('mouseup')); });
+canvas.addEventListener('touchmove',  e=>{ e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousemove', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY})); });
+canvas.addEventListener('touchend',   ()=>{ canvas.dispatchEvent(new MouseEvent('mouseup')); });
+
 // ----- BUCKET -----
 function hexToRgb(hex){ const b=parseInt(hex.slice(1),16); return [(b>>16)&255,(b>>8)&255,b&255]; }
 function getPixel(imgData,x,y){ const i=(y*imgData.width+x)*4; return [imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]]; }
@@ -741,6 +818,7 @@ function floodFillActiveLayer(x,y,fillHex){
   layer.ctx.putImageData(img,0,0);
   renderComposite();
 }
+
 // ---------- MENU TITLE (non-tool menus) ----------
 document.querySelectorAll('.menu-title').forEach(title=>{
   const menu=title.dataset.menu;
@@ -770,6 +848,7 @@ document.querySelectorAll('.menu-title').forEach(title=>{
     }
   });
 });
+
 // ---------- TOOL OPTIONS (fixed – stop propagation) ----------
 /* ==== TOOL OPTIONS – FIXED ==== */
 document.querySelectorAll('.tool-option').forEach(opt => {
@@ -778,10 +857,12 @@ document.querySelectorAll('.tool-option').forEach(opt => {
 });
 document.querySelectorAll('.tool-option').forEach(opt => {
   opt.addEventListener('click', e => {
-    e.stopPropagation(); // <-- STOP BUBBLE TO MENU TITLE
-    e.preventDefault(); // <-- extra safety for some browsers
+    e.stopPropagation();   // <-- STOP BUBBLE TO MENU TITLE
+    e.preventDefault();    // <-- extra safety for some browsers
+
     const tool = opt.id.split('-')[0];
     const settings = document.getElementById(`${tool}-settings`);
+
     // ---- toggle the same tool's panel ----
     if (currentTool === tool) {
       if (settings) settings.classList.toggle('hidden');
@@ -789,14 +870,17 @@ document.querySelectorAll('.tool-option').forEach(opt => {
       if (!selectSectionOpen && tool === 'select') clearSelection();
       return;
     }
+
     // ---- switch to a new tool ----
     currentTool = tool;
     setToolHighlight(currentTool);
+
     if (tool === 'text') {
       showTextPreviewOverlay(textString, textFont, textSize, textColor, true);
     } else {
       hideTextPreviewOverlay();
     }
+
     // keep the Tools dropdown open
     const toolsDropdown = document.getElementById('tools-dropdown');
     if (toolsDropdown && toolsDropdown.classList.contains('hidden')) {
@@ -805,6 +889,7 @@ document.querySelectorAll('.tool-option').forEach(opt => {
     }
   });
 });
+
 function setToolHighlight(tool){
   ['marker','calligraphy','symbol','text','spray','eraser','bucket','clear','select'].forEach(t=>{
     const s=document.getElementById(`${t}-settings`);
@@ -816,11 +901,14 @@ function setToolHighlight(tool){
   const o=document.getElementById(`${tool}-option`);
   if(s) s.classList.remove('hidden');
   if(o) o.classList.add('selected');
+
   if(tool!=='select') clearSelection();
 }
+
 // ---------- CLEAR ----------
 document.getElementById('clear-yes').addEventListener('click',()=>{ saveState(); getActiveCtx().clearRect(0,0,canvas.width,canvas.height); document.getElementById('clear-settings').classList.add('hidden'); renderComposite(); });
 document.getElementById('clear-back').addEventListener('click',()=>{ document.getElementById('clear-settings').classList.add('hidden'); });
+
 // ---------- EXPORT ----------
 document.getElementById('export-btn').addEventListener('click',()=>{
   const name=document.getElementById('file-name').value||'pixel-art';
@@ -834,14 +922,17 @@ document.getElementById('export-btn').addEventListener('click',()=>{
   link.href=tmp.toDataURL('image/png');
   link.click();
 });
+
 // ---------- UNDO ----------
 document.getElementById('undo-btn').addEventListener('click',undo);
 document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z') undo(); });
+
 // ---------- FILTERS ----------
 document.getElementById('filter-invert').addEventListener('click',()=>applyFilterToActiveLayer('invert'));
 document.getElementById('filter-bw').addEventListener('click',()=>applyFilterToActiveLayer('bw'));
 document.getElementById('filter-blur').addEventListener('click',()=>applyFilterToActiveLayer('blur'));
 document.getElementById('filter-sharpen').addEventListener('click',()=>applyFilterToActiveLayer('sharpen'));
+
 function applyFilterToActiveLayer(type){
   saveState();
   const layer=layers[activeLayerIndex];
@@ -883,11 +974,13 @@ function convolve(imgData,w,h,kernel){
   return new ImageData(out,w,h);
 }
 function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
 // ---------- SELECT TOOL ----------
 let selectSectionOpen = false;
 let selStart=null, selRect=null, isSelecting=false;
 let selectionImage=null;
 let selectionTransform={posX:0,posY:0,scale:1,rotation:0,dragging:false,offsetX:0,offsetY:0};
+
 function startMarquee(clientX,clientY){
   if(!selectSectionOpen) return;
   const rect=container.getBoundingClientRect();
@@ -897,6 +990,7 @@ function startMarquee(clientX,clientY){
   selectionPreview.classList.add('marching');
   selectionPreview.style.display='block';
   selectionRectDraw();
+
   const onMove=ev=>{
     if(!isSelecting) return;
     const mx=(ev.touches?ev.touches[0].clientX:ev.clientX)-rect.left;
@@ -935,32 +1029,36 @@ function finalizeMarquee(){
   const scaleY = layer.canvas.height / container.offsetHeight;
   const sx = Math.round(selRect.x * scaleX), sy = Math.round(selRect.y * scaleY);
   const sw = Math.max(1, Math.round(selRect.w * scaleX)), sh = Math.max(1, Math.round(selRect.h * scaleY));
+
   const off = document.createElement('canvas'); off.width = sw; off.height = sh;
   const offCtx = off.getContext('2d'); offCtx.imageSmoothingEnabled = false;
   offCtx.drawImage(layer.canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+
   saveState();
   layer.ctx.clearRect(sx, sy, sw, sh);
   renderComposite();
+
   selectionImage = off;
   selectionPreviewImg.src = off.toDataURL();
-  // make the preview image visible (it was initially display:none in the HTML)
   selectionPreviewImg.style.display = 'block';
-  // ensure the image fills the overlay box
   selectionPreviewImg.style.width = '100%';
   selectionPreviewImg.style.height = '100%';
+
   selectionTransform.posX = selRect.x; selectionTransform.posY = selRect.y;
   selectionTransform.scale = 1; selectionTransform.rotation = 0;
+
   selectionPreview.style.left = selRect.x + 'px';
-  selectionPreview.style.top = selRect.y + 'px';
+  selectionPreview.style.top  = selRect.y + 'px';
   selectionPreview.style.width = selRect.w + 'px';
   selectionPreview.style.height = selRect.h + 'px';
   selectionPreview.style.display = 'block';
   selectionPreview.classList.remove('marching');
+
   enableFloatingDrag();
 }
+
 // ---- REPLACE enableFloatingDrag() ----
 function enableFloatingDrag(){
-  // pointer-down handlers on the selection overlay
   selectionPreview.onmousedown = e => {
     selectionTransform.dragging = true;
     const r = selectionPreview.getBoundingClientRect();
@@ -977,7 +1075,7 @@ function enableFloatingDrag(){
     selectionTransform.offsetY = t.clientY - r.top;
     selectionPreview.style.cursor = 'grabbing';
   };
-  // move handler (attached to document to ensure it keeps responding)
+
   const move = e => {
     if (!selectionTransform.dragging) return;
     const rect = container.getBoundingClientRect();
@@ -985,23 +1083,23 @@ function enableFloatingDrag(){
     const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
     selectionTransform.posX = cx - selectionTransform.offsetX;
     selectionTransform.posY = cy - selectionTransform.offsetY;
-    // live preview while dragging
+
     selectionPreview.style.opacity = 0.25;
     updateFloatingTransform();
     if (e.cancelable) e.preventDefault();
   };
-  // up / release handler
+
   const up = () => {
     selectionTransform.dragging = false;
     selectionPreview.style.cursor = 'grab';
-    selectionPreview.style.opacity = 1; // restore full opacity
+    selectionPreview.style.opacity = 1;
   };
-  // Attach listeners (mouse and touch)
+
   document.addEventListener('mousemove', move);
   document.addEventListener('mouseup', up);
   document.addEventListener('touchmove', move, { passive: false });
   document.addEventListener('touchend', up);
-  // keyboard controls for rotate/scale already present — keep them
+
   const keyHandler = ev => {
     if (!selectionImage) return;
     if (ev.key === '[') { selectionTransform.rotation -= 5; updateFloatingTransform(); }
@@ -1009,11 +1107,11 @@ function enableFloatingDrag(){
     if (ev.key === '-' || ev.key === '_') { selectionTransform.scale = Math.max(0.1, selectionTransform.scale - 0.05); updateFloatingTransform(); }
     if (ev.key === '+' || ev.key === '=') { selectionTransform.scale = Math.min(5, selectionTransform.scale + 0.05); updateFloatingTransform(); }
   };
-  // ensure we don't double-add the handler; remove then add
   window.removeEventListener('keydown', selectionPreview._keyHandler || function(){});
   window.addEventListener('keydown', keyHandler);
   selectionPreview._keyHandler = keyHandler;
 }
+
 function updateFloatingTransform(){
   selectionPreview.style.left=selectionTransform.posX+'px';
   selectionPreview.style.top=selectionTransform.posY+'px';
@@ -1042,8 +1140,10 @@ function clearSelection(){
 }
 document.getElementById('select-commit').addEventListener('click',commitSelection);
 document.getElementById('select-clear-btn').addEventListener('click',clearSelection);
+
 canvas.addEventListener('mousedown',e=>{ if(currentTool==='select') startMarquee(e.clientX,e.clientY); });
 canvas.addEventListener('touchstart',e=>{ if(currentTool==='select'){ e.preventDefault(); startMarquee(e.touches[0].clientX,e.touches[0].clientY); }});
+
 // ---------- IMPORT MODULE ----------
 let importImg = null;
 let importPreview = null;
@@ -1059,7 +1159,7 @@ let importFlipH = 1;
 let importFlipV = 1;
 let importImgNaturalWidth = 0;
 let importImgNaturalHeight = 0;
-// Elements
+
 const importSettingsDiv = document.getElementById('import-settings');
 const importFileInput = document.getElementById('import-image-file');
 const importSizeSlider = document.getElementById('import-size');
@@ -1072,16 +1172,18 @@ const importFlipHBtn = document.getElementById('import-flip-h');
 const importFlipVBtn = document.getElementById('import-flip-v');
 const importStampBtn = document.getElementById('import-stamp-btn');
 const importCancelBtn = document.getElementById('import-cancel-btn');
-// ----------------- FUNCTIONS -----------------
+
 function hideImportPreview() {
     if (importPreview && importPreview.parentNode) {
         importPreview.parentNode.removeChild(importPreview);
         importPreview = null;
     }
 }
+
 function showImportPreview() {
     hideImportPreview();
     if (!importImg) return;
+
     importPreview = document.createElement('img');
     importPreview.id = 'import-preview-img';
     importPreview.src = importImg.src;
@@ -1090,13 +1192,15 @@ function showImportPreview() {
     importPreview.style.zIndex = 16;
     importPreview.style.cursor = 'grab';
     importPreview.style.boxSizing = 'border-box';
+
     container.appendChild(importPreview);
     updateImportPreviewTransform();
-    // Remove old listeners
+
     document.removeEventListener('mousemove', imagePreviewDragMove);
     document.removeEventListener('mouseup', imagePreviewDragEnd);
     document.removeEventListener('touchmove', imagePreviewDragMove);
     document.removeEventListener('touchend', imagePreviewDragEnd);
+
     importPreview.onmousedown = (e) => {
         e.preventDefault();
         importDragging = true;
@@ -1104,6 +1208,7 @@ function showImportPreview() {
         importOffsetX = e.clientX - r.left;
         importOffsetY = e.clientY - r.top;
     };
+
     importPreview.ontouchstart = (e) => {
         if (e.touches.length !== 1) return;
         e.preventDefault();
@@ -1113,29 +1218,38 @@ function showImportPreview() {
         importOffsetX = t.clientX - r.left;
         importOffsetY = t.clientY - r.top;
     };
+
     document.addEventListener('mousemove', imagePreviewDragMove);
     document.addEventListener('mouseup', imagePreviewDragEnd);
     document.addEventListener('touchmove', imagePreviewDragMove, { passive: false });
     document.addEventListener('touchend', imagePreviewDragEnd);
 }
+
+
 function imagePreviewDragMove(e) {
     if (!importDragging || !importPreview) return;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
     const rect = container.getBoundingClientRect();
     importPosX = clientX - rect.left - importOffsetX;
     importPosY = clientY - rect.top - importOffsetY;
+
     updateImportPreviewTransform();
     if (e.cancelable) e.preventDefault();
 }
+
 function imagePreviewDragEnd() {
     importDragging = false;
     if (importPreview) importPreview.style.cursor = 'grab';
 }
+
 function updateImportPreviewTransform() {
     if (!importPreview) return;
+
     const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
     const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
+
     importPreview.style.width = w + 'px';
     importPreview.style.height = h + 'px';
     importPreview.style.left = importPosX + 'px';
@@ -1143,15 +1257,19 @@ function updateImportPreviewTransform() {
     importPreview.style.opacity = importOpacity;
     importPreview.style.transform = `rotate(${importRotation}deg) scale(${importFlipH},${importFlipV})`;
 }
+
 function stampImageToActiveLayer() {
     if (!importImg || !importPreview) return;
-    saveState(); // Undo support
+    saveState();
+
     const scaleX = canvas.width / container.offsetWidth;
     const scaleY = canvas.height / container.offsetHeight;
+
     const w = Math.max(1, Math.round(importPreview.offsetWidth * scaleX));
     const h = Math.max(1, Math.round(importPreview.offsetHeight * scaleY));
     const px = Math.round(importPosX * scaleX);
     const py = Math.round(importPosY * scaleY);
+
     const ctx = getActiveCtx();
     ctx.save();
     ctx.globalAlpha = importOpacity;
@@ -1160,11 +1278,13 @@ function stampImageToActiveLayer() {
     ctx.scale(importFlipH, importFlipV);
     ctx.drawImage(importImg, -w / 2, -h / 2, w, h);
     ctx.restore();
+
     hideImportPreview();
     importImg = null;
     importSettingsDiv.classList.add('hidden');
     renderComposite();
 }
+
 function importResetState() {
     importImg = null;
     importImgNaturalWidth = 0;
@@ -1179,11 +1299,14 @@ function importResetState() {
     hideImportPreview();
     importSettingsDiv.classList.add('hidden');
 }
+
 // ----------------- EVENT LISTENERS -----------------
+
 importFileInput.addEventListener('change', function () {
     const file = this.files[0];
     if (!file) return;
     importResetState();
+
     const reader = new FileReader();
     reader.onload = (e) => {
         const img = new Image();
@@ -1191,19 +1314,23 @@ importFileInput.addEventListener('change', function () {
             importImg = img;
             importImgNaturalWidth = img.naturalWidth;
             importImgNaturalHeight = img.naturalHeight;
+
             importScale = 0.5;
             importSizeSlider.value = 50;
             importSizeValue.textContent = 50;
+
             importOpacity = parseInt(importOpacitySlider.value, 10) / 100;
             importRotation = parseInt(importRotationSlider.value, 10);
             importRotationNumber.value = importRotation;
+
             importFlipH = 1;
             importFlipV = 1;
-            // Center image
+
             const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
             const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
             importPosX = (container.offsetWidth - w) / 2;
             importPosY = (container.offsetHeight - h) / 2;
+
             importOpacityValue.textContent = importOpacitySlider.value;
             importSettingsDiv.classList.remove('hidden');
             showImportPreview();
@@ -1212,37 +1339,45 @@ importFileInput.addEventListener('change', function () {
     };
     reader.readAsDataURL(file);
 });
-// Slider & Input listeners
+
 importSizeSlider.addEventListener('input', function () {
     importScale = parseInt(this.value, 10) / 100;
     importSizeValue.textContent = this.value;
     updateImportPreviewTransform();
 });
+
 importOpacitySlider.addEventListener('input', function () {
     importOpacity = parseInt(this.value, 10) / 100;
     importOpacityValue.textContent = this.value;
     updateImportPreviewTransform();
 });
+
 importRotationSlider.addEventListener('input', function () {
     importRotation = parseInt(this.value, 10);
     importRotationNumber.value = importRotation;
     updateImportPreviewTransform();
 });
+
 importRotationNumber.addEventListener('input', function () {
     importRotation = parseInt(this.value, 10);
     importRotationSlider.value = importRotation;
     updateImportPreviewTransform();
 });
+
 importFlipHBtn.addEventListener('click', function () {
     importFlipH *= -1;
     updateImportPreviewTransform();
 });
+
 importFlipVBtn.addEventListener('click', function () {
     importFlipV *= -1;
     updateImportPreviewTransform();
 });
+
 importStampBtn.addEventListener('click', stampImageToActiveLayer);
 importCancelBtn.addEventListener('click', importResetState);
+
+
 // ---------- TEXT TOOL ----------
 const textPreviewOverlay = document.getElementById('text-preview-overlay');
 const textPreviewContent = document.getElementById('text-preview-content');
@@ -1251,12 +1386,11 @@ const textCancelBtn = document.getElementById('text-cancel-btn');
 let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0,
     textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0,
     textRotation = 0;
-// Show the preview overlay
+
 function showTextPreviewOverlay(txt, fnt, sz, col, forceCenter) {
   textPreviewActive = true;
   textPreviewOverlay.style.display = 'block';
   updateTextPreviewContent(txt, fnt, sz, col);
-  // Center the preview initially if requested
   if (forceCenter || !textPreviewInit) {
     const box = getTextBBox(txt, fnt, sz);
     const pad = 8;
@@ -1266,10 +1400,9 @@ function showTextPreviewOverlay(txt, fnt, sz, col, forceCenter) {
     textPreviewInitY = textPreviewPosY;
     textPreviewInit = true;
     textPreviewOverlay.style.left = textPreviewPosX + 'px';
-    textPreviewOverlay.style.top = textPreviewPosY + 'px';
+    textPreviewOverlay.style.top  = textPreviewPosY + 'px';
   }
 }
-// Get bounding box of multiline text
 function getTextBBox(txt, fnt, sz) {
   const off = document.createElement('canvas');
   const ctx = off.getContext('2d');
@@ -1282,32 +1415,26 @@ function getTextBBox(txt, fnt, sz) {
   const h = Math.ceil(lines.length * sz * 1.15);
   return { width: w, height: h };
 }
-// Update preview content, font, size, color, padding, and position
 function updateTextPreviewContent(txt, fnt, sz, col) {
   textPreviewContent.textContent = txt.replace(/\n/g,'\n');
-  // Apply font and color
   textPreviewOverlay.style.fontFamily = fnt;
   textPreviewOverlay.style.fontSize = sz + 'px';
   textPreviewOverlay.style.color = col;
   textPreviewContent.style.fontFamily = fnt;
   textPreviewContent.style.fontSize = sz + 'px';
   textPreviewContent.style.color = col;
-  // Measure and apply overlay size + padding
   const box = getTextBBox(txt, fnt, sz);
   const pad = 8;
   textPreviewOverlay.style.width = Math.ceil(box.width + pad) + 'px';
   textPreviewOverlay.style.height = Math.ceil(box.height + pad) + 'px';
   textPreviewContent.style.padding = (pad/2) + 'px';
-  // Keep current position and rotation
   textPreviewOverlay.style.left = textPreviewPosX + 'px';
-  textPreviewOverlay.style.top = textPreviewPosY + 'px';
+  textPreviewOverlay.style.top  = textPreviewPosY + 'px';
   updateTextPreviewTransform();
 }
-// Apply rotation
 function updateTextPreviewTransform() {
   textPreviewOverlay.style.transform = `rotate(${textRotation}deg)`;
 }
-// Hide overlay
 function hideTextPreviewOverlay() {
   textPreviewActive = false;
   textPreviewOverlay.style.display = 'none';
@@ -1315,7 +1442,6 @@ function hideTextPreviewOverlay() {
   textPreviewPosX = 0;
   textPreviewPosY = 0;
 }
-// Dragging
 textPreviewOverlay.addEventListener('mousedown', e => {
   e.preventDefault();
   textPreviewDragging = true;
@@ -1336,7 +1462,6 @@ document.addEventListener('mouseup', () => {
   textPreviewDragging = false;
   textPreviewOverlay.style.cursor = 'grab';
 });
-// Rotation
 function setTextRotation(v) {
   textRotation = Math.max(-180, Math.min(180, Number(v) || 0));
   updateTextPreviewTransform();
@@ -1349,7 +1474,6 @@ document.getElementById('text-rotation-number').addEventListener('input', e => {
   setTextRotation(e.target.value);
   document.getElementById('text-rotation-range').value = e.target.value;
 });
-// Submit / place text
 textSubmitBtn.addEventListener('click', () => {
   if (!textPreviewActive) return;
   saveState();
@@ -1373,7 +1497,7 @@ textSubmitBtn.addEventListener('click', () => {
   for (let i = 0; i < lines.length; i++) ctx.fillText(lines[i], 0, offY + i * textSize * 1.15);
   ctx.restore();
   renderComposite();
-  // Reset preview position after placement
+
   showTextPreviewOverlay(textString, textFont, textSize, textColor, false);
   textPreviewPosX = textPreviewInitX;
   textPreviewPosY = textPreviewInitY;
@@ -1381,10 +1505,11 @@ textSubmitBtn.addEventListener('click', () => {
   textPreviewOverlay.style.top = textPreviewPosY + 'px';
 });
 textCancelBtn.addEventListener('click', hideTextPreviewOverlay);
-// ---------- FONT DROPDOWN ----------
+
 const fontDropdown = document.getElementById('font-dropdown');
 const fontList = document.getElementById('font-dropdown-list');
 const fontSelName = document.getElementById('font-dropdown-selected-name');
+
 Array.from(fontList.children).forEach(opt => {
   opt.onclick = () => {
     Array.from(fontList.children).forEach(o => o.classList.remove('selected'));
@@ -1393,13 +1518,12 @@ Array.from(fontList.children).forEach(opt => {
     fontSelName.textContent = opt.textContent;
     fontSelName.style.fontFamily = textFont;
     fontDropdown.classList.remove('open');
-    // Immediately update preview when font changes
     if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
   };
 });
 document.getElementById('font-dropdown-selected').onclick = () => { fontDropdown.classList.toggle('open'); };
 fontDropdown.onblur = () => { fontDropdown.classList.remove('open'); };
-// ---------- TEXT SIZE ----------
+
 const textSizeRange = document.getElementById('text-size-range');
 const textSizeInput = document.getElementById('text-size');
 function setTextSize(v) {
@@ -1411,6 +1535,7 @@ function setTextSize(v) {
 }
 textSizeRange.addEventListener('input', e => setTextSize(e.target.value));
 textSizeInput.addEventListener('input', e => setTextSize(e.target.value));
+
 document.getElementById('text-color').addEventListener('input', e => {
   textColor = e.target.value;
   if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
@@ -1419,27 +1544,30 @@ document.getElementById('text-string').addEventListener('input', e => {
   textString = e.target.value;
   if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
 });
-// ---------- FILTERS TOGGLE ----------
+
 const filtersToggle=document.getElementById('filters-toggle');
 const filtersGrid=document.getElementById('filters-grid');
 const filtersArrow=document.getElementById('filters-arrow');
-filtersToggle.addEventListener('click',()=>{ filtersGrid.classList.toggle('hidden'); filtersArrow.textContent=filtersGrid.classList.contains('hidden')?'RIGHT TRIANGLE':'DOWN TRIANGLE'; });
-// ---------- LAYER ADD/REMOVE ----------
+filtersToggle.addEventListener('click',()=>{ filtersGrid.classList.toggle('hidden'); if(filtersArrow) filtersArrow.textContent=filtersGrid.classList.contains('hidden')?'RIGHT TRIANGLE':'DOWN TRIANGLE'; });
+
 layerAddBtn.addEventListener('click',()=>{ if(layers.length>=MAX_LAYERS) return; createLayer(); });
 layerRemoveBtn.addEventListener('click',()=>{ if(layers.length<=1) return; saveState(); removeLayer(activeLayerIndex); });
-// ---------- TRANSFORM CONTROLS ----------
+
 const rotRange=document.getElementById('layer-rotation-range');
 const rotNumber=document.getElementById('layer-rotation-number');
 const scaleInput=document.getElementById('layer-scale');
 const scaleValue=document.getElementById('layer-scale-value');
 const transformApply=document.getElementById('layer-transform-apply');
 const transformReset=document.getElementById('layer-transform-reset');
+
 rotRange.addEventListener('input',()=>{ layerTransform.rotation=parseFloat(rotRange.value||0); rotNumber.value=layerTransform.rotation; layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`; });
 rotNumber.addEventListener('input',()=>{ const v=Math.max(-180,Math.min(180,Number(rotNumber.value)||0)); layerTransform.rotation=v; rotRange.value=v; layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`; });
+
 scaleInput.addEventListener('input',()=>{ layerTransform.scale=parseInt(scaleInput.value,10)/100; scaleValue.textContent=scaleInput.value+'%'; layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`; });
-transformToggle.addEventListener('click',()=>{ layerTransform.enabled=!layerTransform.enabled; transformToggle.textContent=layerTransform.enabled?'disable':'enable'; layerOutline.style.pointerEvents=layerTransform.enabled?'auto':'none'; layerOutline.style.cursor=layerTransform.enabled?'grab':'default'; updateLayerOutline(); });
+
 transformApply.addEventListener('click',applyLayerTransformToActiveLayer);
 transformReset.addEventListener('click',()=>{ layerTransform.rotation=0; layerTransform.scale=1; rotRange.value=0; rotNumber.value=0; scaleInput.value=100; scaleValue.textContent='100%'; updateLayerOutline(); });
+
 function applyLayerTransformToActiveLayer(){
   if(!layers.length) return;
   const layer=layers[activeLayerIndex];
@@ -1464,7 +1592,7 @@ function applyLayerTransformToActiveLayer(){
   renderComposite();
   layerTransform.enabled=false; updateLayerUI();
 }
-// ---------- LAYER OUTLINE DRAG ----------
+
 layerOutline.addEventListener('mousedown',e=>{
   if(!layerTransform.enabled) return;
   layerTransform.dragging=true;
@@ -1483,55 +1611,45 @@ document.addEventListener('mousemove',e=>{
   layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
 });
 document.addEventListener('mouseup',()=>{ if(layerTransform.dragging){ layerTransform.dragging=false; layerOutline.style.cursor='grab'; }});
+
 // ---------- INITIALISE ----------
 createLayer();
+setActiveLayer(0);
 window.addEventListener('resize',()=>{ resizeCanvasAndLayers(); updateLayerOutline(); });
-filtersGrid.classList.add('hidden'); filtersArrow.textContent='RIGHT TRIANGLE';
-// ---------- TOOLBOX TOGGLE ----------
+filtersGrid.classList.add('hidden'); if(filtersArrow) filtersArrow.textContent='RIGHT TRIANGLE';
+
+// ---------- TOOLBOX TOGGLE (fixed: now toggles the toolbox without changing selected tool) ----------
+// paths (place these PNGs next to paint.html)
+const EYE_OPEN_SRC   = 'eye-open.png';
+const EYE_CLOSED_SRC = 'eye-closed.png';
+
 const toolPanel = document.getElementById('tool-panel');
 const toolboxToggleTab = document.getElementById('toolbox-toggle-tab');
-let toolboxVisible = true; // Initially visible
-toolboxToggleTab.addEventListener('click', () => {
+const eyeImg = document.getElementById('toolbox-eye');
+
+// preload images to avoid flicker
+const _preloadOpen = new Image(); _preloadOpen.src = EYE_OPEN_SRC;
+const _preloadClosed = new Image(); _preloadClosed.src = EYE_CLOSED_SRC;
+
+// ensure initial state matches current toolbox visibility
+let toolboxVisible = !(toolPanel.classList.contains('hidden')) && (toolPanel.style.display !== 'none');
+if (eyeImg) eyeImg.src = toolboxVisible ? EYE_OPEN_SRC : EYE_CLOSED_SRC;
+
+// Toggle behaviour: hide/show toolbox without changing selected tool and update icon
+// (If you have another handler for the tab, remove it first to avoid duplicate handlers)
+toolboxToggleTab.addEventListener('click', (e) => {
+  e.stopPropagation();
   toolboxVisible = !toolboxVisible;
-  toolPanel.style.display = toolboxVisible ? 'block' : 'none';
+  if (toolboxVisible) toolPanel.classList.remove('hidden');
+  else toolPanel.classList.add('hidden');
+  if (eyeImg) eyeImg.src = toolboxVisible ? EYE_OPEN_SRC : EYE_CLOSED_SRC;
 });
+// Make sure selection preview image is ready
+selectionPreviewImg.style.display = 'block';
+selectionPreviewImg.style.maxWidth = 'none';
+selectionPreviewImg.style.maxHeight = 'none';
+
   </script>
-  <script>
-    /* --------------------------------------------------------------
-       PATCH – put this *anywhere* after the original <script> block
-       -------------------------------------------------------------- */
-   
-    /* 1. Selection preview now shows the floating image */
-    selectionPreviewImg.style.display = 'block'; // <-- was hidden
-    selectionPreviewImg.style.maxWidth = 'none';
-    selectionPreviewImg.style.maxHeight = 'none';
-   
-    /* 2. Transform-section controls (apply / reset / exit) */
-    document.getElementById('layer-transform-apply')?.addEventListener('click', applyLayerTransformToActiveLayer);
-    document.getElementById('layer-transform-reset')?.addEventListener('click', () => {
-      layerTransform.rotation = 0;
-      layerTransform.scale = 1;
-      rotRange.value = 0;
-      rotNumber.value = 0;
-      scaleInput.value = 100;
-      scaleValue.textContent = '100%';
-      updateLayerOutline();
-    });
-    document.getElementById('layer-transform-exit')?.addEventListener('click', () => {
-      const w = document.getElementById('transform-section-wrapper');
-      if (w) w.classList.add('hidden');
-      layerTransform.enabled = false;
-      updateLayerOutline(); updateLayerUI();
-    });
-   
-    /* 3. Start on Layer 1 (no extra “add layer” needed) */
-    if (layers.length === 0) createLayer(); // create the first layer once
-    setActiveLayer(0); // force UI to show Layer 1
-   
-    /* --------------------------------------------------------------
-       END OF PATCH
-       -------------------------------------------------------------- */
-    </script>
   <div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
 </body>
-</html>
+</html> 
