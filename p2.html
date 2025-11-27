@@ -1705,10 +1705,21 @@ document.addEventListener('mousemove',e=>{
 document.addEventListener('mouseup',()=>{ if(layerTransform.dragging){ layerTransform.dragging=false; layerOutline.style.cursor='grab'; }});
 
 // ---------- INITIALISE ----------
+// INITIALISE (fixed: guard references that were throwing and stopping script execution)
 createLayer();
 setActiveLayer(0);
-window.addEventListener('resize',()=>{ resizeCanvasAndLayers(); updateLayerOutline(); });
-filtersGrid.classList.add('hidden'); if(filtersArrow) filtersArrow.textContent='RIGHT TRIANGLE';
+window.addEventListener('resize', ()=> { resizeCanvasAndLayers(); updateLayerOutline(); });
+
+// filtersGridSafe was created earlier as a safe reference name.
+// Use it only if it exists - this prevents the ReferenceError that stops the rest of the script
+if (typeof filtersGridSafe !== 'undefined' && filtersGridSafe) {
+  filtersGridSafe.classList.add('hidden');
+}
+
+// Only touch filtersArrow if it exists (don't rely on an undeclared variable)
+if (typeof filtersArrow !== 'undefined' && filtersArrow) {
+  filtersArrow.textContent = 'RIGHT TRIANGLE';
+}
 
 // ---------- TOOLBOX TOGGLE ----------
 const EYE_OPEN_SRC   = 'eye-open.png';
