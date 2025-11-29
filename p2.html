@@ -19,7 +19,7 @@
     input[type="number"].no-arrows{-moz-appearance:textfield;}
     button{background:#000;color:#39ff14;border:1px solid #39ff14;padding:3px 6px;cursor:pointer;font-family:'Roboto Mono',monospace;font-weight:700;}
     /* Container: allow the toggle tab to hang off the canvas without overlapping its content */
-    #app-container{width:80vw;height:80vh;margin:auto;position:relative;top:1vh;background:#fff;display:flex;justify-content:center;align-items:center;overflow:visible;}
+    #app-container{width:85vw;height:80vh;margin:auto;position:relative;top:1vh;background:#fff;display:flex;justify-content:center;align-items:center;overflow:visible;}
     canvas#paint-canvas{width:100%;height:100%;background:#fff;image-rendering:pixelated;border:1px solid #000;cursor:crosshair;display:block;position:relative;}
     /* bring the toolbox above any floating overlays so it stays clickable on mobile */
 #tool-panel{
@@ -432,7 +432,7 @@
     </div>
   </div>
   <script>
-/* ==== FULL JS (targeted fixes applied: restore layer add/remove wiring and transform UI listeners) ==== */
+/* ==== FULL JS (patched: import-mode disabling tools + robust cancel + canvas guard) ==== */
 
 const container = document.getElementById('app-container');
 const canvas = document.getElementById('paint-canvas'), mainCtx = canvas.getContext('2d');
@@ -774,6 +774,24 @@ let calligraphySize=20, calligraphyFlow=2500, calligraphyBrushType=0, calligraph
 let symbolSize=35, symbolCharType=0, symbolColor='#000000';
 let textFont="Arial", textSize=32, textColor="#000000", textString="your text";
 
+/* ----------------- IMPORT-MODE HELPERS (new) ----------------- */
+// minimal state to remember the previous tool and temporarily disable tools while importing
+let prevTool = null;
+function enterImportMode(){
+  prevTool = currentTool;
+  currentTool = 'none';
+  // hide any tool settings and clear selection highlight so UI reflects inactive state
+  document.querySelectorAll('.tool-settings').forEach(s => s.classList.add('hidden'));
+  document.querySelectorAll('.tool-option').forEach(o => o.classList.remove('selected'));
+}
+function exitImportMode(){
+  if (prevTool) currentTool = prevTool;
+  else currentTool = 'marker';
+  prevTool = null;
+  setToolHighlight(currentTool || 'marker');
+}
+/* ------------------------------------------------------------ */
+
 const calligraphyBrushes = ["♥","|","✦","◣","◢","◆"];
 const symbolChars = ["★","☠","☣","✠","☭","☮"];
 
@@ -817,7 +835,8 @@ function drawSymbol(x,y){ const ctx=getActiveCtx(); ctx.save(); ctx.font=`${symb
 function drawAt(x,y){ const ctx=getActiveCtx(); ctx.save(); if(currentTool==='eraser'){ ctx.globalCompositeOperation='destination-out'; ctx.beginPath(); ctx.arc(x,y,eraserSize/2,0,Math.PI*2); ctx.fill(); }else{ ctx.globalCompositeOperation='source-over'; ctx.beginPath(); ctx.arc(x,y,markerSize/2,0,Math.PI*2); ctx.fillStyle=color; ctx.fill(); } ctx.restore(); }
 function drawLine(x0,y0,x1,y1){ const ctx=getActiveCtx(); ctx.save(); ctx.strokeStyle = currentTool==='eraser'?'rgba(0,0,0,1)':color; ctx.lineWidth = currentTool==='eraser'?eraserSize:markerSize; ctx.lineCap='round'; if(currentTool==='eraser') ctx.globalCompositeOperation='destination-out'; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke(); ctx.restore(); }
 function sprayAt(x,y){ const ctx=getActiveCtx(); ctx.save(); ctx.fillStyle=sprayColor; for(let i=0;i<sprayFlow;i++){ const a=Math.random()*Math.PI*2, r=Math.random()*spraySpread; ctx.beginPath(); ctx.arc(x+Math.cos(a)*r, y+Math.sin(a)*r, spraySize/2,0,Math.PI*2); ctx.fill(); } ctx.restore(); }
-// ----- CANVAS INPUT -----
+
+/* ---------- canvas input ---------- */
 let lastPos=null;
 function getCanvasCoords(e){
   const r=canvas.getBoundingClientRect();
@@ -828,7 +847,9 @@ function getCanvasCoords(e){
     y:Math.floor((clientY-r.top)*canvas.height/r.height)
   };
 }
+/* Guard canvas input so active tools don't draw while import preview is active */
 canvas.addEventListener('mousedown', e=>{
+  if (importPreview) return; // ignore drawing when importing/previewing
   if(currentTool==='select'){ startMarquee(e.clientX,e.clientY); return; }
   if(currentTool==='bucket'){ saveState(); floodFillActiveLayer(getCanvasCoords(e).x,getCanvasCoords(e).y,bucketColor); return; }
   saveState();
@@ -869,11 +890,16 @@ canvas.addEventListener('mousemove', e=>{
 canvas.addEventListener('mouseup',()=>{drawing=false; lastPos=null;});
 canvas.addEventListener('mouseout',()=>{drawing=false; lastPos=null;});
 
-canvas.addEventListener('touchstart', e=>{ e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousedown', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY})); });
+/* touch handlers: guard when import preview present */
+canvas.addEventListener('touchstart', e=>{
+  if (importPreview) return;
+  e.preventDefault();
+  canvas.dispatchEvent(new MouseEvent('mousedown', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY}));
+});
 canvas.addEventListener('touchmove',  e=>{ e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousemove', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY})); });
 canvas.addEventListener('touchend',   ()=>{ canvas.dispatchEvent(new MouseEvent('mouseup')); });
 
-// ----- BUCKET -----
+/* ---------- bucket, menu, tools etc. (unchanged except import-mode menu logic patch) ---------- */
 function hexToRgb(hex){ const b=parseInt(hex.slice(1),16); return [(b>>16)&255,(b>>8)&255,b&255]; }
 function getPixel(imgData,x,y){ const i=(y*imgData.width+x)*4; return [imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]]; }
 function colorsMatch(a,b){ return a.every((v,i)=>v===b[i]); }
@@ -895,7 +921,7 @@ function floodFillActiveLayer(x,y,fillHex){
   renderComposite();
 }
 
-// ---------- MENU TITLE (non-tool menus) ----------
+/* ---------- MENU TITLE (patched: import-mode enter/exit) ---------- */
 document.querySelectorAll('.menu-title').forEach(title=>{
   const menu=title.dataset.menu;
   if(!menu) return;
@@ -914,7 +940,19 @@ document.querySelectorAll('.menu-title').forEach(title=>{
       document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
       if (!isOpen && dropdown) dropdown.classList.remove('hidden');
     }
-    if (menu!=='import') importResetState();
+
+    // PATCHED: import-mode handling - ensure tools are inactive while import dropdown is open
+    if (menu !== 'import') {
+      importResetState();
+    } else {
+      const isImportOpen = dropdown && !dropdown.classList.contains('hidden');
+      if (isImportOpen) {
+        enterImportMode();
+      } else {
+        exitImportMode();
+      }
+    }
+
     if (menu==='edit') setTimeout(()=>updateLayerOutline(),40);
     else {
       if(!layerTransform.enabled) layerOutline.style.display='none';
@@ -938,7 +976,7 @@ document.querySelectorAll('.menu-title').forEach(title=>{
   });
 });
 
-// ---------- TOOL OPTIONS (unchanged) ----------
+/* ---------- TOOL OPTIONS (unchanged) ---------- */
 document.querySelectorAll('.tool-option').forEach(opt => { opt.replaceWith(opt.cloneNode(true)); });
 document.querySelectorAll('.tool-option').forEach(opt => {
   opt.addEventListener('click', e => {
@@ -981,7 +1019,7 @@ function setToolHighlight(tool){
   if(tool!=='select') clearSelection();
 }
 
-// ---------- CLEAR / EXPORT / UNDO / FILTERS (unchanged) ----------
+/* ---------- CLEAR / EXPORT / UNDO / FILTERS (unchanged) ---------- */
 document.getElementById('clear-yes').addEventListener('click',()=>{ saveState(); getActiveCtx().clearRect(0,0,canvas.width,canvas.height); document.getElementById('clear-settings').classList.add('hidden'); renderComposite(); });
 document.getElementById('clear-back').addEventListener('click',()=>{ document.getElementById('clear-settings').classList.add('hidden'); });
 document.getElementById('export-btn').addEventListener('click',()=>{
@@ -1037,7 +1075,7 @@ function convolve(imgData,w,h,kernel){
 }
 function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
 
-// ---------- SELECT TOOL (unchanged) ----------
+/* ---------- SELECT TOOL (unchanged) ---------- */
 let selectSectionOpen = false;
 let selStart=null, selRect=null, isSelecting=false;
 let selectionImage=null;
@@ -1204,7 +1242,7 @@ document.getElementById('select-clear-btn').addEventListener('click',clearSelect
 canvas.addEventListener('mousedown',e=>{ if(currentTool==='select') startMarquee(e.clientX,e.clientY); });
 canvas.addEventListener('touchstart',e=>{ if(currentTool==='select'){ e.preventDefault(); startMarquee(e.touches[0].clientX,e.touches[0].clientY); }});
 
-// ---------- IMPORT MODULE (minor adjustments to dragging and stamping math) ----------
+/* ---------- IMPORT MODULE (patched: showImportPreview enters import mode) ---------- */
 let importImg = null;
 let importPreview = null;
 let importDragging = false;
@@ -1256,6 +1294,9 @@ function showImportPreview() {
 
     container.appendChild(importPreview);
     updateImportPreviewTransform();
+
+    // make sure we are in import mode (disable drawing tools)
+    enterImportMode();
 
     // document-level move handlers are used; element-level handlers will not fire when pointer-events:none
     document.removeEventListener('mousemove', imagePreviewDragMove);
@@ -1328,25 +1369,47 @@ function stampImageToActiveLayer() {
     ctx.drawImage(importImg, -w / 2, -h / 2, w, h);
     ctx.restore();
 
-    hideImportPreview();
-    importImg = null;
-    importSettingsDiv.classList.add('hidden');
+    importResetState();
     renderComposite();
 }
 
 function importResetState() {
-    importImg = null;
-    importImgNaturalWidth = 0;
-    importImgNaturalHeight = 0;
-    importScale = 0.5;
-    importRotation = 0;
-    importOpacity = 0.75;
-    importFlipH = 1;
-    importFlipV = 1;
-    importPosX = (container.offsetWidth / 2) - 50;
-    importPosY = (container.offsetHeight / 2) - 50;
-    hideImportPreview();
-    importSettingsDiv.classList.add('hidden');
+  // stop any dragging and remove preview element
+  importDragging = false;
+  if (importPreview) {
+    try {
+      if (importPreview.parentNode) importPreview.parentNode.removeChild(importPreview);
+    } catch (e) {}
+    importPreview = null;
+  }
+
+  // remove the document-level image preview handlers if present
+  try {
+    document.removeEventListener('mousemove', imagePreviewDragMove);
+    document.removeEventListener('mouseup', imagePreviewDragEnd);
+    document.removeEventListener('touchmove', imagePreviewDragMove);
+    document.removeEventListener('touchend', imagePreviewDragEnd);
+  } catch (e){}
+
+  // reset all import state vars
+  importImg = null;
+  importImgNaturalWidth = 0;
+  importImgNaturalHeight = 0;
+  importScale = 0.5;
+  importRotation = 0;
+  importOpacity = 0.75;
+  importFlipH = 1;
+  importFlipV = 1;
+  importPosX = (container.offsetWidth / 2) - 50;
+  importPosY = (container.offsetHeight / 2) - 50;
+
+  // clear file input so the same file can be re-selected
+  try { importFileInput.value = ''; } catch (e){}
+
+  if (importSettingsDiv) importSettingsDiv.classList.add('hidden');
+
+  // restore previous tool mode
+  exitImportMode();
 }
 
 // ----------------- EVENT LISTENERS -----------------
@@ -1507,7 +1570,6 @@ document.getElementById('text-rotation-range').addEventListener('input', e => { 
 document.getElementById('text-rotation-number').addEventListener('input', e => { setTextRotation(e.target.value); document.getElementById('text-rotation-range').value = e.target.value; });
 
 // TEXT SUBMIT: stamp with left alignment and size scaled to canvas pixels, rotation around center so preview matches.
-// key changes: compute overlayRect and canvasRect, cssToCanvas, box size in canvas pixels, center, scaledFontSize, draw left-aligned.
 textSubmitBtn.addEventListener('click', () => {
   if (!textPreviewActive) return;
   saveState();
@@ -1527,14 +1589,13 @@ textSubmitBtn.addEventListener('click', () => {
   ctx.translate(Math.round(cx), Math.round(cy));
   ctx.rotate(textRotation * Math.PI / 180);
 
-  // left-aligned inside the rotated box
   const scaledFontSize = Math.max(1, Math.round(textSize * cssToCanvas));
   ctx.font = `${scaledFontSize}px ${textFont}`;
   ctx.fillStyle = textColor;
   ctx.textBaseline = 'top';
   ctx.textAlign = 'left';
 
-  const paddingCss = 4; // matches preview pad/2
+  const paddingCss = 4;
   const pad = paddingCss * cssToCanvas;
   const lines = textString.split('\n');
   for (let i = 0; i < lines.length; i++) {
@@ -1705,18 +1766,13 @@ document.addEventListener('mousemove',e=>{
 document.addEventListener('mouseup',()=>{ if(layerTransform.dragging){ layerTransform.dragging=false; layerOutline.style.cursor='grab'; }});
 
 // ---------- INITIALISE ----------
-// INITIALISE (fixed: guard references that were throwing and stopping script execution)
 createLayer();
 setActiveLayer(0);
 window.addEventListener('resize', ()=> { resizeCanvasAndLayers(); updateLayerOutline(); });
 
-// filtersGridSafe was created earlier as a safe reference name.
-// Use it only if it exists - this prevents the ReferenceError that stops the rest of the script
 if (typeof filtersGridSafe !== 'undefined' && filtersGridSafe) {
   filtersGridSafe.classList.add('hidden');
 }
-
-// Only touch filtersArrow if it exists (don't rely on an undeclared variable)
 if (typeof filtersArrow !== 'undefined' && filtersArrow) {
   filtersArrow.textContent = 'RIGHT TRIANGLE';
 }
