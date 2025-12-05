@@ -787,12 +787,15 @@ function enterImportMode(){
   document.querySelectorAll('.tool-settings').forEach(s => s.classList.add('hidden'));
   document.querySelectorAll('.tool-option').forEach(o => o.classList.remove('selected'));
 }
-function exitImportMode(){
-  if (prevTool) currentTool = prevTool;
-  else currentTool = 'marker';
-  prevTool = null;
-  setToolHighlight(currentTool || 'marker');
-}
+function exitImportMode(){  
+  if (currentTool === 'none' || prevTool !== null) {  // Only reset if actively in import mode  
+    if (prevTool) currentTool = prevTool;  
+    else currentTool = 'marker';  
+    prevTool = null;  
+    setToolHighlight(currentTool || 'marker');  
+  }  
+  // If not in import mode, do nothing—preserve current tool  
+}  
 /* ------------------------------------------------------------ */
 
 const calligraphyBrushes = ["♥","|","✦","◣","◢","◆"];
@@ -944,7 +947,6 @@ document.querySelectorAll('.menu-title').forEach(title=>{
       if (!isOpen && dropdown) dropdown.classList.remove('hidden');
     }
 
-    // PATCHED: import-mode handling - ensure tools are inactive while import dropdown is open
     if (menu !== 'import') {
       importResetState();
     } else {
@@ -961,14 +963,13 @@ document.querySelectorAll('.menu-title').forEach(title=>{
       if(!layerTransform.enabled) layerOutline.style.display='none';
     }
 
-    const textSettings = document.getElementById('text-settings');
+    // FIXED: Only reset text → marker when opening a different main menu
     if (menu !== 'tools') {
       if (currentTool === 'text') {
         currentTool = 'marker';
         setToolHighlight('marker');
       }
-      if (textSettings && textSettings.classList.contains('hidden')) hideTextPreviewOverlay();
-      else hideTextPreviewOverlay();
+      hideTextPreviewOverlay();
     }
 
     if (menu === 'select') {
@@ -1376,45 +1377,46 @@ function stampImageToActiveLayer() {
     renderComposite();
 }
 
-function importResetState() {
-  // stop any dragging and remove preview element
-  importDragging = false;
-  if (importPreview) {
-    try {
-      if (importPreview.parentNode) importPreview.parentNode.removeChild(importPreview);
-    } catch (e) {}
-    importPreview = null;
-  }
+function importResetState() {  
+  // stop any dragging and remove preview element  
+  importDragging = false;  
+  if (importPreview) {  
+    try {  
+      if (importPreview.parentNode) importPreview.parentNode.removeChild(importPreview);  
+    } catch (e) {}  
+    importPreview = null;  
+  }  
 
-  // remove the document-level image preview handlers if present
-  try {
-    document.removeEventListener('mousemove', imagePreviewDragMove);
-    document.removeEventListener('mouseup', imagePreviewDragEnd);
-    document.removeEventListener('touchmove', imagePreviewDragMove);
-    document.removeEventListener('touchend', imagePreviewDragEnd);
-  } catch (e){}
+  // remove the document-level image preview handlers if present  
+  try {  
+    document.removeEventListener('mousemove', imagePreviewDragMove);  
+    document.removeEventListener('mouseup', imagePreviewDragEnd);  
+    document.removeEventListener('touchmove', imagePreviewDragMove);  
+    document.removeEventListener('touchend', imagePreviewDragEnd);  
+  } catch (e){}  
 
-  // reset all import state vars
-  importImg = null;
-  importImgNaturalWidth = 0;
-  importImgNaturalHeight = 0;
-  importScale = 0.5;
-  importRotation = 0;
-  importOpacity = 0.75;
-  importFlipH = 1;
-  importFlipV = 1;
-  importPosX = (container.offsetWidth / 2) - 50;
-  importPosY = (container.offsetHeight / 2) - 50;
+  // reset all import state vars  
+  importImg = null;  
+  importImgNaturalWidth = 0;  
+  importImgNaturalHeight = 0;  
+  importScale = 0.5;  
+  importRotation = 0;  
+  importOpacity = 0.75;  
+  importFlipH = 1;  
+  importFlipV = 1;  
+  importPosX = (container.offsetWidth / 2) - 50;  
+  importPosY = (container.offsetHeight / 2) - 50;  
 
-  // clear file input so the same file can be re-selected
-  try { importFileInput.value = ''; } catch (e){}
+  // clear file input so the same file can be re-selected  
+  try { importFileInput.value = ''; } catch (e){}  
 
-  if (importSettingsDiv) importSettingsDiv.classList.add('hidden');
+  if (importSettingsDiv) importSettingsDiv.classList.add('hidden');  
 
-  // restore previous tool mode
-  exitImportMode();
-}
-
+    // restore previous tool mode ONLY if in import mode  
+  if (currentTool === 'none' || prevTool !== null) {  
+    exitImportMode();  
+  }  
+}  
 // ----------------- EVENT LISTENERS -----------------
 
 importFileInput.addEventListener('change', function () {
