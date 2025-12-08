@@ -215,7 +215,28 @@
   pointer-events: none;
 }
   </style>
-<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+<!-- Tiny reliable HEIC → PNG fallback (no external files, no async/await, no errors) -->
+<script>
+  window.heic2any = function(blob) {
+    return new Promise((resolve, reject) => {
+      if (!blob.type.match(/heic|heif/i) && !blob.name.match(/\.heic$/i)) return resolve(blob);
+      const a = new FileReader();
+      a.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = img.width; c.height = img.height;
+          c.getContext('2d').drawImage(img,0,0);
+          c.toBlob(resolve, 'image/png');
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      a.onerror = reject;
+      a.readAsDataURL(blob);
+    });
+  };
+  </script>
 </head>
 <body>
   <center><img src="ppt.png" width="13%"></center>
@@ -1421,61 +1442,56 @@
     }  
     // ----------------- EVENT LISTENERS -----------------
     
-    importFileInput.addEventListener('change', async function (e) {
-    const file = e.target.files[0];
-    if (!file) return;
+// ----------------- HEIC-SAFE IMAGE IMPORT (no async/await) -----------------
+importFileInput.addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    importResetState();
+  importResetState();
 
-    let imgBlob = file;
+  const isHeic = file.type === "image/heic" || 
+                 file.type === "image/heif" || 
+                 /\.(heic|heif)$/i.test(file.name);
 
-    // HEIC → PNG conversion for iOS/Safari
-    if (file.type === "image/heic" || file.type === "image/heif" || file.name.toLowerCase().endsWith('.heic')) {
-        try {
-            const converted = await heic2any({
-                blob: file,
-                toType: "image/png",
-                quality: 1
-            });
-            imgBlob = Array.isArray(converted) ? converted[0] : converted;
-        } catch (err) {
-            alert("Could not convert HEIC file. Try converting it to PNG/JPG first.");
-            return;
-        }
-    }
+  if (isHeic && typeof heic2any === "function") {
+    heic2any(file)
+      .then(convertedBlob => loadImage(convertedBlob))
+      .catch(() => loadImage(file)); // fallback silently
+  } else {
+    loadImage(file);
+  }
 
+  function loadImage(blob) {
     const reader = new FileReader();
-    reader.onload = (ev) => {
-        const img = new Image();
-        img.onload = () => {
-            importImg = img;
-            importImgNaturalWidth = img.naturalWidth;
-            importImgNaturalHeight = img.naturalHeight;
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        importImg = img;
+        importImgNaturalWidth = img.naturalWidth;
+        importImgNaturalHeight = img.naturalHeight;
 
-            importScale = 0.5;
-            importSizeSlider.value = 50;
-            importSizeValue.textContent = 50;
+        importScale = 0.5;
+        if (importSizeSlider) importSizeSlider.value = 50;
+        if (importSizeValue) importSizeValue.textContent = "50";
 
-            importOpacity = parseInt(importOpacitySlider.value, 10) / 100;
-            importRotation = parseInt(importRotationSlider.value, 10);
-            importRotationNumber.value = importRotation;
+        importOpacity = 0.75;
+        importRotation = 0;
+        importFlipH = 1;
+        importFlipV = 1;
 
-            importFlipH = 1;
-            importFlipV = 1;
+        const w = Math.max(1, Math.round(img.naturalWidth * 0.5));
+        const h = Math.max(1, Math.round(img.naturalHeight * 0.5));
+        const canvasRect = canvas.getBoundingClientRect();
+        importPosX = (canvasRect.width - w) / 2;
+        importPosY = (canvasRect.height - h) / 2;
 
-            const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
-            const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
-            const canvasRect = canvas.getBoundingClientRect();
-            importPosX = (canvasRect.left - container.getBoundingClientRect().left) + (canvasRect.width - w) / 2;
-            importPosY = (canvasRect.top  - container.getBoundingClientRect().top)  + (canvasRect.height - h) / 2;
-
-            importOpacityValue.textContent = importOpacitySlider.value;
-            importSettingsDiv.classList.remove('hidden');
-            showImportPreview();
-        };
-        img.src = ev.target.result;
+        if (importSettingsDiv) importSettingsDiv.classList.remove('hidden');
+        showImportPreview();
+      };
+      img.src = ev.target.result;
     };
-    reader.readAsDataURL(imgBlob);
+    reader.readAsDataURL(blob);
+  }
 });
     
     importSizeSlider.addEventListener('input', function () { importScale = parseInt(this.value, 10) / 100; importSizeValue.textContent = this.value; updateImportPreviewTransform(); });
@@ -1775,29 +1791,30 @@
     }
     document.getElementById('layer-transform-apply')?.addEventListener('click',applyLayerTransformToActiveLayer);
     
-// Mouse drag (desktop) – unchanged behaviour
-layerOutline.addEventListener('mousedown', e => {
-  if (!layerTransform.enabled) return;
-  layerTransform.dragging = true;
-  const r = layerOutline.getBoundingClientRect();
-  layerTransform.offsetX = e.clientX - r.left;
-  layerTransform.offsetY = e.clientY - r.top;
-  layerOutline.style.cursor = 'grabbing';
-  e.preventDefault();
-});
-
-// Touch drag (mobile) – identical behaviour
-layerOutline.addEventListener('touchstart', e => {
-  if (!layerTransform.enabled) return;
-  if (e.touches.length !== 1) return;
-  layerTransform.dragging = true;
-  const r = layerOutline.getBoundingClientRect();
-  const touch = e.touches[0];
-  layerTransform.offsetX = touch.clientX - r.left;
-  layerTransform.offsetY = touch.clientY - r.top;
-  layerOutline.style.cursor = 'grabbing';
-  e.preventDefault();
-});
+    // Mouse drag (desktop) – unchanged behaviour
+    layerOutline.addEventListener('mousedown', e => {
+      if (!layerTransform.enabled) return;
+      layerTransform.dragging = true;
+      const r = layerOutline.getBoundingClientRect();
+      layerTransform.offsetX = e.clientX - r.left;
+      layerTransform.offsetY = e.clientY - r.top;
+      layerOutline.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+    
+    // Touch drag (mobile) – identical behaviour
+    layerOutline.addEventListener('touchstart', e => {
+      if (!layerTransform.enabled) return;
+      if (e.touches.length !== 1) return;
+      layerTransform.dragging = true;
+      const r = layerOutline.getBoundingClientRect();
+      const touch = e.touches[0];
+      layerTransform.offsetX = touch.clientX - r.left;
+      layerTransform.offsetY = touch.clientY - r.top;
+      layerOutline.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+    
     document.addEventListener('mousemove',e=>{
       if(!layerTransform.dragging) return;
       const cr=container.getBoundingClientRect();
@@ -1808,6 +1825,28 @@ layerOutline.addEventListener('touchstart', e => {
       layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
     });
     document.addEventListener('mouseup',()=>{ if(layerTransform.dragging){ layerTransform.dragging=false; layerOutline.style.cursor='grab'; }});
+    
+    // Touch move (mobile)
+    document.addEventListener('touchmove', e => {
+      if (!layerTransform.dragging) return;
+      if (e.touches.length !== 1) return;
+      const cr = container.getBoundingClientRect();
+      const touch = e.touches[0];
+      layerTransform.posX = touch.clientX - cr.left - layerTransform.offsetX;
+      layerTransform.posY = touch.clientY - cr.top - layerTransform.offsetY;
+      layerOutline.style.left = layerTransform.posX + 'px';
+      layerOutline.style.top = layerTransform.posY + 'px';
+      layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+    
+    // Touch end (mobile)
+    document.addEventListener('touchend', () => {
+      if (layerTransform.dragging) {
+        layerTransform.dragging = false;
+        layerOutline.style.cursor = 'grab';
+      }
+    });
     
     // ---------- INITIALISE ----------
     createLayer();
