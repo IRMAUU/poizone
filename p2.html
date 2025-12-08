@@ -435,1379 +435,1385 @@
     </div>
   </div>
   <script>
-/* ==== FULL JS (patched: import-mode disabling tools + robust cancel + canvas guard) ==== */
-
-const container = document.getElementById('app-container');
-const canvas = document.getElementById('paint-canvas'), mainCtx = canvas.getContext('2d');
-
-function initCanvasSize(){
-  const r = canvas.getBoundingClientRect();
-  canvas.width = Math.round(r.width) || 800;
-  canvas.height = Math.round(r.height) || 600;
-  mainCtx.imageSmoothingEnabled = false;
-}
-initCanvasSize();
-
-let MAX_UNDO = 20;
-let undoStack = [];
-
-// ---------- LAYERS ----------
-const MAX_LAYERS = 5;
-let layers = [];
-let activeLayerIndex = 0;
-
-// Stable counter for naming/coloring layers so names/colors stick with layer objects after reorder
-let layerCounter = 1;
-const LAYER_COLORS = ['#ff0000', '#0000ff', '#ffff00', '#800080', '#ffa500'];
-
-const layersGrid = document.getElementById('layers-grid');
-const layerAddBtn = document.getElementById('layer-add');
-const layerRemoveBtn = document.getElementById('layer-remove');
-const layerCountLabel = document.getElementById('layer-count');
-const layerOutline = document.getElementById('layer-outline');
-const selectionPreview = document.getElementById('selection-preview');
-const selectionPreviewImg = document.getElementById('selection-preview-img');
-
-/* --- Small safety: ensure filtersGrid variable exists before end code uses it --- */
-const filtersGridSafe = document.getElementById('filters-grid');
-
-/* ---------- helper: create/remove/move/select ---------- */
-function createLayer(){
-  if (layers.length >= MAX_LAYERS) return null;
-  const c = document.createElement('canvas');
-  c.width = canvas.width; c.height = canvas.height;
-  const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
-  ctx.clearRect(0,0,c.width,c.height);
-  const name = `Layer ${layerCounter++}`; // stable name stored on the layer
-  const color = LAYER_COLORS[(layerCounter - 2) % LAYER_COLORS.length]; // pick color based on creation order
-  layers.push({canvas:c, ctx, name, color});
-  activeLayerIndex = layers.length - 1;
-  updateLayerUI();
-  renderComposite();
-  return layers.length - 1;
-}
-function removeLayer(i){
-  if(layers.length<=1) return;
-  layers.splice(i,1);
-  if(activeLayerIndex>=layers.length) activeLayerIndex = layers.length-1;
-  updateLayerUI(); renderComposite();
-}
-function moveLayerUp(i){
-  if(i>=layers.length-1) return;
-  [layers[i],layers[i+1]] = [layers[i+1],layers[i]];
-  if(activeLayerIndex===i) activeLayerIndex=i+1;
-  else if(activeLayerIndex===i+1) activeLayerIndex=i;
-  updateLayerUI(); renderComposite();
-}
-function moveLayerDown(i){
-  if(i<=0) return;
-  [layers[i-1],layers[i]] = [layers[i],layers[i-1]];
-  if(activeLayerIndex===i) activeLayerIndex=i-1;
-  else if(activeLayerIndex===i-1) activeLayerIndex=i;
-  updateLayerUI(); renderComposite();
-}
-function getActiveCtx(){ return layers[activeLayerIndex].ctx; }
-
-function renderComposite(){
-  mainCtx.clearRect(0,0,canvas.width,canvas.height);
-  layers.forEach(l=>mainCtx.drawImage(l.canvas,0,0));
-}
-
-// ---------- UNDO ----------
-function saveState(){
-  try{
-    const snap = {
-      activeIndex: activeLayerIndex,
-      layersData: layers.map(l=>l.ctx.getImageData(0,0,canvas.width,canvas.height))
+    /* ==== FULL JS (patched: import-mode disabling tools + robust cancel + canvas guard) ==== */
+    
+    const container = document.getElementById('app-container');
+    const canvas = document.getElementById('paint-canvas'), mainCtx = canvas.getContext('2d');
+    
+    function initCanvasSize(){
+      const r = canvas.getBoundingClientRect();
+      canvas.width = Math.round(r.width) || 800;
+      canvas.height = Math.round(r.height) || 600;
+      mainCtx.imageSmoothingEnabled = false;
+    }
+    initCanvasSize();
+    
+    let MAX_UNDO = 20;
+    let undoStack = [];
+    
+    // ---------- LAYERS ----------
+    const MAX_LAYERS = 5;
+    let layers = [];
+    let activeLayerIndex = 0;
+    
+    // Stable counter for naming/coloring layers so names/colors stick with layer objects after reorder
+    let layerCounter = 1;
+    const LAYER_COLORS = ['#ff0000', '#0000ff', '#ffff00', '#800080', '#ffa500'];
+    
+    const layersGrid = document.getElementById('layers-grid');
+    const layerAddBtn = document.getElementById('layer-add');
+    const layerRemoveBtn = document.getElementById('layer-remove');
+    const layerCountLabel = document.getElementById('layer-count');
+    const layerOutline = document.getElementById('layer-outline');
+    const selectionPreview = document.getElementById('selection-preview');
+    const selectionPreviewImg = document.getElementById('selection-preview-img');
+    
+    /* --- Small safety: ensure filtersGrid variable exists before end code uses it --- */
+    const filtersGridSafe = document.getElementById('filters-grid');
+    
+    /* ---------- helper: create/remove/move/select ---------- */
+    function createLayer(){
+      if (layers.length >= MAX_LAYERS) return null;
+      const c = document.createElement('canvas');
+      c.width = canvas.width; c.height = canvas.height;
+      const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
+      ctx.clearRect(0,0,c.width,c.height);
+      const name = `Layer ${layerCounter++}`; // stable name stored on the layer
+      const color = LAYER_COLORS[(layerCounter - 2) % LAYER_COLORS.length]; // pick color based on creation order
+      layers.push({canvas:c, ctx, name, color});
+      activeLayerIndex = layers.length - 1;
+      updateLayerUI();
+      renderComposite();
+      return layers.length - 1;
+    }
+    function removeLayer(i){
+      if(layers.length<=1) return;
+      layers.splice(i,1);
+      if(activeLayerIndex>=layers.length) activeLayerIndex = layers.length-1;
+      updateLayerUI(); renderComposite();
+    }
+    function moveLayerUp(i){
+      if(i>=layers.length-1) return;
+      [layers[i],layers[i+1]] = [layers[i+1],layers[i]];
+      if(activeLayerIndex===i) activeLayerIndex=i+1;
+      else if(activeLayerIndex===i+1) activeLayerIndex=i;
+      updateLayerUI(); renderComposite();
+    }
+    function moveLayerDown(i){
+      if(i<=0) return;
+      [layers[i-1],layers[i]] = [layers[i],layers[i-1]];
+      if(activeLayerIndex===i) activeLayerIndex=i-1;
+      else if(activeLayerIndex===i-1) activeLayerIndex=i;
+      updateLayerUI(); renderComposite();
+    }
+    function getActiveCtx(){ return layers[activeLayerIndex].ctx; }
+    
+    function renderComposite(){
+      mainCtx.clearRect(0,0,canvas.width,canvas.height);
+      layers.forEach(l=>mainCtx.drawImage(l.canvas,0,0));
+    }
+    
+    // ---------- UNDO ----------
+    function saveState(){
+      try{
+        const snap = {
+          activeIndex: activeLayerIndex,
+          layersData: layers.map(l=>l.ctx.getImageData(0,0,canvas.width,canvas.height))
+        };
+        if(undoStack.length>=MAX_UNDO) undoStack.shift();
+        undoStack.push(snap);
+      }catch(e){ console.warn('saveState',e); }
+    }
+    function undo(){
+      if(!undoStack.length) return;
+      const snap = undoStack.pop();
+      layers.forEach((l,i)=>{
+        if(i<snap.layersData.length) l.ctx.putImageData(snap.layersData[i],0,0);
+        else l.ctx.clearRect(0,0,canvas.width,canvas.height);
+      });
+      activeLayerIndex = Math.min(snap.activeIndex,layers.length-1);
+      updateLayerUI(); renderComposite();
+    }
+    
+    // ---------- RESIZE ----------
+    function resizeCanvasAndLayers(){
+      const r = canvas.getBoundingClientRect();
+      const nw = Math.round(r.width)||canvas.width;
+      const nh = Math.round(r.height)||canvas.height;
+      layers.forEach(l=>{
+        const tmp = document.createElement('canvas');
+        tmp.width=nw; tmp.height=nh;
+        const tctx = tmp.getContext('2d'); tctx.imageSmoothingEnabled=false;
+        tctx.drawImage(l.canvas,0,0,nw,nh);
+        l.canvas.width=nw; l.canvas.height=nh;
+        l.ctx = l.canvas.getContext('2d'); l.ctx.imageSmoothingEnabled=false;
+        l.ctx.drawImage(tmp,0,0);
+      });
+      canvas.width=nw; canvas.height=nh;
+      mainCtx.imageSmoothingEnabled=false;
+      renderComposite();
+    }
+    
+    // ---------- BBOX ----------
+    function computeActivePixelBBox(layerCanvas){
+      const ctx = layerCanvas.getContext('2d');
+      const w = layerCanvas.width, h = layerCanvas.height;
+      let img;
+      try{ img = ctx.getImageData(0,0,w,h); }catch(e){ return {x:0,y:0,w:w,h:h,empty:true}; }
+      const d = img.data;
+      let minX=w, minY=h, maxX=-1, maxY=-1;
+      for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+        if(d[(y*w+x)*4+3]!==0){
+          if(x<minX) minX=x; if(y<minY) minY=y;
+          if(x>maxX) maxX=x; if(y>maxY) maxY=y;
+        }
+      }
+      if(maxX===-1) return {x:0,y:0,w:0,h:0,empty:true};
+      return {x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1,empty:false};
+    }
+    
+    // ---------- LAYER TRANSFORM ----------
+    let layerTransform = {
+      enabled:false, posX:0, posY:0, rotation:0, scale:1.0,
+      dragging:false, offsetX:0, offsetY:0,
+      bboxCss:{left:0,top:0,w:0,h:0}
     };
-    if(undoStack.length>=MAX_UNDO) undoStack.shift();
-    undoStack.push(snap);
-  }catch(e){ console.warn('saveState',e); }
-}
-function undo(){
-  if(!undoStack.length) return;
-  const snap = undoStack.pop();
-  layers.forEach((l,i)=>{
-    if(i<snap.layersData.length) l.ctx.putImageData(snap.layersData[i],0,0);
-    else l.ctx.clearRect(0,0,canvas.width,canvas.height);
-  });
-  activeLayerIndex = Math.min(snap.activeIndex,layers.length-1);
-  updateLayerUI(); renderComposite();
-}
-
-// ---------- RESIZE ----------
-function resizeCanvasAndLayers(){
-  const r = canvas.getBoundingClientRect();
-  const nw = Math.round(r.width)||canvas.width;
-  const nh = Math.round(r.height)||canvas.height;
-  layers.forEach(l=>{
-    const tmp = document.createElement('canvas');
-    tmp.width=nw; tmp.height=nh;
-    const tctx = tmp.getContext('2d'); tctx.imageSmoothingEnabled=false;
-    tctx.drawImage(l.canvas,0,0,nw,nh);
-    l.canvas.width=nw; l.canvas.height=nh;
-    l.ctx = l.canvas.getContext('2d'); l.ctx.imageSmoothingEnabled=false;
-    l.ctx.drawImage(tmp,0,0);
-  });
-  canvas.width=nw; canvas.height=nh;
-  mainCtx.imageSmoothingEnabled=false;
-  renderComposite();
-}
-
-// ---------- BBOX ----------
-function computeActivePixelBBox(layerCanvas){
-  const ctx = layerCanvas.getContext('2d');
-  const w = layerCanvas.width, h = layerCanvas.height;
-  let img;
-  try{ img = ctx.getImageData(0,0,w,h); }catch(e){ return {x:0,y:0,w:w,h:h,empty:true}; }
-  const d = img.data;
-  let minX=w, minY=h, maxX=-1, maxY=-1;
-  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
-    if(d[(y*w+x)*4+3]!==0){
-      if(x<minX) minX=x; if(y<minY) minY=y;
-      if(x>maxX) maxX=x; if(y>maxY) maxY=y;
+    
+    /* -- Transform UI sync & listeners (restored) -- */
+    function syncTransformUIToState(){
+      const rr = document.getElementById('layer-rotation-range');
+      const rn = document.getElementById('layer-rotation-number');
+      const si = document.getElementById('layer-scale');
+      const sv = document.getElementById('layer-scale-value');
+      if(rr) rr.value = (layerTransform.rotation || 0).toString();
+      if(rn) rn.value = (layerTransform.rotation || 0).toString();
+      if(si) si.value = Math.round((layerTransform.scale || 1) * 100).toString();
+      if(sv) sv.textContent = Math.round((layerTransform.scale || 1) * 100) + '%';
     }
-  }
-  if(maxX===-1) return {x:0,y:0,w:0,h:0,empty:true};
-  return {x:minX,y:minY,w:maxX-minX+1,h:maxY-minY+1,empty:false};
-}
-
-// ---------- LAYER TRANSFORM ----------
-let layerTransform = {
-  enabled:false, posX:0, posY:0, rotation:0, scale:1.0,
-  dragging:false, offsetX:0, offsetY:0,
-  bboxCss:{left:0,top:0,w:0,h:0}
-};
-
-/* -- Transform UI sync & listeners (restored) -- */
-function syncTransformUIToState(){
-  const rr = document.getElementById('layer-rotation-range');
-  const rn = document.getElementById('layer-rotation-number');
-  const si = document.getElementById('layer-scale');
-  const sv = document.getElementById('layer-scale-value');
-  if(rr) rr.value = (layerTransform.rotation || 0).toString();
-  if(rn) rn.value = (layerTransform.rotation || 0).toString();
-  if(si) si.value = Math.round((layerTransform.scale || 1) * 100).toString();
-  if(sv) sv.textContent = Math.round((layerTransform.scale || 1) * 100) + '%';
-}
-
-const rotRange = document.getElementById('layer-rotation-range');
-const rotNumber = document.getElementById('layer-rotation-number');
-const scaleInput = document.getElementById('layer-scale');
-const scaleValue = document.getElementById('layer-scale-value');
-
-if (rotRange){
-  rotRange.addEventListener('input', ()=> {
-    layerTransform.rotation = parseFloat(rotRange.value || 0);
-    if (rotNumber) rotNumber.value = layerTransform.rotation;
-    layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
-  });
-}
-if (rotNumber){
-  rotNumber.addEventListener('input', ()=> {
-    const v = Math.max(-180, Math.min(180, Number(rotNumber.value) || 0));
-    layerTransform.rotation = v;
-    if (rotRange) rotRange.value = v;
-    layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
-  });
-}
-if (scaleInput){
-  scaleInput.addEventListener('input', ()=> {
-    const s = Math.max(0.01, (parseInt(scaleInput.value || '100',10) / 100));
-    layerTransform.scale = s;
-    if (scaleValue) scaleValue.textContent = (parseInt(scaleInput.value || '100',10)) + '%';
-    layerOutline.style.transform = `rotate(${layerTransform.rotation || 0}deg) scale(${layerTransform.scale})`;
-  });
-}
-
-/* enable/disable transform mode and set preview opacity when enabled */
-function setTransformModeEnabled(enabled){
-  layerTransform.enabled = !!enabled;
-  const wrapper = document.getElementById('transform-section-wrapper');
-  if(enabled){
-    if(wrapper) wrapper.classList.remove('hidden');
-    layerOutline.style.pointerEvents = 'auto';
-    layerOutline.style.cursor = 'grab';
-    layerOutline.style.display = 'block';
-    layerOutline.style.opacity = '0.25';
-  }else{
-    if(wrapper) wrapper.classList.add('hidden');
-    layerOutline.style.pointerEvents = 'none';
-    layerOutline.style.cursor = 'default';
-    layerOutline.style.display = 'none';
-    layerOutline.style.opacity = '1';
-    // remove preview content if any
-    while (layerOutline.firstChild) layerOutline.removeChild(layerOutline.firstChild);
-  }
-  // Ensure UI elements reflect current transform state
-  syncTransformUIToState();
-  updateLayerUI();
-}
-
-function updateLayerOutline(){
-  const editDropdown = document.getElementById('edit-dropdown');
-  // If edit dropdown is hidden AND transform mode is not enabled, hide outline and exit
-  if(!editDropdown || editDropdown.classList.contains('hidden')){
-    if(!layerTransform.enabled){ layerOutline.style.display='none'; return; }
-    // otherwise continue and show outline because transform mode is active (user requested persistent transform)
-  }
-  if(!layers.length){ layerOutline.style.display='none'; return; }
-  const layer = layers[activeLayerIndex];
-  const bbox = computeActivePixelBBox(layer.canvas);
-  if(bbox.empty){ layerOutline.style.display='none'; return; }
-
-  // Map bbox (canvas pixels) into CSS pixels using canvas bounding rect
-  const canvasRect = canvas.getBoundingClientRect();
-  const cssPerCanvasX = canvasRect.width / layer.canvas.width;
-  const cssPerCanvasY = canvasRect.height / layer.canvas.height;
-
-  const leftOnCanvas = Math.round(bbox.x * cssPerCanvasX);
-  const topOnCanvas  = Math.round(bbox.y * cssPerCanvasY);
-  const wOnCanvas = Math.max(1, Math.round(bbox.w * cssPerCanvasX));
-  const hOnCanvas = Math.max(1, Math.round(bbox.h * cssPerCanvasY));
-
-  // position relative to container (layerOutline is child of container)
-  const canvasOffset = { left: canvasRect.left - container.getBoundingClientRect().left, top: canvasRect.top - container.getBoundingClientRect().top };
-
-  const left = canvasOffset.left + leftOnCanvas;
-  const top  = canvasOffset.top  + topOnCanvas;
-  const w = wOnCanvas; const h = hOnCanvas;
-
-  layerOutline.style.left = left+'px';
-  layerOutline.style.top  = top+'px';
-  layerOutline.style.width  = w+'px';
-  layerOutline.style.height = h+'px';
-  layerOutline.style.transformOrigin = 'center center';
-  layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
-  // display controlled by setTransformModeEnabled; ensure it is visible if enabled
-  if(layerTransform.enabled) layerOutline.style.display='block';
-
-  layerTransform.posX = left; layerTransform.posY = top;
-  layerTransform.bboxCss = {left,top,w,h};
-
-  // create a preview image inside the outline so the user sees the layer pixels
-  while (layerOutline.firstChild) layerOutline.removeChild(layerOutline.firstChild);
-  try {
-    const off = document.createElement('canvas');
-    off.width = bbox.w;
-    off.height = bbox.h;
-    const offCtx = off.getContext('2d'); offCtx.imageSmoothingEnabled = false;
-    offCtx.drawImage(layer.canvas, bbox.x, bbox.y, bbox.w, bbox.h, 0, 0, bbox.w, bbox.h);
-    const img = document.createElement('img');
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.display = 'block';
-    img.style.pointerEvents = 'none';
-    img.style.objectFit = 'contain';
-    img.style.imageRendering = 'pixelated';
-    img.src = off.toDataURL();
-    layerOutline.appendChild(img);
-  } catch (e) {
-    // ignore
-  }
-
-  layerOutline.style.cursor = layerTransform.enabled?'grab':'default';
-}
-
-function setActiveLayer(i, enableTransform = false){
-    if (typeof i !== 'number' || i < 0 || i >= layers.length) return;
-    activeLayerIndex = i;
-    updateLayerUI();
-    renderComposite();
-
-    if (enableTransform) {
-      setTransformModeEnabled(true);
+    
+    const rotRange = document.getElementById('layer-rotation-range');
+    const rotNumber = document.getElementById('layer-rotation-number');
+    const scaleInput = document.getElementById('layer-scale');
+    const scaleValue = document.getElementById('layer-scale-value');
+    
+    if (rotRange){
+      rotRange.addEventListener('input', ()=> {
+        layerTransform.rotation = parseFloat(rotRange.value || 0);
+        if (rotNumber) rotNumber.value = layerTransform.rotation;
+        layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
+      });
     }
-    updateLayerOutline();
-}
-
-/* ---------- Layer UI rendering (keeps create/move/select functionality intact) ---------- */
-function updateLayerUI(){
-  layersGrid.innerHTML = '';
-  // Render top-most layer first so displayed list visually matches stack
-  for (let display = layers.length - 1; display >= 0; display--){
-    const i = display;
-    const layer = layers[i];
-    const cell = document.createElement('div');
-    cell.className = 'layer-cell' + (i === activeLayerIndex ? ' active' : '');
-    if (layerTransform.enabled && i === activeLayerIndex) cell.classList.add('transform-active');
-    cell.dataset.index = i;
-
-    const colorIndicator = document.createElement('div');
-    colorIndicator.className = 'layer-color-indicator';
-    colorIndicator.style.background = layer.color || '#ccc';
-
-    const label = document.createElement('div');
-    label.textContent = layer.name;
-    label.style.flex='1 1 auto'; label.style.overflow='hidden'; label.style.textOverflow='ellipsis'; label.style.whiteSpace='nowrap';
-
-    const actions = document.createElement('div'); actions.className='layer-actions';
-    const up = document.createElement('button'); up.innerHTML='▲'; up.title='bring up'; up.dataset.index = i;
-    up.addEventListener('click', ev => { ev.stopPropagation(); moveLayerUp(Number(ev.currentTarget.dataset.index)); });
-    const down = document.createElement('button'); down.innerHTML='▼'; down.title='send down'; down.dataset.index = i;
-    down.addEventListener('click', ev => { ev.stopPropagation(); moveLayerDown(Number(ev.currentTarget.dataset.index)); });
-    const sel = document.createElement('button'); sel.innerHTML='●'; sel.title='enter transform mode';
-    sel.addEventListener('click', ev => { ev.stopPropagation(); setActiveLayer(i, true); });
-
-    actions.append(up,down,sel);
-    cell.append(colorIndicator, label, actions);
-    cell.addEventListener('click', ()=> setActiveLayer(i));
-    layersGrid.appendChild(cell);
-  }
-  layerCountLabel.textContent = `${layers.length}/${MAX_LAYERS}`;
-  layerAddBtn.disabled = layers.length >= MAX_LAYERS;
-  layerRemoveBtn.disabled = layers.length <= 1;
-
-  updateLayerOutline();
-
-  // color stripe
-  const colorStripe = document.getElementById('layer-color-stripe');
-  if (colorStripe && layers[activeLayerIndex]) colorStripe.style.background = layers[activeLayerIndex].color || '#ccc';
-}
-
-/* ---------- Attach create/remove handlers (restored) ---------- */
-layerAddBtn.addEventListener('click', () => { if (layers.length >= MAX_LAYERS) return; createLayer(); });
-layerRemoveBtn.addEventListener('click', () => { if (layers.length <= 1) return; saveState(); removeLayer(activeLayerIndex); });
-
-/* ---------- TOOLS and rest of original code (kept intact) ---------- */
-let drawing=false, currentTool='marker';
-let markerSize=3, eraserSize=3, color='#000000', bucketColor='#000000', flow=2500;
-let spraySize=3, spraySpread=16, sprayFlow=50, sprayColor='#000000';
-let calligraphySize=20, calligraphyFlow=2500, calligraphyBrushType=0, calligraphyColor='#000000';
-let symbolSize=35, symbolCharType=0, symbolColor='#000000';
-let textFont="Arial", textSize=32, textColor="#000000", textString="your text";
-
-/* ----------------- IMPORT-MODE HELPERS (new) ----------------- */
-// minimal state to remember the previous tool and temporarily disable tools while importing
-let prevTool = null;
-function enterImportMode(){
-  prevTool = currentTool;
-  currentTool = 'none';
-  // hide any tool settings and clear selection highlight so UI reflects inactive state
-  document.querySelectorAll('.tool-settings').forEach(s => s.classList.add('hidden'));
-  document.querySelectorAll('.tool-option').forEach(o => o.classList.remove('selected'));
-}
-function exitImportMode(){  
-  if (currentTool === 'none' || prevTool !== null) {  // Only reset if actively in import mode  
-    if (prevTool) currentTool = prevTool;  
-    else currentTool = 'marker';  
-    prevTool = null;  
-    setToolHighlight(currentTool || 'marker');  
-  }  
-  // If not in import mode, do nothing—preserve current tool  
-}  
-/* ------------------------------------------------------------ */
-
-const calligraphyBrushes = ["♥","|","✦","◣","◢","◆"];
-const symbolChars = ["★","☠","☣","✠","☭","☮"];
-
-document.querySelectorAll('.calligraphy-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.calligraphy-btn').forEach(x=>x.classList.remove('calligraphy-selected'));b.classList.add('calligraphy-selected');calligraphyBrushType=i;});
-document.querySelectorAll('.symbol-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.symbol-btn').forEach(x=>x.classList.remove('symbol-selected'));b.classList.add('symbol-selected');symbolCharType=i;});
-
-document.getElementById('marker-size').oninput=e=>markerSize=+e.target.value;
-document.getElementById('marker-flow').oninput=e=>flow=+e.target.value;
-document.getElementById('color-picker').oninput=e=>color=e.target.value;
-document.getElementById('calligraphy-size').oninput=e=>calligraphySize=+e.target.value;
-document.getElementById('calligraphy-flow').oninput=e=>calligraphyFlow=+e.target.value;
-document.getElementById('calligraphy-color').oninput=e=>calligraphyColor=e.target.value;
-document.getElementById('symbol-size').oninput=e=>symbolSize=+e.target.value;
-document.getElementById('symbol-color').oninput=e=>symbolColor=e.target.value;
-
-const sprayColorInput = document.getElementById('spray-color');
-if (sprayColorInput) { sprayColor = sprayColorInput.value || sprayColor; sprayColorInput.addEventListener('input', e => sprayColor = e.target.value); }
-const spraySizeInput = document.getElementById('spray-size');
-if (spraySizeInput) { spraySize = Number(spraySizeInput.value) || spraySize; spraySizeInput.addEventListener('input', e => { spraySize = Math.max(1, Number(e.target.value) || 1); }); }
-const spraySpreadInput = document.getElementById('spray-spread');
-if (spraySpreadInput) { spraySpread = Number(spraySpreadInput.value) || spraySpread; spraySpreadInput.addEventListener('input', e => { spraySpread = Math.max(1, Number(e.target.value) || 1); }); }
-const sprayFlowInput = document.getElementById('spray-flow');
-if (sprayFlowInput) { sprayFlow = Number(sprayFlowInput.value) || sprayFlow; sprayFlowInput.addEventListener('input', e => { sprayFlow = Math.max(1, Number(e.target.value) || 1); }); }
-
-const bucketColorInput = document.getElementById('bucket-color');
-if (bucketColorInput) { bucketColor = bucketColorInput.value || bucketColor; bucketColorInput.addEventListener('input', e => bucketColor = e.target.value); }
-
-const eraserSizeInput = document.getElementById('eraser-size');
-if (eraserSizeInput) {
-  eraserSize = Math.max(1, Number(eraserSizeInput.value) || 1);
-  eraserSizeInput.addEventListener('input', e => {
-    const v = Number(e.target.value) || 1;
-    eraserSize = Math.max(1, Math.min(500, v));
-    if (v > 500) e.target.value = 500;
-  });
-}
-
-function drawCalligraphy(x,y){ const ctx=getActiveCtx(); ctx.save(); ctx.font=`${calligraphySize}px 'Roboto Mono',monospace`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=calligraphyColor; ctx.fillText(calligraphyBrushes[calligraphyBrushType],x,y); ctx.restore(); }
-function drawCalligraphyFlowLine(x0,y0,x1,y1){ let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy; while(true){ drawCalligraphy(x0,y0); if(x0===x1 && y0===y1) break; let e2=2*err; if(e2>-dy){err-=dy;x0+=sx;} if(e2<dx){err+=dx;y0+=sy;} } }
-function drawSymbol(x,y){ const ctx=getActiveCtx(); ctx.save(); ctx.font=`${symbolSize}px 'Roboto Mono',monospace`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=symbolColor; ctx.fillText(symbolChars[symbolCharType],x,y); ctx.restore(); }
-function drawAt(x,y){ const ctx=getActiveCtx(); ctx.save(); if(currentTool==='eraser'){ ctx.globalCompositeOperation='destination-out'; ctx.beginPath(); ctx.arc(x,y,eraserSize/2,0,Math.PI*2); ctx.fill(); }else{ ctx.globalCompositeOperation='source-over'; ctx.beginPath(); ctx.arc(x,y,markerSize/2,0,Math.PI*2); ctx.fillStyle=color; ctx.fill(); } ctx.restore(); }
-function drawLine(x0,y0,x1,y1){ const ctx=getActiveCtx(); ctx.save(); ctx.strokeStyle = currentTool==='eraser'?'rgba(0,0,0,1)':color; ctx.lineWidth = currentTool==='eraser'?eraserSize:markerSize; ctx.lineCap='round'; if(currentTool==='eraser') ctx.globalCompositeOperation='destination-out'; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke(); ctx.restore(); }
-function sprayAt(x,y){ const ctx=getActiveCtx(); ctx.save(); ctx.fillStyle=sprayColor; for(let i=0;i<sprayFlow;i++){ const a=Math.random()*Math.PI*2, r=Math.random()*spraySpread; ctx.beginPath(); ctx.arc(x+Math.cos(a)*r, y+Math.sin(a)*r, spraySize/2,0,Math.PI*2); ctx.fill(); } ctx.restore(); }
-
-/* ---------- canvas input ---------- */
-let lastPos=null;
-function getCanvasCoords(e){
-  const r=canvas.getBoundingClientRect();
-  const clientX = e.touches?e.touches[0].clientX:e.clientX;
-  const clientY = e.touches?e.touches[0].clientY:e.clientY;
-  return {
-    x:Math.floor((clientX-r.left)*canvas.width/r.width),
-    y:Math.floor((clientY-r.top)*canvas.height/r.height)
-  };
-}
-/* Guard canvas input so active tools don't draw while import preview is active */
-canvas.addEventListener('mousedown', e=>{
-  if (importPreview) return; // ignore drawing when importing/previewing
-  if(currentTool==='select'){ startMarquee(e.clientX,e.clientY); return; }
-  if(currentTool==='bucket'){ saveState(); floodFillActiveLayer(getCanvasCoords(e).x,getCanvasCoords(e).y,bucketColor); return; }
-  saveState();
-  const {x,y}=getCanvasCoords(e);
-  if(currentTool==='calligraphy'){ drawing=true; lastPos={x,y}; drawCalligraphy(x,y); renderComposite(); }
-  else if(currentTool==='symbol'){ drawSymbol(x,y); renderComposite(); }
-  else if(currentTool==='spray'){ drawing=true; lastPos={x,y}; sprayAt(x,y); renderComposite(); }
-  else if(['eraser','marker'].includes(currentTool)){ drawing=true; lastPos={x,y}; drawAt(x,y); renderComposite(); }
-});
-canvas.addEventListener('mousemove', e=>{
-  if(!drawing || ['bucket','symbol','text','select'].includes(currentTool)) return;
-  const {x,y}=getCanvasCoords(e);
-  if(currentTool==='calligraphy'){
-    if(lastPos){
-      if(calligraphyFlow>=1000) drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
-      else{
-        const dist=Math.hypot(x-lastPos.x,y-lastPos.y);
-        const step=Math.max(1,Math.floor(1000/calligraphyFlow));
-        if(dist>step){
-          const steps=Math.floor(dist/step);
-          for(let i=1;i<=steps;i++){
-            const nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps);
-            const ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);
-            drawCalligraphy(nx,ny);
+    if (rotNumber){
+      rotNumber.addEventListener('input', ()=> {
+        const v = Math.max(-180, Math.min(180, Number(rotNumber.value) || 0));
+        layerTransform.rotation = v;
+        if (rotRange) rotRange.value = v;
+        layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
+      });
+    }
+    if (scaleInput){
+      scaleInput.addEventListener('input', ()=> {
+        const s = Math.max(0.01, (parseInt(scaleInput.value || '100',10) / 100));
+        layerTransform.scale = s;
+        if (scaleValue) scaleValue.textContent = (parseInt(scaleInput.value || '100',10)) + '%';
+        layerOutline.style.transform = `rotate(${layerTransform.rotation || 0}deg) scale(${layerTransform.scale})`;
+      });
+    }
+    
+    /* enable/disable transform mode and set preview opacity when enabled */
+    function setTransformModeEnabled(enabled){
+      layerTransform.enabled = !!enabled;
+      const wrapper = document.getElementById('transform-section-wrapper');
+      if(enabled){
+        if(wrapper) wrapper.classList.remove('hidden');
+        layerOutline.style.pointerEvents = 'auto';
+        layerOutline.style.cursor = 'grab';
+        layerOutline.style.display = 'block';
+        layerOutline.style.opacity = '0.25';
+      }else{
+        if(wrapper) wrapper.classList.add('hidden');
+        layerOutline.style.pointerEvents = 'none';
+        layerOutline.style.cursor = 'default';
+        layerOutline.style.display = 'none';
+        layerOutline.style.opacity = '1';
+        // remove preview content if any
+        while (layerOutline.firstChild) layerOutline.removeChild(layerOutline.firstChild);
+      }
+      // Ensure UI elements reflect current transform state
+      syncTransformUIToState();
+      updateLayerUI();
+    }
+    
+    function updateLayerOutline(){
+      const editDropdown = document.getElementById('edit-dropdown');
+      // If edit dropdown is hidden AND transform mode is not enabled, hide outline and exit
+      if(!editDropdown || editDropdown.classList.contains('hidden')){
+        if(!layerTransform.enabled){ layerOutline.style.display='none'; return; }
+        // otherwise continue and show outline because transform mode is active (user requested persistent transform)
+      }
+      if(!layers.length){ layerOutline.style.display='none'; return; }
+      const layer = layers[activeLayerIndex];
+      const bbox = computeActivePixelBBox(layer.canvas);
+      if(bbox.empty){ layerOutline.style.display='none'; return; }
+    
+      // Map bbox (canvas pixels) into CSS pixels using canvas bounding rect
+      const canvasRect = canvas.getBoundingClientRect();
+      const cssPerCanvasX = canvasRect.width / layer.canvas.width;
+      const cssPerCanvasY = canvasRect.height / layer.canvas.height;
+    
+      // FIX: Use precise floats instead of Math.round to avoid rounding errors causing shifts
+      const leftOnCanvas = bbox.x * cssPerCanvasX;
+      const topOnCanvas  = bbox.y * cssPerCanvasY;
+      const wOnCanvas = Math.max(1, bbox.w * cssPerCanvasX);
+      const hOnCanvas = Math.max(1, bbox.h * cssPerCanvasY);
+    
+      // position relative to container (layerOutline is child of container)
+      const canvasOffset = { left: canvasRect.left - container.getBoundingClientRect().left, top: canvasRect.top - container.getBoundingClientRect().top };
+    
+      const left = canvasOffset.left + leftOnCanvas;
+      const top  = canvasOffset.top  + topOnCanvas;
+      const w = wOnCanvas; const h = hOnCanvas;
+    
+      layerOutline.style.left = left+'px';
+      layerOutline.style.top  = top+'px';
+      layerOutline.style.width  = w+'px';
+      layerOutline.style.height = h+'px';
+      layerOutline.style.transformOrigin = 'center center';
+      layerOutline.style.transform = `rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
+      // display controlled by setTransformModeEnabled; ensure it is visible if enabled
+      if(layerTransform.enabled) layerOutline.style.display='block';
+    
+      layerTransform.posX = left; layerTransform.posY = top;
+      layerTransform.bboxCss = {left,top,w,h};
+    
+      // create a preview image inside the outline so the user gets a live preview
+      while (layerOutline.firstChild) layerOutline.removeChild(layerOutline.firstChild);
+      try {
+        const off = document.createElement('canvas');
+        off.width = bbox.w;
+        off.height = bbox.h;
+        const offCtx = off.getContext('2d'); offCtx.imageSmoothingEnabled = false;
+        offCtx.drawImage(layer.canvas, bbox.x, bbox.y, bbox.w, bbox.h, 0, 0, bbox.w, bbox.h);
+        const img = document.createElement('img');
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.display = 'block';
+        img.style.pointerEvents = 'none';
+        img.style.objectFit = 'contain';
+        img.style.imageRendering = 'pixelated';
+        img.src = off.toDataURL();
+        layerOutline.appendChild(img);
+      } catch (e) {
+        // ignore
+      }
+    
+      layerOutline.style.cursor = layerTransform.enabled?'grab':'default';
+    }
+    
+    function setActiveLayer(i, enableTransform = false){
+        if (typeof i !== 'number' || i < 0 || i >= layers.length) return;
+        activeLayerIndex = i;
+        updateLayerUI();
+        renderComposite();
+    
+        if (enableTransform) {
+          setTransformModeEnabled(true);
+        }
+        updateLayerOutline();
+    }
+    
+    /* ---------- Layer UI rendering (keeps create/move/select functionality intact) ---------- */
+    function updateLayerUI(){
+      layersGrid.innerHTML = '';
+      // Render top-most layer first so displayed list visually matches stack
+      for (let display = layers.length - 1; display >= 0; display--){
+        const i = display;
+        const layer = layers[i];
+        const cell = document.createElement('div');
+        cell.className = 'layer-cell' + (i === activeLayerIndex ? ' active' : '');
+        if (layerTransform.enabled && i === activeLayerIndex) cell.classList.add('transform-active');
+        cell.dataset.index = i;
+    
+        const colorIndicator = document.createElement('div');
+        colorIndicator.className = 'layer-color-indicator';
+        colorIndicator.style.background = layer.color || '#ccc';
+    
+        const label = document.createElement('div');
+        label.textContent = layer.name;
+        label.style.flex='1 1 auto'; label.style.overflow='hidden'; label.style.textOverflow='ellipsis'; label.style.whiteSpace='nowrap';
+    
+        const actions = document.createElement('div'); actions.className='layer-actions';
+        const up = document.createElement('button'); up.innerHTML='▲'; up.title='bring up'; up.dataset.index = i;
+        up.addEventListener('click', ev => { ev.stopPropagation(); moveLayerUp(Number(ev.currentTarget.dataset.index)); });
+        const down = document.createElement('button'); down.innerHTML='▼'; down.title='send down'; down.dataset.index = i;
+        down.addEventListener('click', ev => { ev.stopPropagation(); moveLayerDown(Number(ev.currentTarget.dataset.index)); });
+        const sel = document.createElement('button'); sel.innerHTML='●'; sel.title='enter transform mode';
+        sel.addEventListener('click', ev => { ev.stopPropagation(); setActiveLayer(i, true); });
+    
+        actions.append(up,down,sel);
+        cell.append(colorIndicator, label, actions);
+        cell.addEventListener('click', ()=> setActiveLayer(i));
+        layersGrid.appendChild(cell);
+      }
+      layerCountLabel.textContent = `${layers.length}/${MAX_LAYERS}`;
+      layerAddBtn.disabled = layers.length >= MAX_LAYERS;
+      layerRemoveBtn.disabled = layers.length <= 1;
+    
+      updateLayerOutline();
+    
+      // color stripe
+      const colorStripe = document.getElementById('layer-color-stripe');
+      if (colorStripe && layers[activeLayerIndex]) colorStripe.style.background = layers[activeLayerIndex].color || '#ccc';
+    }
+    
+    /* ---------- Attach create/remove handlers (restored) ---------- */
+    layerAddBtn.addEventListener('click', () => { if (layers.length >= MAX_LAYERS) return; createLayer(); });
+    layerRemoveBtn.addEventListener('click', () => { if (layers.length <= 1) return; saveState(); removeLayer(activeLayerIndex); });
+    
+    /* ---------- TOOLS and rest of original code (kept intact) ---------- */
+    let drawing=false, currentTool='marker';
+    let markerSize=3, eraserSize=3, color='#000000', bucketColor='#000000', flow=2500;
+    let spraySize=3, spraySpread=16, sprayFlow=50, sprayColor='#000000';
+    let calligraphySize=20, calligraphyFlow=2500, calligraphyBrushType=0, calligraphyColor='#000000';
+    let symbolSize=35, symbolCharType=0, symbolColor='#000000';
+    let textFont="Arial", textSize=32, textColor="#000000", textString="your text";
+    
+    /* ----------------- IMPORT-MODE HELPERS (new) ----------------- */
+    // minimal state to remember the previous tool and temporarily disable tools while importing
+    let prevTool = null;
+    function enterImportMode(){
+      prevTool = currentTool;
+      currentTool = 'none';
+      // hide any tool settings and clear selection highlight so UI reflects inactive state
+      document.querySelectorAll('.tool-settings').forEach(s => s.classList.add('hidden'));
+      document.querySelectorAll('.tool-option').forEach(o => o.classList.remove('selected'));
+    }
+    function exitImportMode(){  
+      if (currentTool === 'none' || prevTool !== null) {  // Only reset if actively in import mode  
+        if (prevTool) currentTool = prevTool;  
+        else currentTool = 'marker';  
+        prevTool = null;  
+        setToolHighlight(currentTool || 'marker');  
+      }  
+      // If not in import mode, do nothing—preserve current tool  
+    }  
+    /* ------------------------------------------------------------ */
+    
+    const calligraphyBrushes = ["♥","|","✦","◣","◢","◆"];
+    const symbolChars = ["★","☠","☣","✠","☭","☮"];
+    
+    document.querySelectorAll('.calligraphy-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.calligraphy-btn').forEach(x=>x.classList.remove('calligraphy-selected'));b.classList.add('calligraphy-selected');calligraphyBrushType=i;});
+    document.querySelectorAll('.symbol-btn').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.symbol-btn').forEach(x=>x.classList.remove('symbol-selected'));b.classList.add('symbol-selected');symbolCharType=i;});
+    
+    document.getElementById('marker-size').oninput=e=>markerSize=+e.target.value;
+    document.getElementById('marker-flow').oninput=e=>flow=+e.target.value;
+    document.getElementById('color-picker').oninput=e=>color=e.target.value;
+    document.getElementById('calligraphy-size').oninput=e=>calligraphySize=+e.target.value;
+    document.getElementById('calligraphy-flow').oninput=e=>calligraphyFlow=+e.target.value;
+    document.getElementById('calligraphy-color').oninput=e=>calligraphyColor=e.target.value;
+    document.getElementById('symbol-size').oninput=e=>symbolSize=+e.target.value;
+    document.getElementById('symbol-color').oninput=e=>symbolColor=e.target.value;
+    
+    const sprayColorInput = document.getElementById('spray-color');
+    if (sprayColorInput) { sprayColor = sprayColorInput.value || sprayColor; sprayColorInput.addEventListener('input', e => sprayColor = e.target.value); }
+    const spraySizeInput = document.getElementById('spray-size');
+    if (spraySizeInput) { spraySize = Number(spraySizeInput.value) || spraySize; spraySizeInput.addEventListener('input', e => { spraySize = Math.max(1, Number(e.target.value) || 1); }); }
+    const spraySpreadInput = document.getElementById('spray-spread');
+    if (spraySpreadInput) { spraySpread = Number(spraySpreadInput.value) || spraySpread; spraySpreadInput.addEventListener('input', e => { spraySpread = Math.max(1, Number(e.target.value) || 1); }); }
+    const sprayFlowInput = document.getElementById('spray-flow');
+    if (sprayFlowInput) { sprayFlow = Number(sprayFlowInput.value) || sprayFlow; sprayFlowInput.addEventListener('input', e => { sprayFlow = Math.max(1, Number(e.target.value) || 1); }); }
+    
+    const bucketColorInput = document.getElementById('bucket-color');
+    if (bucketColorInput) { bucketColor = bucketColorInput.value || bucketColor; bucketColorInput.addEventListener('input', e => bucketColor = e.target.value); }
+    
+    const eraserSizeInput = document.getElementById('eraser-size');
+    if (eraserSizeInput) {
+      eraserSize = Math.max(1, Number(eraserSizeInput.value) || 1);
+      eraserSizeInput.addEventListener('input', e => {
+        const v = Number(e.target.value) || 1;
+        eraserSize = Math.max(1, Math.min(500, v));
+        if (v > 500) e.target.value = 500;
+      });
+    }
+    
+    function drawCalligraphy(x,y){ const ctx=getActiveCtx(); ctx.save(); ctx.font=`${calligraphySize}px 'Roboto Mono',monospace`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=calligraphyColor; ctx.fillText(calligraphyBrushes[calligraphyBrushType],x,y); ctx.restore(); }
+    function drawCalligraphyFlowLine(x0,y0,x1,y1){ let dx=Math.abs(x1-x0),dy=Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1,err=dx-dy; while(true){ drawCalligraphy(x0,y0); if(x0===x1 && y0===y1) break; let e2=2*err; if(e2>-dy){err-=dy;x0+=sx;} if(e2<dx){err+=dx;y0+=sy;} } }
+    function drawSymbol(x,y){ const ctx=getActiveCtx(); ctx.save(); ctx.font=`${symbolSize}px 'Roboto Mono',monospace`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=symbolColor; ctx.fillText(symbolChars[symbolCharType],x,y); ctx.restore(); }
+    function drawAt(x,y){ const ctx=getActiveCtx(); ctx.save(); if(currentTool==='eraser'){ ctx.globalCompositeOperation='destination-out'; ctx.beginPath(); ctx.arc(x,y,eraserSize/2,0,Math.PI*2); ctx.fill(); }else{ ctx.globalCompositeOperation='source-over'; ctx.beginPath(); ctx.arc(x,y,markerSize/2,0,Math.PI*2); ctx.fillStyle=color; ctx.fill(); } ctx.restore(); }
+    function drawLine(x0,y0,x1,y1){ const ctx=getActiveCtx(); ctx.save(); ctx.strokeStyle = currentTool==='eraser'?'rgba(0,0,0,1)':color; ctx.lineWidth = currentTool==='eraser'?eraserSize:markerSize; ctx.lineCap='round'; if(currentTool==='eraser') ctx.globalCompositeOperation='destination-out'; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke(); ctx.restore(); }
+    function sprayAt(x,y){ const ctx=getActiveCtx(); ctx.save(); ctx.fillStyle=sprayColor; for(let i=0;i<sprayFlow;i++){ const a=Math.random()*Math.PI*2, r=Math.random()*spraySpread; ctx.beginPath(); ctx.arc(x+Math.cos(a)*r, y+Math.sin(a)*r, spraySize/2,0,Math.PI*2); ctx.fill(); } ctx.restore(); }
+    
+    /* ---------- canvas input ---------- */
+    let lastPos=null;
+    function getCanvasCoords(e){
+      const r=canvas.getBoundingClientRect();
+      const clientX = e.touches?e.touches[0].clientX:e.clientX;
+      const clientY = e.touches?e.touches[0].clientY:e.clientY;
+      return {
+        x:Math.floor((clientX-r.left)*canvas.width/r.width),
+        y:Math.floor((clientY-r.top)*canvas.height/r.height)
+      };
+    }
+    /* Guard canvas input so active tools don't draw while import preview is active */
+    canvas.addEventListener('mousedown', e=>{
+      if (importPreview) return; // ignore drawing when importing/previewing
+      if(currentTool==='select'){ startMarquee(e.clientX,e.clientY); return; }
+      if(currentTool==='bucket'){ saveState(); floodFillActiveLayer(getCanvasCoords(e).x,getCanvasCoords(e).y,bucketColor); return; }
+      saveState();
+      const {x,y}=getCanvasCoords(e);
+      if(currentTool==='calligraphy'){ drawing=true; lastPos={x,y}; drawCalligraphy(x,y); renderComposite(); }
+      else if(currentTool==='symbol'){ drawSymbol(x,y); renderComposite(); }
+      else if(currentTool==='spray'){ drawing=true; lastPos={x,y}; sprayAt(x,y); renderComposite(); }
+      else if(['eraser','marker'].includes(currentTool)){ drawing=true; lastPos={x,y}; drawAt(x,y); renderComposite(); }
+    });
+    canvas.addEventListener('mousemove', e=>{
+      if(!drawing || ['bucket','symbol','text','select'].includes(currentTool)) return;
+      const {x,y}=getCanvasCoords(e);
+      if(currentTool==='calligraphy'){
+        if(lastPos){
+          if(calligraphyFlow>=1000) drawCalligraphyFlowLine(lastPos.x,lastPos.y,x,y);
+          else{
+            const dist=Math.hypot(x-lastPos.x,y-lastPos.y);
+            const step=Math.max(1,Math.floor(1000/calligraphyFlow));
+            if(dist>step){
+              const steps=Math.floor(dist/step);
+              for(let i=1;i<=steps;i++){
+                const nx=Math.round(lastPos.x+(x-lastPos.x)*i/steps);
+                const ny=Math.round(lastPos.y+(y-lastPos.y)*i/steps);
+                drawCalligraphy(nx,ny);
+              }
+            }else drawCalligraphy(x,y);
           }
         }else drawCalligraphy(x,y);
+        renderComposite();
+      }else if(currentTool==='spray'){ sprayAt(x,y); renderComposite(); }
+      else if(['eraser','marker'].includes(currentTool)){
+        if(flow>=1000 && lastPos) drawLine(lastPos.x,lastPos.y,x,y);
+        else drawAt(x,y);
+        renderComposite();
       }
-    }else drawCalligraphy(x,y);
-    renderComposite();
-  }else if(currentTool==='spray'){ sprayAt(x,y); renderComposite(); }
-  else if(['eraser','marker'].includes(currentTool)){
-    if(flow>=1000 && lastPos) drawLine(lastPos.x,lastPos.y,x,y);
-    else drawAt(x,y);
-    renderComposite();
-  }
-  lastPos={x,y};
-});
-canvas.addEventListener('mouseup',()=>{drawing=false; lastPos=null;});
-canvas.addEventListener('mouseout',()=>{drawing=false; lastPos=null;});
-
-/* touch handlers: guard when import preview present */
-canvas.addEventListener('touchstart', e=>{
-  if (importPreview) return;
-  e.preventDefault();
-  canvas.dispatchEvent(new MouseEvent('mousedown', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY}));
-});
-canvas.addEventListener('touchmove',  e=>{ e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousemove', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY})); });
-canvas.addEventListener('touchend',   ()=>{ canvas.dispatchEvent(new MouseEvent('mouseup')); });
-
-/* ---------- bucket, menu, tools etc. (unchanged except import-mode menu logic patch) ---------- */
-function hexToRgb(hex){ const b=parseInt(hex.slice(1),16); return [(b>>16)&255,(b>>8)&255,b&255]; }
-function getPixel(imgData,x,y){ const i=(y*imgData.width+x)*4; return [imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]]; }
-function colorsMatch(a,b){ return a.every((v,i)=>v===b[i]); }
-function floodFillActiveLayer(x,y,fillHex){
-  const layer=layers[activeLayerIndex];
-  let img; try{ img=layer.ctx.getImageData(0,0,canvas.width,canvas.height); }catch(e){alert('Bucket unavailable (tainted canvas)');return;}
-  const target=getPixel(img,x,y);
-  const fill=hexToRgb(fillHex).concat(255);
-  if(colorsMatch(target,fill)) return;
-  const stack=[[x,y]];
-  while(stack.length){
-    const [cx,cy]=stack.pop();
-    if(cx<0||cy<0||cx>=canvas.width||cy>=canvas.height) continue;
-    if(!colorsMatch(getPixel(img,cx,cy),target)) continue;
-    const i=(cy*canvas.width+cx)*4; img.data.set(fill,i);
-    stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
-  }
-  layer.ctx.putImageData(img,0,0);
-  renderComposite();
-}
-
-/* ---------- MENU TITLE (patched: import-mode enter/exit) ---------- */
-document.querySelectorAll('.menu-title').forEach(title=>{
-  const menu=title.dataset.menu;
-  if(!menu) return;
-  title.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    const dropdown=document.getElementById(`${menu}-dropdown`);
-    const isSubMenu = title.closest('.dropdown');
-    const isOpen = dropdown && !dropdown.classList.contains('hidden');
-    if (isSubMenu) {
-      if (isOpen) {
-        dropdown.classList.add('hidden');
-      } else {
-        dropdown.classList.remove('hidden');
+      lastPos={x,y};
+    });
+    canvas.addEventListener('mouseup',()=>{drawing=false; lastPos=null;});
+    canvas.addEventListener('mouseout',()=>{drawing=false; lastPos=null;});
+    
+    /* touch handlers: guard when import preview present */
+    canvas.addEventListener('touchstart', e=>{
+      if (importPreview) return;
+      e.preventDefault();
+      canvas.dispatchEvent(new MouseEvent('mousedown', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY}));
+    });
+    canvas.addEventListener('touchmove',  e=>{ e.preventDefault(); canvas.dispatchEvent(new MouseEvent('mousemove', {clientX:e.touches[0].clientX, clientY:e.touches[0].clientY})); });
+    canvas.addEventListener('touchend',   ()=>{ canvas.dispatchEvent(new MouseEvent('mouseup')); });
+    
+    /* ---------- bucket, menu, tools etc. (unchanged except import-mode menu logic patch) ---------- */
+    function hexToRgb(hex){ const b=parseInt(hex.slice(1),16); return [(b>>16)&255,(b>>8)&255,b&255]; }
+    function getPixel(imgData,x,y){ const i=(y*imgData.width+x)*4; return [imgData.data[i],imgData.data[i+1],imgData.data[i+2],imgData.data[i+3]]; }
+    function colorsMatch(a,b){ return a.every((v,i)=>v===b[i]); }
+    function floodFillActiveLayer(x,y,fillHex){
+      const layer=layers[activeLayerIndex];
+      let img; try{ img=layer.ctx.getImageData(0,0,canvas.width,canvas.height); }catch(e){alert('Bucket unavailable (tainted canvas)');return;}
+      const target=getPixel(img,x,y);
+      const fill=hexToRgb(fillHex).concat(255);
+      if(colorsMatch(target,fill)) return;
+      const stack=[[x,y]];
+      while(stack.length){
+        const [cx,cy]=stack.pop();
+        if(cx<0||cy<0||cx>=canvas.width||cy>=canvas.height) continue;
+        if(!colorsMatch(getPixel(img,cx,cy),target)) continue;
+        const i=(cy*canvas.width+cx)*4; img.data.set(fill,i);
+        stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
       }
-    } else {
-      document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
-      if (!isOpen && dropdown) dropdown.classList.remove('hidden');
+      layer.ctx.putImageData(img,0,0);
+      renderComposite();
     }
-
-    if (menu !== 'import') {
-      importResetState();
-    } else {
-      const isImportOpen = dropdown && !dropdown.classList.contains('hidden');
-      if (isImportOpen) {
-        enterImportMode();
-      } else {
-        exitImportMode();
+    
+    /* ---------- MENU TITLE (patched: import-mode enter/exit) ---------- */
+    document.querySelectorAll('.menu-title').forEach(title=>{
+      const menu=title.dataset.menu;
+      if(!menu) return;
+      title.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const dropdown=document.getElementById(`${menu}-dropdown`);
+        const isSubMenu = title.closest('.dropdown');
+        const isOpen = dropdown && !dropdown.classList.contains('hidden');
+        if (isSubMenu) {
+          if (isOpen) {
+            dropdown.classList.add('hidden');
+          } else {
+            dropdown.classList.remove('hidden');
+          }
+        } else {
+          document.querySelectorAll('.dropdown').forEach(d=>d.classList.add('hidden'));
+          if (!isOpen && dropdown) dropdown.classList.remove('hidden');
+        }
+    
+        if (menu !== 'import') {
+          importResetState();
+        } else {
+          const isImportOpen = dropdown && !dropdown.classList.contains('hidden');
+          if (isImportOpen) {
+            enterImportMode();
+          } else {
+            exitImportMode();
+          }
+        }
+    
+        if (menu==='edit') setTimeout(()=>updateLayerOutline(),40);
+        else {
+          if(!layerTransform.enabled) layerOutline.style.display='none';
+        }
+    
+        // FIXED: Only reset text → marker when opening a different main menu
+        if (menu !== 'tools') {
+          if (currentTool === 'text') {
+            currentTool = 'marker';
+            setToolHighlight('marker');
+          }
+          hideTextPreviewOverlay();
+        }
+    
+        if (menu === 'select') {
+          selectSectionOpen = dropdown && !dropdown.classList.contains('hidden');
+          if (!selectSectionOpen) clearSelection();
+          currentTool = 'select';
+        }
+      });
+    });
+    
+    /* ---------- TOOL OPTIONS (unchanged) ---------- */
+    document.querySelectorAll('.tool-option').forEach(opt => { opt.replaceWith(opt.cloneNode(true)); });
+    document.querySelectorAll('.tool-option').forEach(opt => {
+      opt.addEventListener('click', e => {
+        e.stopPropagation(); e.preventDefault();
+        const tool = opt.id.split('-')[0];
+        const settings = document.getElementById(`${tool}-settings`);
+        if (currentTool === tool) {
+          if (settings) settings.classList.toggle('hidden');
+          if (tool === 'text') {
+            if (settings && settings.classList.contains('hidden')) hideTextPreviewOverlay();
+            else showTextPreviewOverlay(textString, textFont, textSize, textColor, true);
+          }
+          if (tool === 'select') selectSectionOpen = !settings.classList.contains('hidden');
+          if (!selectSectionOpen && tool === 'select') clearSelection();
+          return;
+        }
+        currentTool = tool;
+        setToolHighlight(currentTool);
+        if (tool === 'text') showTextPreviewOverlay(textString, textFont, textSize, textColor, true);
+        else hideTextPreviewOverlay();
+        const toolsDropdown = document.getElementById('tools-dropdown');
+        if (toolsDropdown && toolsDropdown.classList.contains('hidden')) {
+          document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
+          toolsDropdown.classList.remove('hidden');
+        }
+      });
+    });
+    
+    function setToolHighlight(tool){
+      ['marker','calligraphy','symbol','text','spray','eraser','bucket','clear','select'].forEach(t=>{
+        const s=document.getElementById(`${t}-settings`);
+        const o=document.getElementById(`${t}-option`);
+        if(s) s.classList.add('hidden');
+        if(o) o.classList.remove('selected');
+      });
+      const s=document.getElementById(`${tool}-settings`);
+      const o=document.getElementById(`${tool}-option`);
+      if(s) s.classList.remove('hidden');
+      if(o) o.classList.add('selected');
+      if(tool!=='select') clearSelection();
+    }
+    
+    /* ---------- CLEAR / EXPORT / UNDO / FILTERS (unchanged) ---------- */
+    document.getElementById('clear-yes').addEventListener('click',()=>{ saveState(); getActiveCtx().clearRect(0,0,canvas.width,canvas.height); document.getElementById('clear-settings').classList.add('hidden'); renderComposite(); });
+    document.getElementById('clear-back').addEventListener('click',()=>{ document.getElementById('clear-settings').classList.add('hidden'); });
+    document.getElementById('export-btn').addEventListener('click',()=>{
+      const name=document.getElementById('file-name').value||'pixel-art';
+      const transparent=document.getElementById('transparent-bg').checked;
+      const link=document.createElement('a');
+      const tmp=document.createElement('canvas'); tmp.width=canvas.width; tmp.height=canvas.height;
+      const tctx=tmp.getContext('2d'); tctx.imageSmoothingEnabled=false;
+      if(!transparent){ tctx.fillStyle='#fff'; tctx.fillRect(0,0,tmp.width,tmp.height); }
+      layers.forEach(l=>tctx.drawImage(l.canvas,0,0));
+      link.download=name+'.png';
+      link.href=tmp.toDataURL('image/png');
+      link.click();
+    });
+    document.getElementById('undo-btn').addEventListener('click',undo);
+    document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z') undo(); });
+    document.getElementById('filter-invert').addEventListener('click',()=>applyFilterToActiveLayer('invert'));
+    document.getElementById('filter-bw').addEventListener('click',()=>applyFilterToActiveLayer('bw'));
+    document.getElementById('filter-blur').addEventListener('click',()=>applyFilterToActiveLayer('blur'));
+    document.getElementById('filter-sharpen').addEventListener('click',()=>applyFilterToActiveLayer('sharpen'));
+    
+    function applyFilterToActiveLayer(type){
+      saveState();
+      const layer=layers[activeLayerIndex];
+      let data=layer.ctx.getImageData(0,0,layer.canvas.width,layer.canvas.height);
+      const d=data.data;
+      if(type==='invert'){ for(let i=0;i<d.length;i+=4){ d[i]=255-d[i]; d[i+1]=255-d[i+1]; d[i+2]=255-d[i+2]; } }
+      else if(type==='bw'){ for(let i=0;i<d.length;i+=4){ const v=Math.round(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]); d[i]=d[i+1]=d[i+2]=v; } }
+      else if(type==='blur'||type==='sharpen'){ const kernel = type==='blur'?[1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9]:[0,-1,0,-1,5,-1,0,-1,0]; data=convolve(data,layer.canvas.width,layer.canvas.height,kernel); }
+      layer.ctx.putImageData(data,0,0);
+      renderComposite();
+    }
+    function convolve(imgData,w,h,kernel){
+      const side=Math.round(Math.sqrt(kernel.length)), half=Math.floor(side/2);
+      const src=imgData.data, out=new Uint8ClampedArray(src.length);
+      for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+        let r=0,g=0,b=0,a=0;
+        for(let ky=0;ky<side;ky++) for(let kx=0;kx<side;kx++){
+          const ix=x+kx-half, iy=y+ky-half;
+          if(ix>=0&&iy>=0&&ix<w&&iy<h){
+            const idx=(iy*w+ix)*4;
+            const kv=kernel[ky*side+kx];
+            r+=src[idx]*kv; g+=src[idx+1]*kv; b+=src[idx+2]*kv; a+=src[idx+3]*kv;
+          }
+        }
+        const i=(y*w+x)*4;
+        out[i]=clamp(Math.round(r),0,255);
+        out[i+1]=clamp(Math.round(g),0,255);
+        out[i+2]=clamp(Math.round(b),0,255);
+        out[i+3]=clamp(Math.round(a),0,255)||src[i+3];
       }
+      return new ImageData(out,w,h);
     }
-
-    if (menu==='edit') setTimeout(()=>updateLayerOutline(),40);
-    else {
-      if(!layerTransform.enabled) layerOutline.style.display='none';
+    function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+    
+    /* ---------- SELECT TOOL (unchanged) ---------- */
+    let selectSectionOpen = false;
+    let selStart=null, selRect=null, isSelecting=false;
+    let selectionImage=null;
+    let selectionTransform={posX:0,posY:0,scale:1,rotation:0,dragging:false,offsetX:0,offsetY:0};
+    
+    function startMarquee(clientX,clientY){
+      if(!selectSectionOpen) return;
+      const rect=container.getBoundingClientRect();
+      selStart={x:clientX-rect.left, y:clientY-rect.top};
+      isSelecting=true;
+      selRect={x:selStart.x,y:selStart.y,w:0,h:0};
+      selectionPreview.classList.add('marching');
+      selectionPreview.style.display='block';
+      selectionRectDraw();
+    
+      const onMove=ev=>{
+        if(!isSelecting) return;
+        const mx=(ev.touches?ev.touches[0].clientX:ev.clientX)-rect.left;
+        const my=(ev.touches?ev.touches[0].clientY:ev.clientY)-rect.top;
+        selRect={x:Math.min(selStart.x,mx), y:Math.min(selStart.y,my), w:Math.abs(mx-selStart.x), h:Math.abs(my-selStart.y)};
+        selectionRectDraw();
+      };
+      const onUp=()=>{
+        if(isSelecting){
+          isSelecting=false;
+          selectionPreview.classList.remove('marching');
+          if(selRect && selRect.w>0 && selRect.h>0) finalizeMarquee();
+          else selectionPreview.style.display='none';
+        }
+        document.removeEventListener('mousemove',onMove);
+        document.removeEventListener('mouseup',onUp);
+        document.removeEventListener('touchmove',onMove);
+        document.removeEventListener('touchend',onUp);
+      };
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+      document.addEventListener('touchmove',onMove,{passive:false});
+      document.addEventListener('touchend',onUp);
     }
-
-    // FIXED: Only reset text → marker when opening a different main menu
-    if (menu !== 'tools') {
-      if (currentTool === 'text') {
-        currentTool = 'marker';
-        setToolHighlight('marker');
-      }
-      hideTextPreviewOverlay();
+    function selectionRectDraw(){
+      if(!selRect) return;
+      selectionPreview.style.left=selRect.x+'px';
+      selectionPreview.style.top=selRect.y+'px';
+      selectionPreview.style.width=selRect.w+'px';
+      selectionPreview.style.height=selRect.h+'px';
     }
-
-    if (menu === 'select') {
-      selectSectionOpen = dropdown && !dropdown.classList.contains('hidden');
-      if (!selectSectionOpen) clearSelection();
-      currentTool = 'select';
-    }
-  });
-});
-
-/* ---------- TOOL OPTIONS (unchanged) ---------- */
-document.querySelectorAll('.tool-option').forEach(opt => { opt.replaceWith(opt.cloneNode(true)); });
-document.querySelectorAll('.tool-option').forEach(opt => {
-  opt.addEventListener('click', e => {
-    e.stopPropagation(); e.preventDefault();
-    const tool = opt.id.split('-')[0];
-    const settings = document.getElementById(`${tool}-settings`);
-    if (currentTool === tool) {
-      if (settings) settings.classList.toggle('hidden');
-      if (tool === 'text') {
-        if (settings && settings.classList.contains('hidden')) hideTextPreviewOverlay();
-        else showTextPreviewOverlay(textString, textFont, textSize, textColor, true);
-      }
-      if (tool === 'select') selectSectionOpen = !settings.classList.contains('hidden');
-      if (!selectSectionOpen && tool === 'select') clearSelection();
-      return;
-    }
-    currentTool = tool;
-    setToolHighlight(currentTool);
-    if (tool === 'text') showTextPreviewOverlay(textString, textFont, textSize, textColor, true);
-    else hideTextPreviewOverlay();
-    const toolsDropdown = document.getElementById('tools-dropdown');
-    if (toolsDropdown && toolsDropdown.classList.contains('hidden')) {
-      document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
-      toolsDropdown.classList.remove('hidden');
-    }
-  });
-});
-
-function setToolHighlight(tool){
-  ['marker','calligraphy','symbol','text','spray','eraser','bucket','clear','select'].forEach(t=>{
-    const s=document.getElementById(`${t}-settings`);
-    const o=document.getElementById(`${t}-option`);
-    if(s) s.classList.add('hidden');
-    if(o) o.classList.remove('selected');
-  });
-  const s=document.getElementById(`${tool}-settings`);
-  const o=document.getElementById(`${tool}-option`);
-  if(s) s.classList.remove('hidden');
-  if(o) o.classList.add('selected');
-  if(tool!=='select') clearSelection();
-}
-
-/* ---------- CLEAR / EXPORT / UNDO / FILTERS (unchanged) ---------- */
-document.getElementById('clear-yes').addEventListener('click',()=>{ saveState(); getActiveCtx().clearRect(0,0,canvas.width,canvas.height); document.getElementById('clear-settings').classList.add('hidden'); renderComposite(); });
-document.getElementById('clear-back').addEventListener('click',()=>{ document.getElementById('clear-settings').classList.add('hidden'); });
-document.getElementById('export-btn').addEventListener('click',()=>{
-  const name=document.getElementById('file-name').value||'pixel-art';
-  const transparent=document.getElementById('transparent-bg').checked;
-  const link=document.createElement('a');
-  const tmp=document.createElement('canvas'); tmp.width=canvas.width; tmp.height=canvas.height;
-  const tctx=tmp.getContext('2d'); tctx.imageSmoothingEnabled=false;
-  if(!transparent){ tctx.fillStyle='#fff'; tctx.fillRect(0,0,tmp.width,tmp.height); }
-  layers.forEach(l=>tctx.drawImage(l.canvas,0,0));
-  link.download=name+'.png';
-  link.href=tmp.toDataURL('image/png');
-  link.click();
-});
-document.getElementById('undo-btn').addEventListener('click',undo);
-document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z') undo(); });
-document.getElementById('filter-invert').addEventListener('click',()=>applyFilterToActiveLayer('invert'));
-document.getElementById('filter-bw').addEventListener('click',()=>applyFilterToActiveLayer('bw'));
-document.getElementById('filter-blur').addEventListener('click',()=>applyFilterToActiveLayer('blur'));
-document.getElementById('filter-sharpen').addEventListener('click',()=>applyFilterToActiveLayer('sharpen'));
-
-function applyFilterToActiveLayer(type){
-  saveState();
-  const layer=layers[activeLayerIndex];
-  let data=layer.ctx.getImageData(0,0,layer.canvas.width,layer.canvas.height);
-  const d=data.data;
-  if(type==='invert'){ for(let i=0;i<d.length;i+=4){ d[i]=255-d[i]; d[i+1]=255-d[i+1]; d[i+2]=255-d[i+2]; } }
-  else if(type==='bw'){ for(let i=0;i<d.length;i+=4){ const v=Math.round(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]); d[i]=d[i+1]=d[i+2]=v; } }
-  else if(type==='blur'||type==='sharpen'){ const kernel = type==='blur'?[1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9,1/9]:[0,-1,0,-1,5,-1,0,-1,0]; data=convolve(data,layer.canvas.width,layer.canvas.height,kernel); }
-  layer.ctx.putImageData(data,0,0);
-  renderComposite();
-}
-function convolve(imgData,w,h,kernel){
-  const side=Math.round(Math.sqrt(kernel.length)), half=Math.floor(side/2);
-  const src=imgData.data, out=new Uint8ClampedArray(src.length);
-  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
-    let r=0,g=0,b=0,a=0;
-    for(let ky=0;ky<side;ky++) for(let kx=0;kx<side;kx++){
-      const ix=x+kx-half, iy=y+ky-half;
-      if(ix>=0&&iy>=0&&ix<w&&iy<h){
-        const idx=(iy*w+ix)*4;
-        const kv=kernel[ky*side+kx];
-        r+=src[idx]*kv; g+=src[idx+1]*kv; b+=src[idx+2]*kv; a+=src[idx+3]*kv;
-      }
-    }
-    const i=(y*w+x)*4;
-    out[i]=clamp(Math.round(r),0,255);
-    out[i+1]=clamp(Math.round(g),0,255);
-    out[i+2]=clamp(Math.round(b),0,255);
-    out[i+3]=clamp(Math.round(a),0,255)||src[i+3];
-  }
-  return new ImageData(out,w,h);
-}
-function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
-
-/* ---------- SELECT TOOL (unchanged) ---------- */
-let selectSectionOpen = false;
-let selStart=null, selRect=null, isSelecting=false;
-let selectionImage=null;
-let selectionTransform={posX:0,posY:0,scale:1,rotation:0,dragging:false,offsetX:0,offsetY:0};
-
-function startMarquee(clientX,clientY){
-  if(!selectSectionOpen) return;
-  const rect=container.getBoundingClientRect();
-  selStart={x:clientX-rect.left, y:clientY-rect.top};
-  isSelecting=true;
-  selRect={x:selStart.x,y:selStart.y,w:0,h:0};
-  selectionPreview.classList.add('marching');
-  selectionPreview.style.display='block';
-  selectionRectDraw();
-
-  const onMove=ev=>{
-    if(!isSelecting) return;
-    const mx=(ev.touches?ev.touches[0].clientX:ev.clientX)-rect.left;
-    const my=(ev.touches?ev.touches[0].clientY:ev.clientY)-rect.top;
-    selRect={x:Math.min(selStart.x,mx), y:Math.min(selStart.y,my), w:Math.abs(mx-selStart.x), h:Math.abs(my-selStart.y)};
-    selectionRectDraw();
-  };
-  const onUp=()=>{
-    if(isSelecting){
-      isSelecting=false;
+    function finalizeMarquee(){
+      const layer = layers[activeLayerIndex];
+      const scaleX = layer.canvas.width / container.offsetWidth;
+      const scaleY = layer.canvas.height / container.offsetHeight;
+      const sx = Math.round(selRect.x * scaleX), sy = Math.round(selRect.y * scaleY);
+      const sw = Math.max(1, Math.round(selRect.w * scaleX)), sh = Math.max(1, Math.round(selRect.h * scaleY));
+    
+      const off = document.createElement('canvas'); off.width = sw; off.height = sh;
+      const offCtx = off.getContext('2d'); offCtx.imageSmoothingEnabled = false;
+      offCtx.drawImage(layer.canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+    
+      saveState();
+      layer.ctx.clearRect(sx, sy, sw, sh);
+      renderComposite();
+    
+      selectionImage = off;
+      selectionPreviewImg.src = off.toDataURL();
+      selectionPreviewImg.style.display = 'block';
+      selectionPreviewImg.style.width = '100%';
+      selectionPreviewImg.style.height = '100%';
+    
+      selectionTransform.posX = selRect.x; selectionTransform.posY = selRect.y;
+      selectionTransform.scale = 1; selectionTransform.rotation = 0;
+    
+      selectionPreview.style.left = selRect.x + 'px';
+      selectionPreview.style.top  = selRect.y + 'px';
+      selectionPreview.style.width = selRect.w + 'px';
+      selectionPreview.style.height = selRect.h + 'px';
+      selectionPreview.style.display = 'block';
       selectionPreview.classList.remove('marching');
-      if(selRect && selRect.w>0 && selRect.h>0) finalizeMarquee();
-      else selectionPreview.style.display='none';
+    
+      enableFloatingDrag();
     }
-    document.removeEventListener('mousemove',onMove);
-    document.removeEventListener('mouseup',onUp);
-    document.removeEventListener('touchmove',onMove);
-    document.removeEventListener('touchend',onUp);
-  };
-  document.addEventListener('mousemove',onMove);
-  document.addEventListener('mouseup',onUp);
-  document.addEventListener('touchmove',onMove,{passive:false});
-  document.addEventListener('touchend',onUp);
-}
-function selectionRectDraw(){
-  if(!selRect) return;
-  selectionPreview.style.left=selRect.x+'px';
-  selectionPreview.style.top=selRect.y+'px';
-  selectionPreview.style.width=selRect.w+'px';
-  selectionPreview.style.height=selRect.h+'px';
-}
-function finalizeMarquee(){
-  const layer = layers[activeLayerIndex];
-  const scaleX = layer.canvas.width / container.offsetWidth;
-  const scaleY = layer.canvas.height / container.offsetHeight;
-  const sx = Math.round(selRect.x * scaleX), sy = Math.round(selRect.y * scaleY);
-  const sw = Math.max(1, Math.round(selRect.w * scaleX)), sh = Math.max(1, Math.round(selRect.h * scaleY));
-
-  const off = document.createElement('canvas'); off.width = sw; off.height = sh;
-  const offCtx = off.getContext('2d'); offCtx.imageSmoothingEnabled = false;
-  offCtx.drawImage(layer.canvas, sx, sy, sw, sh, 0, 0, sw, sh);
-
-  saveState();
-  layer.ctx.clearRect(sx, sy, sw, sh);
-  renderComposite();
-
-  selectionImage = off;
-  selectionPreviewImg.src = off.toDataURL();
-  selectionPreviewImg.style.display = 'block';
-  selectionPreviewImg.style.width = '100%';
-  selectionPreviewImg.style.height = '100%';
-
-  selectionTransform.posX = selRect.x; selectionTransform.posY = selRect.y;
-  selectionTransform.scale = 1; selectionTransform.rotation = 0;
-
-  selectionPreview.style.left = selRect.x + 'px';
-  selectionPreview.style.top  = selRect.y + 'px';
-  selectionPreview.style.width = selRect.w + 'px';
-  selectionPreview.style.height = selRect.h + 'px';
-  selectionPreview.style.display = 'block';
-  selectionPreview.classList.remove('marching');
-
-  enableFloatingDrag();
-}
-
-function enableFloatingDrag(){
-  selectionPreview.onmousedown = e => {
-    selectionTransform.dragging = true;
-    const r = selectionPreview.getBoundingClientRect();
-    selectionTransform.offsetX = e.clientX - r.left;
-    selectionTransform.offsetY = e.clientY - r.top;
-    selectionPreview.style.cursor = 'grabbing';
-  };
-  selectionPreview.ontouchstart = e => {
-    if (e.touches.length !== 1) return;
-    selectionTransform.dragging = true;
-    const r = selectionPreview.getBoundingClientRect();
-    const t = e.touches[0];
-    selectionTransform.offsetX = t.clientX - r.left;
-    selectionTransform.offsetY = t.clientY - r.top;
-    selectionPreview.style.cursor = 'grabbing';
-  };
-
-  const move = e => {
-    if (!selectionTransform.dragging) return;
-    const rect = container.getBoundingClientRect();
-    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-    selectionTransform.posX = cx - selectionTransform.offsetX;
-    selectionTransform.posY = cy - selectionTransform.offsetY;
-
-    selectionPreview.style.opacity = 0.25;
-    updateFloatingTransform();
-    if (e.cancelable) e.preventDefault();
-  };
-
-  const up = () => {
-    selectionTransform.dragging = false;
-    selectionPreview.style.cursor = 'grab';
-    selectionPreview.style.opacity = 1;
-  };
-
-  document.addEventListener('mousemove', move);
-  document.addEventListener('mouseup', up);
-  document.addEventListener('touchmove', move, { passive: false });
-  document.addEventListener('touchend', up);
-
-  const keyHandler = ev => {
-    if (!selectionImage) return;
-    if (ev.key === '[') { selectionTransform.rotation -= 5; updateFloatingTransform(); }
-    if (ev.key === ']') { selectionTransform.rotation += 5; updateFloatingTransform(); }
-    if (ev.key === '-' || ev.key === '_') { selectionTransform.scale = Math.max(0.1, selectionTransform.scale - 0.05); updateFloatingTransform(); }
-    if (ev.key === '+' || ev.key === '=') { selectionTransform.scale = Math.min(5, selectionTransform.scale + 0.05); updateFloatingTransform(); }
-  };
-  window.removeEventListener('keydown', selectionPreview._keyHandler || function(){});
-  window.addEventListener('keydown', keyHandler);
-  selectionPreview._keyHandler = keyHandler;
-}
-
-function updateFloatingTransform(){
-  selectionPreview.style.left=selectionTransform.posX+'px';
-  selectionPreview.style.top=selectionTransform.posY+'px';
-  selectionPreview.style.transform=`rotate(${selectionTransform.rotation}deg) scale(${selectionTransform.scale})`;
-}
-function commitSelection(){
-  if(!selectionImage) return;
-  const layer=layers[activeLayerIndex];
-  const scaleX=layer.canvas.width/container.offsetWidth;
-  const scaleY=layer.canvas.height/container.offsetHeight;
-  const cssW=Number(selectionPreview.style.width.replace('px',''))||selectionImage.width;
-  const cssH=Number(selectionPreview.style.height.replace('px',''))||selectionImage.height;
-  const targetW=Math.round(cssW*selectionTransform.scale*scaleX);
-  const targetH=Math.round(cssH*selectionTransform.scale*scaleY);
-  const px=Math.round(selectionTransform.posX*scaleX);
-  const py=Math.round(selectionTransform.posY*scaleY);
-  saveState();
-  layer.ctx.drawImage(selectionImage,0,0,selectionImage.width,selectionImage.height,px,py,targetW,targetH);
-  clearSelection(); renderComposite();
-}
-function clearSelection(){
-  selectionPreview.style.display='none';
-  selectionPreviewImg.src='';
-  selectionImage=null;
-  selectionTransform={posX:0,posY:0,scale:1,rotation:0,dragging:false,offsetX:0,offsetY:0};
-}
-document.getElementById('select-commit').addEventListener('click',commitSelection);
-document.getElementById('select-clear-btn').addEventListener('click',clearSelection);
-
-canvas.addEventListener('mousedown',e=>{ if(currentTool==='select') startMarquee(e.clientX,e.clientY); });
-canvas.addEventListener('touchstart',e=>{ if(currentTool==='select'){ e.preventDefault(); startMarquee(e.touches[0].clientX,e.touches[0].clientY); }});
-
-/* ---------- IMPORT MODULE (patched: showImportPreview enters import mode) ---------- */
-let importImg = null;
-let importPreview = null;
-let importDragging = false;
-let importOffsetX = 0;
-let importOffsetY = 0;
-let importPosX = 0;
-let importPosY = 0;
-let importScale = 0.5;
-let importRotation = 0;
-let importOpacity = 0.75;
-let importFlipH = 1;
-let importFlipV = 1;
-let importImgNaturalWidth = 0;
-let importImgNaturalHeight = 0;
-
-const importSettingsDiv = document.getElementById('import-settings');
-const importFileInput = document.getElementById('import-image-file');
-const importSizeSlider = document.getElementById('import-size');
-const importSizeValue = document.getElementById('import-size-value');
-const importOpacitySlider = document.getElementById('import-opacity');
-const importOpacityValue = document.getElementById('import-opacity-value');
-const importRotationSlider = document.getElementById('import-rotation');
-const importRotationNumber = document.getElementById('import-rotation-number');
-const importFlipHBtn = document.getElementById('import-flip-h');
-const importFlipVBtn = document.getElementById('import-flip-v');
-const importStampBtn = document.getElementById('import-stamp-btn');
-const importCancelBtn = document.getElementById('import-cancel-btn');
-
-function hideImportPreview() {
-    if (importPreview && importPreview.parentNode) {
-        importPreview.parentNode.removeChild(importPreview);
-        importPreview = null;
+    
+    function enableFloatingDrag(){
+      selectionPreview.onmousedown = e => {
+        selectionTransform.dragging = true;
+        const r = selectionPreview.getBoundingClientRect();
+        selectionTransform.offsetX = e.clientX - r.left;
+        selectionTransform.offsetY = e.clientY - r.top;
+        selectionPreview.style.cursor = 'grabbing';
+      };
+      selectionPreview.ontouchstart = e => {
+        if (e.touches.length !== 1) return;
+        selectionTransform.dragging = true;
+        const r = selectionPreview.getBoundingClientRect();
+        const t = e.touches[0];
+        selectionTransform.offsetX = t.clientX - r.left;
+        selectionTransform.offsetY = t.clientY - r.top;
+        selectionPreview.style.cursor = 'grabbing';
+      };
+    
+      const move = e => {
+        if (!selectionTransform.dragging) return;
+        const rect = container.getBoundingClientRect();
+        const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+        const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+        selectionTransform.posX = cx - selectionTransform.offsetX;
+        selectionTransform.posY = cy - selectionTransform.offsetY;
+    
+        selectionPreview.style.opacity = 0.25;
+        updateFloatingTransform();
+        if (e.cancelable) e.preventDefault();
+      };
+    
+      const up = () => {
+        selectionTransform.dragging = false;
+        selectionPreview.style.cursor = 'grab';
+        selectionPreview.style.opacity = 1;
+      };
+    
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+      document.addEventListener('touchmove', move, { passive: false });
+      document.addEventListener('touchend', up);
+    
+      const keyHandler = ev => {
+        if (!selectionImage) return;
+        if (ev.key === '[') { selectionTransform.rotation -= 5; updateFloatingTransform(); }
+        if (ev.key === ']') { selectionTransform.rotation += 5; updateFloatingTransform(); }
+        if (ev.key === '-' || ev.key === '_') { selectionTransform.scale = Math.max(0.1, selectionTransform.scale - 0.05); updateFloatingTransform(); }
+        if (ev.key === '+' || ev.key === '=') { selectionTransform.scale = Math.min(5, selectionTransform.scale + 0.05); updateFloatingTransform(); }
+      };
+      window.removeEventListener('keydown', selectionPreview._keyHandler || function(){});
+      window.addEventListener('keydown', keyHandler);
+      selectionPreview._keyHandler = keyHandler;
     }
-}
-
-function showImportPreview() {
-    hideImportPreview();
-    if (!importImg) return;
-
-    importPreview = document.createElement('img');
-    importPreview.id = 'import-preview-img';
-    importPreview.src = importImg.src;
-    importPreview.draggable = false;
-    importPreview.style.position = 'absolute';
-    importPreview.style.zIndex = 10060;
-    importPreview.style.cursor = 'grab';
-    importPreview.style.boxSizing = 'border-box';
-    importPreview.style.pointerEvents = 'none'; // do not block toolbox by default
-
-    container.appendChild(importPreview);
-    updateImportPreviewTransform();
-
-    // make sure we are in import mode (disable drawing tools)
-    enterImportMode();
-
-    // document-level move handlers are used; element-level handlers will not fire when pointer-events:none
-    document.removeEventListener('mousemove', imagePreviewDragMove);
-    document.removeEventListener('mouseup', imagePreviewDragEnd);
-    document.removeEventListener('touchmove', imagePreviewDragMove);
-    document.removeEventListener('touchend', imagePreviewDragEnd);
-
-    document.addEventListener('mousemove', imagePreviewDragMove);
-    document.addEventListener('mouseup', imagePreviewDragEnd);
-    document.addEventListener('touchmove', imagePreviewDragMove, { passive: false });
-    document.addEventListener('touchend', imagePreviewDragEnd);
-}
-
-function imagePreviewDragMove(e) {
-    if (!importDragging || !importPreview) return;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-    const rect = container.getBoundingClientRect();
-    importPosX = clientX - rect.left - importOffsetX;
-    importPosY = clientY - rect.top - importOffsetY;
-
-    updateImportPreviewTransform();
-    if (e.cancelable) e.preventDefault();
-}
-
-function imagePreviewDragEnd() {
-    if(!importDragging) return;
-    importDragging = false;
-    if (importPreview) {
+    
+    function updateFloatingTransform(){
+      selectionPreview.style.left=selectionTransform.posX+'px';
+      selectionPreview.style.top=selectionTransform.posY+'px';
+      selectionPreview.style.transform=`rotate(${selectionTransform.rotation}deg) scale(${selectionTransform.scale})`;
+    }
+    function commitSelection(){
+      if(!selectionImage) return;
+      const layer=layers[activeLayerIndex];
+      const scaleX=layer.canvas.width/container.offsetWidth;
+      const scaleY=layer.canvas.height/container.offsetHeight;
+      const cssW=Number(selectionPreview.style.width.replace('px',''))||selectionImage.width;
+      const cssH=Number(selectionPreview.style.height.replace('px',''))||selectionImage.height;
+      const targetW=Math.round(cssW*selectionTransform.scale*scaleX);
+      const targetH=Math.round(cssH*selectionTransform.scale*scaleY);
+      const px=Math.round(selectionTransform.posX*scaleX);
+      const py=Math.round(selectionTransform.posY*scaleY);
+      saveState();
+      layer.ctx.drawImage(selectionImage,0,0,selectionImage.width,selectionImage.height,px,py,targetW,targetH);
+      clearSelection(); renderComposite();
+    }
+    function clearSelection(){
+      selectionPreview.style.display='none';
+      selectionPreviewImg.src='';
+      selectionImage=null;
+      selectionTransform={posX:0,posY:0,scale:1,rotation:0,dragging:false,offsetX:0,offsetY:0};
+    }
+    document.getElementById('select-commit').addEventListener('click',commitSelection);
+    document.getElementById('select-clear-btn').addEventListener('click',clearSelection);
+    
+    canvas.addEventListener('mousedown',e=>{ if(currentTool==='select') startMarquee(e.clientX,e.clientY); });
+    canvas.addEventListener('touchstart',e=>{ if(currentTool==='select'){ e.preventDefault(); startMarquee(e.touches[0].clientX,e.touches[0].clientY); }});
+    
+    /* ---------- IMPORT MODULE (patched: showImportPreview enters import mode) ---------- */
+    let importImg = null;
+    let importPreview = null;
+    let importDragging = false;
+    let importOffsetX = 0;
+    let importOffsetY = 0;
+    let importPosX = 0;
+    let importPosY = 0;
+    let importScale = 0.5;
+    let importRotation = 0;
+    let importOpacity = 0.75;
+    let importFlipH = 1;
+    let importFlipV = 1;
+    let importImgNaturalWidth = 0;
+    let importImgNaturalHeight = 0;
+    
+    const importSettingsDiv = document.getElementById('import-settings');
+    const importFileInput = document.getElementById('import-image-file');
+    const importSizeSlider = document.getElementById('import-size');
+    const importSizeValue = document.getElementById('import-size-value');
+    const importOpacitySlider = document.getElementById('import-opacity');
+    const importOpacityValue = document.getElementById('import-opacity-value');
+    const importRotationSlider = document.getElementById('import-rotation');
+    const importRotationNumber = document.getElementById('import-rotation-number');
+    const importFlipHBtn = document.getElementById('import-flip-h');
+    const importFlipVBtn = document.getElementById('import-flip-v');
+    const importStampBtn = document.getElementById('import-stamp-btn');
+    const importCancelBtn = document.getElementById('import-cancel-btn');
+    
+    function hideImportPreview() {
+        if (importPreview && importPreview.parentNode) {
+            importPreview.parentNode.removeChild(importPreview);
+            importPreview = null;
+        }
+    }
+    
+    function showImportPreview() {
+        hideImportPreview();
+        if (!importImg) return;
+    
+        importPreview = document.createElement('img');
+        importPreview.id = 'import-preview-img';
+        importPreview.src = importImg.src;
+        importPreview.draggable = false;
+        importPreview.style.position = 'absolute';
+        importPreview.style.zIndex = 10060;
         importPreview.style.cursor = 'grab';
-        importPreview.style.pointerEvents = 'none'; // stop blocking UI after drag
+        importPreview.style.boxSizing = 'border-box';
+        importPreview.style.pointerEvents = 'none'; // do not block toolbox by default
+    
+        container.appendChild(importPreview);
+        updateImportPreviewTransform();
+    
+        // make sure we are in import mode (disable drawing tools)
+        enterImportMode();
+    
+        // document-level move handlers are used; element-level handlers will not fire when pointer-events:none
+        document.removeEventListener('mousemove', imagePreviewDragMove);
+        document.removeEventListener('mouseup', imagePreviewDragEnd);
+        document.removeEventListener('touchmove', imagePreviewDragMove);
+        document.removeEventListener('touchend', imagePreviewDragEnd);
+    
+        document.addEventListener('mousemove', imagePreviewDragMove);
+        document.addEventListener('mouseup', imagePreviewDragEnd);
+        document.addEventListener('touchmove', imagePreviewDragMove, { passive: false });
+        document.addEventListener('touchend', imagePreviewDragEnd);
     }
-}
-
-function updateImportPreviewTransform() {
-    if (!importPreview) return;
-
-    const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
-    const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
-
-    importPreview.style.width = w + 'px';
-    importPreview.style.height = h + 'px';
-    importPreview.style.left = importPosX + 'px';
-    importPreview.style.top = importPosY + 'px';
-    importPreview.style.opacity = importOpacity;
-    importPreview.style.transform = `rotate(${importRotation}deg) scale(${importFlipH},${importFlipV})`;
-}
-
-function stampImageToActiveLayer() {
-    if (!importImg || !importPreview) return;
-    saveState();
-
-    // Use bounding rects for robust mapping from CSS -> canvas
-    const canvasRect = canvas.getBoundingClientRect();
-    const previewRect = importPreview.getBoundingClientRect();
-    const cssToCanvas = canvas.width / canvasRect.width;
-
-    const w = Math.max(1, Math.round(previewRect.width * cssToCanvas));
-    const h = Math.max(1, Math.round(previewRect.height * cssToCanvas));
-    const px = Math.round((previewRect.left - canvasRect.left) * cssToCanvas);
-    const py = Math.round((previewRect.top  - canvasRect.top)  * cssToCanvas);
-
-    const ctx = getActiveCtx();
-    ctx.save();
-    ctx.globalAlpha = importOpacity;
-    ctx.translate(px + w / 2, py + h / 2);
-    ctx.rotate(importRotation * Math.PI / 180);
-    ctx.scale(importFlipH, importFlipV);
-    ctx.drawImage(importImg, -w / 2, -h / 2, w, h);
-    ctx.restore();
-
-    importResetState();
-    renderComposite();
-}
-
-function importResetState() {  
-  // stop any dragging and remove preview element  
-  importDragging = false;  
-  if (importPreview) {  
-    try {  
-      if (importPreview.parentNode) importPreview.parentNode.removeChild(importPreview);  
-    } catch (e) {}  
-    importPreview = null;  
-  }  
-
-  // remove the document-level image preview handlers if present  
-  try {  
-    document.removeEventListener('mousemove', imagePreviewDragMove);  
-    document.removeEventListener('mouseup', imagePreviewDragEnd);  
-    document.removeEventListener('touchmove', imagePreviewDragMove);  
-    document.removeEventListener('touchend', imagePreviewDragEnd);  
-  } catch (e){}  
-
-  // reset all import state vars  
-  importImg = null;  
-  importImgNaturalWidth = 0;  
-  importImgNaturalHeight = 0;  
-  importScale = 0.5;  
-  importRotation = 0;  
-  importOpacity = 0.75;  
-  importFlipH = 1;  
-  importFlipV = 1;  
-  importPosX = (container.offsetWidth / 2) - 50;  
-  importPosY = (container.offsetHeight / 2) - 50;  
-
-  // clear file input so the same file can be re-selected  
-  try { importFileInput.value = ''; } catch (e){}  
-
-  if (importSettingsDiv) importSettingsDiv.classList.add('hidden');  
-
-    // restore previous tool mode ONLY if in import mode  
-  if (currentTool === 'none' || prevTool !== null) {  
-    exitImportMode();  
-  }  
-}  
-// ----------------- EVENT LISTENERS -----------------
-
-importFileInput.addEventListener('change', function () {
-    const file = this.files[0];
-    if (!file) return;
-    importResetState();
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-            importImg = img;
-            importImgNaturalWidth = img.naturalWidth;
-            importImgNaturalHeight = img.naturalHeight;
-
-            importScale = 0.5;
-            importSizeSlider.value = 50;
-            importSizeValue.textContent = 50;
-
-            importOpacity = parseInt(importOpacitySlider.value, 10) / 100;
-            importRotation = parseInt(importRotationSlider.value, 10);
-            importRotationNumber.value = importRotation;
-
-            importFlipH = 1;
-            importFlipV = 1;
-
-            const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
-            const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
-            // center over canvas area
-            const canvasRect = canvas.getBoundingClientRect();
-            importPosX = (canvasRect.left - container.getBoundingClientRect().left) + (canvasRect.width - w) / 2;
-            importPosY = (canvasRect.top  - container.getBoundingClientRect().top)  + (canvasRect.height - h) / 2;
-
-            importOpacityValue.textContent = importOpacitySlider.value;
-            importSettingsDiv.classList.remove('hidden');
-            showImportPreview();
+    
+    function imagePreviewDragMove(e) {
+        if (!importDragging || !importPreview) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+        const rect = container.getBoundingClientRect();
+        importPosX = clientX - rect.left - importOffsetX;
+        importPosY = clientY - rect.top - importOffsetY;
+    
+        updateImportPreviewTransform();
+        if (e.cancelable) e.preventDefault();
+    }
+    
+    function imagePreviewDragEnd() {
+        if(!importDragging) return;
+        importDragging = false;
+        if (importPreview) {
+            importPreview.style.cursor = 'grab';
+            importPreview.style.pointerEvents = 'none'; // stop blocking UI after drag
+        }
+    }
+    
+    function updateImportPreviewTransform() {
+        if (!importPreview) return;
+    
+        const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+        const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
+    
+        importPreview.style.width = w + 'px';
+        importPreview.style.height = h + 'px';
+        importPreview.style.left = importPosX + 'px';
+        importPreview.style.top = importPosY + 'px';
+        importPreview.style.opacity = importOpacity;
+        importPreview.style.transform = `rotate(${importRotation}deg) scale(${importFlipH},${importFlipV})`;
+    }
+    
+    function stampImageToActiveLayer() {
+        if (!importImg || !importPreview) return;
+        saveState();
+    
+        // Use bounding rects for robust mapping from CSS -> canvas
+        const canvasRect = canvas.getBoundingClientRect();
+        const previewRect = importPreview.getBoundingClientRect();
+        const cssToCanvas = canvas.width / canvasRect.width;
+    
+        const w = Math.max(1, Math.round(previewRect.width * cssToCanvas));
+        const h = Math.max(1, Math.round(previewRect.height * cssToCanvas));
+        const px = Math.round((previewRect.left - canvasRect.left) * cssToCanvas);
+        const py = Math.round((previewRect.top  - canvasRect.top)  * cssToCanvas);
+    
+        const ctx = getActiveCtx();
+        ctx.save();
+        ctx.globalAlpha = importOpacity;
+        ctx.translate(px + w / 2, py + h / 2);
+        ctx.rotate(importRotation * Math.PI / 180);
+        ctx.scale(importFlipH, importFlipV);
+        ctx.drawImage(importImg, -w / 2, -h / 2, w, h);
+        ctx.restore();
+    
+        importResetState();
+        renderComposite();
+    }
+    
+    function importResetState() {  
+      // stop any dragging and remove preview element  
+      importDragging = false;  
+      if (importPreview) {  
+        try {  
+          if (importPreview.parentNode) importPreview.parentNode.removeChild(importPreview);  
+        } catch (e) {}  
+        importPreview = null;  
+      }  
+    
+      // remove the document-level image preview handlers if present  
+      try {  
+        document.removeEventListener('mousemove', imagePreviewDragMove);  
+        document.removeEventListener('mouseup', imagePreviewDragEnd);  
+        document.removeEventListener('touchmove', imagePreviewDragMove);  
+        document.removeEventListener('touchend', imagePreviewDragEnd);  
+      } catch (e){}  
+    
+      // reset all import state vars  
+      importImg = null;  
+      importImgNaturalWidth = 0;  
+      importImgNaturalHeight = 0;  
+      importScale = 0.5;  
+      importRotation = 0;  
+      importOpacity = 0.75;  
+      importFlipH = 1;  
+      importFlipV = 1;  
+      importPosX = (container.offsetWidth / 2) - 50;  
+      importPosY = (container.offsetHeight / 2) - 50;  
+    
+      // clear file input so the same file can be re-selected  
+      try { importFileInput.value = ''; } catch (e){}  
+    
+      if (importSettingsDiv) importSettingsDiv.classList.add('hidden');  
+    
+        // restore previous tool mode ONLY if in import mode  
+      if (currentTool === 'none' || prevTool !== null) {  
+        exitImportMode();  
+      }  
+    }  
+    // ----------------- EVENT LISTENERS -----------------
+    
+    importFileInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        importResetState();
+    
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                importImg = img;
+                importImgNaturalWidth = img.naturalWidth;
+                importImgNaturalHeight = img.naturalHeight;
+    
+                importScale = 0.5;
+                importSizeSlider.value = 50;
+                importSizeValue.textContent = 50;
+    
+                importOpacity = parseInt(importOpacitySlider.value, 10) / 100;
+                importRotation = parseInt(importRotationSlider.value, 10);
+                importRotationNumber.value = importRotation;
+    
+                importFlipH = 1;
+                importFlipV = 1;
+    
+                const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+                const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
+                // center over canvas area
+                const canvasRect = canvas.getBoundingClientRect();
+                importPosX = (canvasRect.left - container.getBoundingClientRect().left) + (canvasRect.width - w) / 2;
+                importPosY = (canvasRect.top  - container.getBoundingClientRect().top)  + (canvasRect.height - h) / 2;
+    
+                importOpacityValue.textContent = importOpacitySlider.value;
+                importSettingsDiv.classList.remove('hidden');
+                showImportPreview();
+            };
+            img.src = e.target.result;
         };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-});
-
-importSizeSlider.addEventListener('input', function () { importScale = parseInt(this.value, 10) / 100; importSizeValue.textContent = this.value; updateImportPreviewTransform(); });
-importOpacitySlider.addEventListener('input', function () { importOpacity = parseInt(this.value, 10) / 100; importOpacityValue.textContent = this.value; updateImportPreviewTransform(); });
-importRotationSlider.addEventListener('input', function () { importRotation = parseInt(this.value, 10); importRotationNumber.value = importRotation; updateImportPreviewTransform(); });
-importRotationNumber.addEventListener('input', function () { importRotation = parseInt(this.value, 10); importRotationSlider.value = importRotation; updateImportPreviewTransform(); });
-importFlipHBtn.addEventListener('click', function () { importFlipH *= -1; updateImportPreviewTransform(); });
-importFlipVBtn.addEventListener('click', function () { importFlipV *= -1; updateImportPreviewTransform(); });
-importStampBtn.addEventListener('click', stampImageToActiveLayer);
-importCancelBtn.addEventListener('click', importResetState);
-
-// ---------- TEXT TOOL (fix alignment & sizing on stamp) ----------
-const textPreviewOverlay = document.getElementById('text-preview-overlay');
-const textPreviewContent = document.getElementById('text-preview-content');
-const textSubmitBtn = document.getElementById('text-submit-btn');
-const textCancelBtn = document.getElementById('text-cancel-btn');
-let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0,
-    textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0,
-    textRotation = 0;
-
-function showTextPreviewOverlay(txt, fnt, sz, col, forceCenter) {
-  textPreviewActive = true;
-  textPreviewOverlay.style.display = 'block';
-  updateTextPreviewContent(txt, fnt, sz, col);
-  if (forceCenter || !textPreviewInit) {
-    const box = getTextBBox(txt, fnt, sz);
-    const pad = 8;
-    // center over canvas (not entire container) for consistent stamping
-    const canvasRect = canvas.getBoundingClientRect();
-    textPreviewPosX = Math.round((canvasRect.left - container.getBoundingClientRect().left) + (canvasRect.width - (box.width + pad)) / 2);
-    textPreviewPosY = Math.round((canvasRect.top  - container.getBoundingClientRect().top)  + (canvasRect.height - (box.height + pad)) / 2);
-    textPreviewInitX = textPreviewPosX;
-    textPreviewInitY = textPreviewPosY;
-    textPreviewInit = true;
-    textPreviewOverlay.style.left = textPreviewPosX + 'px';
-    textPreviewOverlay.style.top  = textPreviewPosY + 'px';
-  }
-}
-function getTextBBox(txt, fnt, sz) {
-  const off = document.createElement('canvas');
-  const ctx = off.getContext('2d');
-  ctx.font = `${sz}px ${fnt}`;
-  const lines = txt.split('\n');
-  let w = 0;
-  for (const l of lines) {
-    w = Math.max(w, Math.ceil(ctx.measureText(l).width));
-  }
-  const h = Math.ceil(lines.length * sz * 1.15);
-  return { width: w, height: h };
-}
-function updateTextPreviewContent(txt, fnt, sz, col) {
-  textPreviewContent.textContent = txt.replace(/\n/g,'\n');
-  textPreviewOverlay.style.fontFamily = fnt;
-  textPreviewOverlay.style.fontSize = sz + 'px';
-  textPreviewOverlay.style.color = col;
-  textPreviewContent.style.fontFamily = fnt;
-  textPreviewContent.style.fontSize = sz + 'px';
-  textPreviewContent.style.color = col;
-  const box = getTextBBox(txt, fnt, sz);
-  const pad = 8;
-  textPreviewOverlay.style.width = Math.ceil(box.width + pad) + 'px';
-  textPreviewOverlay.style.height = Math.ceil(box.height + pad) + 'px';
-  textPreviewContent.style.padding = (pad/2) + 'px';
-  textPreviewOverlay.style.left = textPreviewPosX + 'px';
-  textPreviewOverlay.style.top  = textPreviewPosY + 'px';
-  updateTextPreviewTransform();
-}
-function updateTextPreviewTransform() {
-  textPreviewOverlay.style.transform = `rotate(${textRotation}deg)`;
-}
-function hideTextPreviewOverlay() {
-  textPreviewActive = false;
-  textPreviewOverlay.style.display = 'none';
-  textPreviewInit = false;
-  textPreviewPosX = 0;
-  textPreviewPosY = 0;
-}
-
-// Use document-level handlers so previews (pointer-events:none) do not block the toolbox.
-// We detect clicks inside the preview rect and start dragging.
-document.addEventListener('mousemove', e => {
-  if (!textPreviewDragging || !textPreviewActive) return;
-  const rect = container.getBoundingClientRect();
-  textPreviewPosX = e.clientX - rect.left - textPreviewOffsetX;
-  textPreviewPosY = e.clientY - rect.top - textPreviewOffsetY;
-  textPreviewOverlay.style.left = textPreviewPosX + 'px';
-  textPreviewOverlay.style.top = textPreviewPosY + 'px';
-});
-document.addEventListener('mouseup', () => {
-  if(textPreviewDragging){
-    textPreviewDragging = false;
-    textPreviewOverlay.style.cursor = 'grab';
-    textPreviewOverlay.style.pointerEvents = 'none';
-  }
-});
-document.addEventListener('touchmove', e => {
-  if (!textPreviewDragging || !textPreviewActive) return;
-  const rect = container.getBoundingClientRect();
-  const t = e.touches ? e.touches[0] : e;
-  textPreviewPosX = t.clientX - rect.left - textPreviewOffsetX;
-  textPreviewPosY = t.clientY - rect.top - textPreviewOffsetY;
-  textPreviewOverlay.style.left = textPreviewPosX + 'px';
-  textPreviewOverlay.style.top = textPreviewPosY + 'px';
-  if (e.cancelable) e.preventDefault();
-}, { passive: false });
-document.addEventListener('touchend', () => {
-  if(textPreviewDragging){
-    textPreviewDragging = false;
-    textPreviewOverlay.style.cursor = 'grab';
-    textPreviewOverlay.style.pointerEvents = 'none';
-  }
-});
-
-function setTextRotation(v) { textRotation = Math.max(-180, Math.min(180, Number(v) || 0)); updateTextPreviewTransform(); }
-document.getElementById('text-rotation-range').addEventListener('input', e => { setTextRotation(e.target.value); document.getElementById('text-rotation-number').value = e.target.value; });
-document.getElementById('text-rotation-number').addEventListener('input', e => { setTextRotation(e.target.value); document.getElementById('text-rotation-range').value = e.target.value; });
-
-// TEXT SUBMIT: stamp with left alignment and size scaled to canvas pixels, rotation around center so preview matches.
-textSubmitBtn.addEventListener('click', () => {
-  if (!textPreviewActive) return;
-  saveState();
-
-  const overlayRect = textPreviewOverlay.getBoundingClientRect();
-  const canvasRect = canvas.getBoundingClientRect();
-  const cssToCanvas = canvas.width / canvasRect.width;
-
-  const boxW = Math.round(overlayRect.width * cssToCanvas);
-  const boxH = Math.round(overlayRect.height * cssToCanvas);
-
-  const cx = (overlayRect.left - canvasRect.left) * cssToCanvas + boxW / 2;
-  const cy = (overlayRect.top  - canvasRect.top)  * cssToCanvas + boxH / 2;
-
-  const ctx = getActiveCtx();
-  ctx.save();
-  ctx.translate(Math.round(cx), Math.round(cy));
-  ctx.rotate(textRotation * Math.PI / 180);
-
-  const scaledFontSize = Math.max(1, Math.round(textSize * cssToCanvas));
-  ctx.font = `${scaledFontSize}px ${textFont}`;
-  ctx.fillStyle = textColor;
-  ctx.textBaseline = 'top';
-  ctx.textAlign = 'left';
-
-  const paddingCss = 4;
-  const pad = paddingCss * cssToCanvas;
-  const lines = textString.split('\n');
-  for (let i = 0; i < lines.length; i++) {
-    const x = -boxW / 2 + pad;
-    const y = -boxH / 2 + pad + i * scaledFontSize * 1.15;
-    ctx.fillText(lines[i], x, y);
-  }
-
-  ctx.restore();
-  renderComposite();
-
-  showTextPreviewOverlay(textString, textFont, textSize, textColor, false);
-  textPreviewPosX = textPreviewInitX;
-  textPreviewPosY = textPreviewInitY;
-  textPreviewOverlay.style.left = textPreviewPosX + 'px';
-  textPreviewOverlay.style.top = textPreviewPosY + 'px';
-});
-textCancelBtn.addEventListener('click', hideTextPreviewOverlay);
-
-const fontDropdown = document.getElementById('font-dropdown');
-const fontList = document.getElementById('font-dropdown-list');
-const fontSelName = document.getElementById('font-dropdown-selected-name');
-
-Array.from(fontList.children).forEach(opt => {
-  opt.onclick = () => {
-    Array.from(fontList.children).forEach(o => o.classList.remove('selected'));
-    opt.classList.add('selected');
-    textFont = opt.dataset.font;
-    fontSelName.textContent = opt.textContent;
-    fontSelName.style.fontFamily = textFont;
-    fontDropdown.classList.remove('open');
-    if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
-  };
-});
-document.getElementById('font-dropdown-selected').onclick = () => { fontDropdown.classList.toggle('open'); };
-fontDropdown.onblur = () => { fontDropdown.classList.remove('open'); };
-
-const textSizeRange = document.getElementById('text-size-range');
-const textSizeInput = document.getElementById('text-size');
-function setTextSize(v) { v = Math.max(8, Math.min(150, Number(v) || 32)); textSize = v; textSizeRange.value = v; textSizeInput.value = v; if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor); }
-textSizeRange.addEventListener('input', e => setTextSize(e.target.value));
-textSizeInput.addEventListener('input', e => setTextSize(e.target.value));
-document.getElementById('text-color').addEventListener('input', e => { textColor = e.target.value; if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor); });
-document.getElementById('text-string').addEventListener('input', e => { textString = e.target.value; if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor); });
-
-// ---------- GLOBAL "START DRAG" handlers for previews (so previews can sit above toolbox without blocking buttons) ----------
-document.addEventListener('mousedown', (ev) => {
-  // import preview
-  if (importPreview) {
-    const r = importPreview.getBoundingClientRect();
-    if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) {
-      importDragging = true;
-      importPreview.style.pointerEvents = 'auto';
-      importOffsetX = ev.clientX - r.left;
-      importOffsetY = ev.clientY - r.top;
-      ev.preventDefault();
-      return;
+        reader.readAsDataURL(file);
+    });
+    
+    importSizeSlider.addEventListener('input', function () { importScale = parseInt(this.value, 10) / 100; importSizeValue.textContent = this.value; updateImportPreviewTransform(); });
+    importOpacitySlider.addEventListener('input', function () { importOpacity = parseInt(this.value, 10) / 100; importOpacityValue.textContent = this.value; updateImportPreviewTransform(); });
+    importRotationSlider.addEventListener('input', function () { importRotation = parseInt(this.value, 10); importRotationNumber.value = importRotation; updateImportPreviewTransform(); });
+    importRotationNumber.addEventListener('input', function () { importRotation = parseInt(this.value, 10); importRotationSlider.value = importRotation; updateImportPreviewTransform(); });
+    importFlipHBtn.addEventListener('click', function () { importFlipH *= -1; updateImportPreviewTransform(); });
+    importFlipVBtn.addEventListener('click', function () { importFlipV *= -1; updateImportPreviewTransform(); });
+    importStampBtn.addEventListener('click', stampImageToActiveLayer);
+    importCancelBtn.addEventListener('click', importResetState);
+    
+    // ---------- TEXT TOOL (fix alignment & sizing on stamp) ----------
+    const textPreviewOverlay = document.getElementById('text-preview-overlay');
+    const textPreviewContent = document.getElementById('text-preview-content');
+    const textSubmitBtn = document.getElementById('text-submit-btn');
+    const textCancelBtn = document.getElementById('text-cancel-btn');
+    let textPreviewActive = false, textPreviewDragging = false, textPreviewOffsetX = 0, textPreviewOffsetY = 0,
+        textPreviewPosX = 0, textPreviewPosY = 0, textPreviewInit = false, textPreviewInitX = 0, textPreviewInitY = 0,
+        textRotation = 0;
+    
+    function showTextPreviewOverlay(txt, fnt, sz, col, forceCenter) {
+      textPreviewActive = true;
+      textPreviewOverlay.style.display = 'block';
+      updateTextPreviewContent(txt, fnt, sz, col);
+      if (forceCenter || !textPreviewInit) {
+        const box = getTextBBox(txt, fnt, sz);
+        const pad = 8;
+        // center over canvas (not entire container) for consistent stamping
+        const canvasRect = canvas.getBoundingClientRect();
+        textPreviewPosX = Math.round((canvasRect.left - container.getBoundingClientRect().left) + (canvasRect.width - (box.width + pad)) / 2);
+        textPreviewPosY = Math.round((canvasRect.top  - container.getBoundingClientRect().top)  + (canvasRect.height - (box.height + pad)) / 2);
+        textPreviewInitX = textPreviewPosX;
+        textPreviewInitY = textPreviewPosY;
+        textPreviewInit = true;
+        textPreviewOverlay.style.left = textPreviewPosX + 'px';
+        textPreviewOverlay.style.top  = textPreviewPosY + 'px';
+      }
     }
-  }
-  // text preview
-  if (textPreviewOverlay && textPreviewOverlay.style.display !== 'none') {
-    const r = textPreviewOverlay.getBoundingClientRect();
-    if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) {
-      textPreviewDragging = true;
-      textPreviewOverlay.style.pointerEvents = 'auto';
-      textPreviewOffsetX = ev.clientX - r.left;
-      textPreviewOffsetY = ev.clientY - r.top;
-      textPreviewOverlay.style.cursor = 'grabbing';
-      ev.preventDefault();
-      return;
+    function getTextBBox(txt, fnt, sz) {
+      const off = document.createElement('canvas');
+      const ctx = off.getContext('2d');
+      ctx.font = `${sz}px ${fnt}`;
+      const lines = txt.split('\n');
+      let w = 0;
+      for (const l of lines) {
+        w = Math.max(w, Math.ceil(ctx.measureText(l).width));
+      }
+      const h = Math.ceil(lines.length * sz * 1.15);
+      return { width: w, height: h };
     }
-  }
-});
-document.addEventListener('touchstart', (ev) => {
-  const t = ev.touches && ev.touches[0];
-  if (!t) return;
-  if (importPreview) {
-    const r = importPreview.getBoundingClientRect();
-    if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
-      importDragging = true;
-      importPreview.style.pointerEvents = 'auto';
-      importOffsetX = t.clientX - r.left;
-      importOffsetY = t.clientY - r.top;
-      ev.preventDefault();
-      return;
+    function updateTextPreviewContent(txt, fnt, sz, col) {
+      textPreviewContent.textContent = txt.replace(/\n/g,'\n');
+      textPreviewOverlay.style.fontFamily = fnt;
+      textPreviewOverlay.style.fontSize = sz + 'px';
+      textPreviewOverlay.style.color = col;
+      textPreviewContent.style.fontFamily = fnt;
+      textPreviewContent.style.fontSize = sz + 'px';
+      textPreviewContent.style.color = col;
+      const box = getTextBBox(txt, fnt, sz);
+      const pad = 8;
+      textPreviewOverlay.style.width = Math.ceil(box.width + pad) + 'px';
+      textPreviewOverlay.style.height = Math.ceil(box.height + pad) + 'px';
+      textPreviewContent.style.padding = (pad/2) + 'px';
+      textPreviewOverlay.style.left = textPreviewPosX + 'px';
+      textPreviewOverlay.style.top  = textPreviewPosY + 'px';
+      updateTextPreviewTransform();
     }
-  }
-  if (textPreviewOverlay && textPreviewOverlay.style.display !== 'none') {
-    const r = textPreviewOverlay.getBoundingClientRect();
-    if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
-      textPreviewDragging = true;
-      textPreviewOverlay.style.pointerEvents = 'auto';
-      textPreviewOffsetX = t.clientX - r.left;
-      textPreviewOffsetY = t.clientY - r.top;
-      textPreviewOverlay.style.cursor = 'grabbing';
-      ev.preventDefault();
-      return;
+    function updateTextPreviewTransform() {
+      textPreviewOverlay.style.transform = `rotate(${textRotation}deg)`;
     }
-  }
-});
-
-// ---------- LAYER TRANSFORM APPLY (fixed: use visible outline rect -> canvas mapping) ----------
-function applyLayerTransformToActiveLayer(){
-  if(!layers.length) return;
-  const layer=layers[activeLayerIndex];
-  const bbox=computeActivePixelBBox(layer.canvas);
-  if(bbox.empty){ setTransformModeEnabled(false); updateLayerOutline(); return; }
-  saveState();
-
-  const src=document.createElement('canvas'); src.width=bbox.w; src.height=bbox.h;
-  const sctx=src.getContext('2d'); sctx.imageSmoothingEnabled=false;
-  sctx.drawImage(layer.canvas,bbox.x,bbox.y,bbox.w,bbox.h,0,0,bbox.w,bbox.h);
-
-  // Clear original region
-  layer.ctx.clearRect(bbox.x,bbox.y,bbox.w,bbox.h);
-
-  // Map the outline's on-screen rectangle into canvas pixel coordinates (robust)
-  const outlineRect = layerOutline.getBoundingClientRect();
-  const canvasRect = canvas.getBoundingClientRect();
-  const cssToCanvas = canvas.width / canvasRect.width;
-
-  const targetW = Math.max(1, Math.round(outlineRect.width * cssToCanvas * layerTransform.scale));
-  const targetH = Math.max(1, Math.round(outlineRect.height * cssToCanvas * layerTransform.scale));
-  const targetPx = Math.round((outlineRect.left - canvasRect.left) * cssToCanvas);
-  const targetPy = Math.round((outlineRect.top  - canvasRect.top)  * cssToCanvas);
-
-  layer.ctx.save();
-  layer.ctx.translate(targetPx + targetW / 2, targetPy + targetH / 2);
-  layer.ctx.rotate(layerTransform.rotation * Math.PI / 180);
-  layer.ctx.drawImage(src, -targetW/2, -targetH/2, targetW, targetH);
-  layer.ctx.restore();
-  renderComposite();
-
-  // reset UI
-  layerTransform.rotation = 0;
-  layerTransform.scale = 1;
-  const rr=document.getElementById('layer-rotation-range');
-  const rn=document.getElementById('layer-rotation-number');
-  const si=document.getElementById('layer-scale');
-  const sv=document.getElementById('layer-scale-value');
-  if(rr) rr.value=0;
-  if(rn) rn.value=0;
-  if(si) si.value=100;
-  if(sv) sv.textContent='100%';
-
-  setTransformModeEnabled(false);
-  updateLayerUI();
-}
-document.getElementById('layer-transform-apply')?.addEventListener('click',applyLayerTransformToActiveLayer);
-
-layerOutline.addEventListener('mousedown',e=>{
-  if(!layerTransform.enabled) return;
-  layerTransform.dragging=true;
-  const r=layerOutline.getBoundingClientRect();
-  layerTransform.offsetX=e.clientX-r.left;
-  layerTransform.offsetY=e.clientY-r.top;
-  layerOutline.style.cursor='grabbing';
-});
-document.addEventListener('mousemove',e=>{
-  if(!layerTransform.dragging) return;
-  const cr=container.getBoundingClientRect();
-  layerTransform.posX=e.clientX-cr.left-layerTransform.offsetX;
-  layerTransform.posY=e.clientY-cr.top-layerTransform.offsetY;
-  layerOutline.style.left=layerTransform.posX+'px';
-  layerOutline.style.top=layerTransform.posY+'px';
-  layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
-});
-document.addEventListener('mouseup',()=>{ if(layerTransform.dragging){ layerTransform.dragging=false; layerOutline.style.cursor='grab'; }});
-
-// ---------- INITIALISE ----------
-createLayer();
-setActiveLayer(0);
-window.addEventListener('resize', ()=> { resizeCanvasAndLayers(); updateLayerOutline(); });
-
-if (typeof filtersGridSafe !== 'undefined' && filtersGridSafe) {
-  filtersGridSafe.classList.add('hidden');
-}
-if (typeof filtersArrow !== 'undefined' && filtersArrow) {
-  filtersArrow.textContent = 'RIGHT TRIANGLE';
-}
-
-// ---------- TOOLBOX TOGGLE ----------
-const EYE_OPEN_SRC   = 'eye-open.png';
-const EYE_CLOSED_SRC = 'eye-closed.png';
-
-const toolPanel = document.getElementById('tool-panel');
-const toolboxToggleTab = document.getElementById('toolbox-toggle-tab');
-const eyeImg = document.getElementById('toolbox-eye');
-
-const _preloadOpen = new Image(); _preloadOpen.src = EYE_OPEN_SRC;
-const _preloadClosed = new Image(); _preloadClosed.src = EYE_CLOSED_SRC;
-
-let toolboxVisible = !(toolPanel.classList.contains('hidden')) && (toolPanel.style.display !== 'none');
-if (eyeImg) eyeImg.src = toolboxVisible ? EYE_OPEN_SRC : EYE_CLOSED_SRC;
-
-toolboxToggleTab.addEventListener('click', (e) => {
-  e.stopPropagation();
-  toolboxVisible = !toolboxVisible;
-  if (toolboxVisible) toolPanel.classList.remove('hidden');
-  else toolPanel.classList.add('hidden');
-  if (eyeImg) eyeImg.src = toolboxVisible ? EYE_OPEN_SRC : EYE_CLOSED_SRC;
-});
-selectionPreviewImg.style.display = 'block';
-selectionPreviewImg.style.maxWidth = 'none';
-selectionPreviewImg.style.maxHeight = 'none';
-
-  </script>
+    function hideTextPreviewOverlay() {
+      textPreviewActive = false;
+      textPreviewOverlay.style.display = 'none';
+      textPreviewInit = false;
+      textPreviewPosX = 0;
+      textPreviewPosY = 0;
+    }
+    
+    // Use document-level handlers so previews (pointer-events:none) do not block the toolbox.
+    // We detect clicks inside the preview rect and start dragging.
+    document.addEventListener('mousemove', e => {
+      if (!textPreviewDragging || !textPreviewActive) return;
+      const rect = container.getBoundingClientRect();
+      textPreviewPosX = e.clientX - rect.left - textPreviewOffsetX;
+      textPreviewPosY = e.clientY - rect.top - textPreviewOffsetY;
+      textPreviewOverlay.style.left = textPreviewPosX + 'px';
+      textPreviewOverlay.style.top = textPreviewPosY + 'px';
+    });
+    document.addEventListener('mouseup', () => {
+      if(textPreviewDragging){
+        textPreviewDragging = false;
+        textPreviewOverlay.style.cursor = 'grab';
+        textPreviewOverlay.style.pointerEvents = 'none';
+      }
+    });
+    document.addEventListener('touchmove', e => {
+      if (!textPreviewDragging || !textPreviewActive) return;
+      const rect = container.getBoundingClientRect();
+      const t = e.touches ? e.touches[0] : e;
+      textPreviewPosX = t.clientX - rect.left - textPreviewOffsetX;
+      textPreviewPosY = t.clientY - rect.top - textPreviewOffsetY;
+      textPreviewOverlay.style.left = textPreviewPosX + 'px';
+      textPreviewOverlay.style.top = textPreviewPosY + 'px';
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+    document.addEventListener('touchend', () => {
+      if(textPreviewDragging){
+        textPreviewDragging = false;
+        textPreviewOverlay.style.cursor = 'grab';
+        textPreviewOverlay.style.pointerEvents = 'none';
+      }
+    });
+    
+    function setTextRotation(v) { textRotation = Math.max(-180, Math.min(180, Number(v) || 0)); updateTextPreviewTransform(); }
+    document.getElementById('text-rotation-range').addEventListener('input', e => { setTextRotation(e.target.value); document.getElementById('text-rotation-number').value = e.target.value; });
+    document.getElementById('text-rotation-number').addEventListener('input', e => { setTextRotation(e.target.value); document.getElementById('text-rotation-range').value = e.target.value; });
+    
+    // TEXT SUBMIT: stamp with left alignment and size scaled to canvas pixels, rotation around center so preview matches.
+    textSubmitBtn.addEventListener('click', () => {
+      if (!textPreviewActive) return;
+      saveState();
+    
+      const overlayRect = textPreviewOverlay.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const cssToCanvas = canvas.width / canvasRect.width;
+    
+      const boxW = Math.round(overlayRect.width * cssToCanvas);
+      const boxH = Math.round(overlayRect.height * cssToCanvas);
+    
+      const cx = (overlayRect.left - canvasRect.left) * cssToCanvas + boxW / 2;
+      const cy = (overlayRect.top  - canvasRect.top)  * cssToCanvas + boxH / 2;
+    
+      const ctx = getActiveCtx();
+      ctx.save();
+      ctx.translate(Math.round(cx), Math.round(cy));
+      ctx.rotate(textRotation * Math.PI / 180);
+    
+      const scaledFontSize = Math.max(1, Math.round(textSize * cssToCanvas));
+      ctx.font = `${scaledFontSize}px ${textFont}`;
+      ctx.fillStyle = textColor;
+      ctx.textBaseline = 'top';
+      ctx.textAlign = 'left';
+    
+      const paddingCss = 4;
+      const pad = paddingCss * cssToCanvas;
+      const lines = textString.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const x = -boxW / 2 + pad;
+        const y = -boxH / 2 + pad + i * scaledFontSize * 1.15;
+        ctx.fillText(lines[i], x, y);
+      }
+    
+      ctx.restore();
+      renderComposite();
+    
+      showTextPreviewOverlay(textString, textFont, textSize, textColor, false);
+      textPreviewPosX = textPreviewInitX;
+      textPreviewPosY = textPreviewInitY;
+      textPreviewOverlay.style.left = textPreviewPosX + 'px';
+      textPreviewOverlay.style.top = textPreviewPosY + 'px';
+    });
+    textCancelBtn.addEventListener('click', hideTextPreviewOverlay);
+    
+    const fontDropdown = document.getElementById('font-dropdown');
+    const fontList = document.getElementById('font-dropdown-list');
+    const fontSelName = document.getElementById('font-dropdown-selected-name');
+    
+    Array.from(fontList.children).forEach(opt => {
+      opt.onclick = () => {
+        Array.from(fontList.children).forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        textFont = opt.dataset.font;
+        fontSelName.textContent = opt.textContent;
+        fontSelName.style.fontFamily = textFont;
+        fontDropdown.classList.remove('open');
+        if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor);
+      };
+    });
+    document.getElementById('font-dropdown-selected').onclick = () => { fontDropdown.classList.toggle('open'); };
+    fontDropdown.onblur = () => { fontDropdown.classList.remove('open'); };
+    
+    const textSizeRange = document.getElementById('text-size-range');
+    const textSizeInput = document.getElementById('text-size');
+    function setTextSize(v) { v = Math.max(8, Math.min(150, Number(v) || 32)); textSize = v; textSizeRange.value = v; textSizeInput.value = v; if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor); }
+    textSizeRange.addEventListener('input', e => setTextSize(e.target.value));
+    textSizeInput.addEventListener('input', e => setTextSize(e.target.value));
+    document.getElementById('text-color').addEventListener('input', e => { textColor = e.target.value; if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor); });
+    document.getElementById('text-string').addEventListener('input', e => { textString = e.target.value; if (textPreviewActive) updateTextPreviewContent(textString, textFont, textSize, textColor); });
+    
+    // ---------- GLOBAL "START DRAG" handlers for previews (so previews can sit above toolbox without blocking buttons) ----------
+    document.addEventListener('mousedown', (ev) => {
+      // import preview
+      if (importPreview) {
+        const r = importPreview.getBoundingClientRect();
+        if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) {
+          importDragging = true;
+          importPreview.style.pointerEvents = 'auto';
+          importOffsetX = ev.clientX - r.left;
+          importOffsetY = ev.clientY - r.top;
+          ev.preventDefault();
+          return;
+        }
+      }
+      // text preview
+      if (textPreviewOverlay && textPreviewOverlay.style.display !== 'none') {
+        const r = textPreviewOverlay.getBoundingClientRect();
+        if (ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom) {
+          textPreviewDragging = true;
+          textPreviewOverlay.style.pointerEvents = 'auto';
+          textPreviewOffsetX = ev.clientX - r.left;
+          textPreviewOffsetY = ev.clientY - r.top;
+          textPreviewOverlay.style.cursor = 'grabbing';
+          ev.preventDefault();
+          return;
+        }
+      }
+    });
+    document.addEventListener('touchstart', (ev) => {
+      const t = ev.touches && ev.touches[0];
+      if (!t) return;
+      if (importPreview) {
+        const r = importPreview.getBoundingClientRect();
+        if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+          importDragging = true;
+          importPreview.style.pointerEvents = 'auto';
+          importOffsetX = t.clientX - r.left;
+          importOffsetY = t.clientY - r.top;
+          ev.preventDefault();
+          return;
+        }
+      }
+      if (textPreviewOverlay && textPreviewOverlay.style.display !== 'none') {
+        const r = textPreviewOverlay.getBoundingClientRect();
+        if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+          textPreviewDragging = true;
+          textPreviewOverlay.style.pointerEvents = 'auto';
+          textPreviewOffsetX = t.clientX - r.left;
+          textPreviewOffsetY = t.clientY - r.top;
+          textPreviewOverlay.style.cursor = 'grabbing';
+          ev.preventDefault();
+          return;
+        }
+      }
+    });
+    
+    // ---------- LAYER TRANSFORM APPLY (fixed: use visible outline rect -> canvas mapping) ----------
+    function applyLayerTransformToActiveLayer(){
+      if(!layers.length) return;
+      const layer=layers[activeLayerIndex];
+      const bbox=computeActivePixelBBox(layer.canvas);
+      if(bbox.empty){ setTransformModeEnabled(false); updateLayerOutline(); return; }
+      saveState();
+    
+      const src=document.createElement('canvas'); src.width=bbox.w; src.height=bbox.h;
+      const sctx=src.getContext('2d'); sctx.imageSmoothingEnabled=false;
+      sctx.drawImage(layer.canvas,bbox.x,bbox.y,bbox.w,bbox.h,0,0,bbox.w,bbox.h);
+    
+      // Clear original region
+      layer.ctx.clearRect(bbox.x,bbox.y,bbox.w,bbox.h);
+    
+      // Map the outline's on-screen rectangle into canvas pixel coordinates (robust)
+      const outlineRect = layerOutline.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const cssToCanvas = canvas.width / canvasRect.width;
+    
+      // FIX: Use logical scaled size from original bbox (avoids double-scaling and rotation distortion)
+      let targetW = Math.max(1, Math.round(bbox.w * layerTransform.scale));
+      let targetH = Math.max(1, Math.round(bbox.h * layerTransform.scale));
+    
+      // FIX: Use visual center from transformed bbox for positioning (preserves preview alignment)
+      const centerCssX = (outlineRect.left - canvasRect.left) + outlineRect.width / 2;
+      const centerCssY = (outlineRect.top - canvasRect.top) + outlineRect.height / 2;
+      const centerPx = centerCssX * cssToCanvas;
+      const centerPy = centerCssY * cssToCanvas;
+    
+      layer.ctx.save();
+      layer.ctx.translate(Math.round(centerPx), Math.round(centerPy));
+      layer.ctx.rotate(layerTransform.rotation * Math.PI / 180);
+      layer.ctx.drawImage(src, -targetW/2, -targetH/2, targetW, targetH);
+      layer.ctx.restore();
+      renderComposite();
+    
+      // reset UI
+      layerTransform.rotation = 0;
+      layerTransform.scale = 1;
+      const rr=document.getElementById('layer-rotation-range');
+      const rn=document.getElementById('layer-rotation-number');
+      const si=document.getElementById('layer-scale');
+      const sv=document.getElementById('layer-scale-value');
+      if(rr) rr.value=0;
+      if(rn) rn.value=0;
+      if(si) si.value=100;
+      if(sv) sv.textContent='100%';
+    
+      setTransformModeEnabled(false);
+      updateLayerUI();
+    }
+    document.getElementById('layer-transform-apply')?.addEventListener('click',applyLayerTransformToActiveLayer);
+    
+    layerOutline.addEventListener('mousedown',e=>{
+      if(!layerTransform.enabled) return;
+      layerTransform.dragging=true;
+      const r=layerOutline.getBoundingClientRect();
+      layerTransform.offsetX=e.clientX-r.left;
+      layerTransform.offsetY=e.clientY-r.top;
+      layerOutline.style.cursor='grabbing';
+    });
+    document.addEventListener('mousemove',e=>{
+      if(!layerTransform.dragging) return;
+      const cr=container.getBoundingClientRect();
+      layerTransform.posX=e.clientX-cr.left-layerTransform.offsetX;
+      layerTransform.posY=e.clientY-cr.top-layerTransform.offsetY;
+      layerOutline.style.left=layerTransform.posX+'px';
+      layerOutline.style.top=layerTransform.posY+'px';
+      layerOutline.style.transform=`rotate(${layerTransform.rotation}deg) scale(${layerTransform.scale})`;
+    });
+    document.addEventListener('mouseup',()=>{ if(layerTransform.dragging){ layerTransform.dragging=false; layerOutline.style.cursor='grab'; }});
+    
+    // ---------- INITIALISE ----------
+    createLayer();
+    setActiveLayer(0);
+    window.addEventListener('resize', ()=> { resizeCanvasAndLayers(); updateLayerOutline(); });
+    
+    if (typeof filtersGridSafe !== 'undefined' && filtersGridSafe) {
+      filtersGridSafe.classList.add('hidden');
+    }
+    if (typeof filtersArrow !== 'undefined' && filtersArrow) {
+      filtersArrow.textContent = 'RIGHT TRIANGLE';
+    }
+    
+    // ---------- TOOLBOX TOGGLE ----------
+    const EYE_OPEN_SRC   = 'eye-open.png';
+    const EYE_CLOSED_SRC = 'eye-closed.png';
+    
+    const toolPanel = document.getElementById('tool-panel');
+    const toolboxToggleTab = document.getElementById('toolbox-toggle-tab');
+    const eyeImg = document.getElementById('toolbox-eye');
+    
+    const _preloadOpen = new Image(); _preloadOpen.src = EYE_OPEN_SRC;
+    const _preloadClosed = new Image(); _preloadClosed.src = EYE_CLOSED_SRC;
+    
+    let toolboxVisible = !(toolPanel.classList.contains('hidden')) && (toolPanel.style.display !== 'none');
+    if (eyeImg) eyeImg.src = toolboxVisible ? EYE_OPEN_SRC : EYE_CLOSED_SRC;
+    
+    toolboxToggleTab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toolboxVisible = !toolboxVisible;
+      if (toolboxVisible) toolPanel.classList.remove('hidden');
+      else toolPanel.classList.add('hidden');
+      if (eyeImg) eyeImg.src = toolboxVisible ? EYE_OPEN_SRC : EYE_CLOSED_SRC;
+    });
+    selectionPreviewImg.style.display = 'block';
+    selectionPreviewImg.style.maxWidth = 'none';
+    selectionPreviewImg.style.maxHeight = 'none';
+    
+      </script>
   <div class="footer"><center><a href="https://instagram.com/poiz.0ne">@poiz.0ne</a></center></div>
 </body>
 </html>
