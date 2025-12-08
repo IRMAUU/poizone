@@ -215,6 +215,7 @@
   pointer-events: none;
 }
   </style>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 </head>
 <body>
   <center><img src="ppt.png" width="13%"></center>
@@ -1420,45 +1421,62 @@
     }  
     // ----------------- EVENT LISTENERS -----------------
     
-    importFileInput.addEventListener('change', function () {
-        const file = this.files[0];
-        if (!file) return;
-        importResetState();
-    
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                importImg = img;
-                importImgNaturalWidth = img.naturalWidth;
-                importImgNaturalHeight = img.naturalHeight;
-    
-                importScale = 0.5;
-                importSizeSlider.value = 50;
-                importSizeValue.textContent = 50;
-    
-                importOpacity = parseInt(importOpacitySlider.value, 10) / 100;
-                importRotation = parseInt(importRotationSlider.value, 10);
-                importRotationNumber.value = importRotation;
-    
-                importFlipH = 1;
-                importFlipV = 1;
-    
-                const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
-                const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
-                // center over canvas area
-                const canvasRect = canvas.getBoundingClientRect();
-                importPosX = (canvasRect.left - container.getBoundingClientRect().left) + (canvasRect.width - w) / 2;
-                importPosY = (canvasRect.top  - container.getBoundingClientRect().top)  + (canvasRect.height - h) / 2;
-    
-                importOpacityValue.textContent = importOpacitySlider.value;
-                importSettingsDiv.classList.remove('hidden');
-                showImportPreview();
-            };
-            img.src = e.target.result;
+    importFileInput.addEventListener('change', async function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    importResetState();
+
+    let imgBlob = file;
+
+    // HEIC → PNG conversion for iOS/Safari
+    if (file.type === "image/heic" || file.type === "image/heif" || file.name.toLowerCase().endsWith('.heic')) {
+        try {
+            const converted = await heic2any({
+                blob: file,
+                toType: "image/png",
+                quality: 1
+            });
+            imgBlob = Array.isArray(converted) ? converted[0] : converted;
+        } catch (err) {
+            alert("Could not convert HEIC file. Try converting it to PNG/JPG first.");
+            return;
+        }
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+            importImg = img;
+            importImgNaturalWidth = img.naturalWidth;
+            importImgNaturalHeight = img.naturalHeight;
+
+            importScale = 0.5;
+            importSizeSlider.value = 50;
+            importSizeValue.textContent = 50;
+
+            importOpacity = parseInt(importOpacitySlider.value, 10) / 100;
+            importRotation = parseInt(importRotationSlider.value, 10);
+            importRotationNumber.value = importRotation;
+
+            importFlipH = 1;
+            importFlipV = 1;
+
+            const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+            const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
+            const canvasRect = canvas.getBoundingClientRect();
+            importPosX = (canvasRect.left - container.getBoundingClientRect().left) + (canvasRect.width - w) / 2;
+            importPosY = (canvasRect.top  - container.getBoundingClientRect().top)  + (canvasRect.height - h) / 2;
+
+            importOpacityValue.textContent = importOpacitySlider.value;
+            importSettingsDiv.classList.remove('hidden');
+            showImportPreview();
         };
-        reader.readAsDataURL(file);
-    });
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(imgBlob);
+});
     
     importSizeSlider.addEventListener('input', function () { importScale = parseInt(this.value, 10) / 100; importSizeValue.textContent = this.value; updateImportPreviewTransform(); });
     importOpacitySlider.addEventListener('input', function () { importOpacity = parseInt(this.value, 10) / 100; importOpacityValue.textContent = this.value; updateImportPreviewTransform(); });
@@ -1757,14 +1775,29 @@
     }
     document.getElementById('layer-transform-apply')?.addEventListener('click',applyLayerTransformToActiveLayer);
     
-    layerOutline.addEventListener('mousedown',e=>{
-      if(!layerTransform.enabled) return;
-      layerTransform.dragging=true;
-      const r=layerOutline.getBoundingClientRect();
-      layerTransform.offsetX=e.clientX-r.left;
-      layerTransform.offsetY=e.clientY-r.top;
-      layerOutline.style.cursor='grabbing';
-    });
+// Mouse drag (desktop) – unchanged behaviour
+layerOutline.addEventListener('mousedown', e => {
+  if (!layerTransform.enabled) return;
+  layerTransform.dragging = true;
+  const r = layerOutline.getBoundingClientRect();
+  layerTransform.offsetX = e.clientX - r.left;
+  layerTransform.offsetY = e.clientY - r.top;
+  layerOutline.style.cursor = 'grabbing';
+  e.preventDefault();
+});
+
+// Touch drag (mobile) – identical behaviour
+layerOutline.addEventListener('touchstart', e => {
+  if (!layerTransform.enabled) return;
+  if (e.touches.length !== 1) return;
+  layerTransform.dragging = true;
+  const r = layerOutline.getBoundingClientRect();
+  const touch = e.touches[0];
+  layerTransform.offsetX = touch.clientX - r.left;
+  layerTransform.offsetY = touch.clientY - r.top;
+  layerOutline.style.cursor = 'grabbing';
+  e.preventDefault();
+});
     document.addEventListener('mousemove',e=>{
       if(!layerTransform.dragging) return;
       const cr=container.getBoundingClientRect();
