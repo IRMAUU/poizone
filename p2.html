@@ -1454,40 +1454,49 @@ importFileInput.addEventListener('change', function(e) {
                  /\.(heic|heif)$/i.test(file.name);
 
   if (isHeic && typeof heic2any === "function") {
-    heic2any(file)
-      .then(convertedBlob => loadImage(convertedBlob))
-      .catch(() => loadImage(file)); // fallback silently
+    // HEIC → show preview only after conversion
+    heic2any(file).then(convertedBlob => {
+      loadAndShowPreview(convertedBlob);
+    }).catch(() => {
+      loadAndShowPreview(file); // fallback
+    });
   } else {
-    loadImage(file);
+    // Normal image → show preview immediately
+    loadAndShowPreview(file);
   }
 
-  function loadImage(blob) {
+  function loadAndShowPreview(blob) {
     const reader = new FileReader();
     reader.onload = ev => {
       const img = new Image();
       img.onload = () => {
-        importImg = img;
-        importImgNaturalWidth = img.naturalWidth;
-        importImgNaturalHeight = img.naturalHeight;
+  importImg = img;
+  importImgNaturalWidth = img.naturalWidth;
+  importImgNaturalHeight = img.naturalHeight;
 
-        importScale = 0.5;
-        if (importSizeSlider) importSizeSlider.value = 50;
-        if (importSizeValue) importSizeValue.textContent = "50";
+  // SMART INITIAL SCALE — fits huge photos perfectly on mobile + desktop
+  const maxDim = Math.max(img.naturalWidth, img.naturalHeight);
+  const canvasMax = Math.max(canvas.width, canvas.height);
+  importScale = Math.min(0.9, canvasMax / maxDim * 0.9); // never bigger than ~90 % of canvas
 
-        importOpacity = 0.75;
-        importRotation = 0;
-        importFlipH = 1;
-        importFlipV = 1;
+  if (importSizeSlider) importSizeSlider.value = Math.round(importScale * 100);
+  if (importSizeValue) importSizeValue.textContent = Math.round(importScale * 100);
 
-        const w = Math.max(1, Math.round(img.naturalWidth * 0.5));
-        const h = Math.max(1, Math.round(img.naturalHeight * 0.5));
-        const canvasRect = canvas.getBoundingClientRect();
-        importPosX = (canvasRect.width - w) / 2;
-        importPosY = (canvasRect.height - h) / 2;
+  importOpacity = 0.75;
+  importRotation = 0;
+  importFlipH = 1;
+  importFlipV = 1;
 
-        if (importSettingsDiv) importSettingsDiv.classList.remove('hidden');
-        showImportPreview();
-      };
+  const w = Math.max(1, Math.round(img.naturalWidth * importScale));
+  const h = Math.max(1, Math.round(img.naturalHeight * importScale));
+
+  const canvasRect = canvas.getBoundingClientRect();
+  importPosX = (canvasRect.width - w) / 2;
+  importPosY = (canvasRect.height - h) / 2;
+
+  if (importSettingsDiv) importSettingsDiv.classList.remove('hidden');
+  showImportPreview(); // now always fits on screen
+};
       img.src = ev.target.result;
     };
     reader.readAsDataURL(blob);
