@@ -1249,162 +1249,297 @@
     canvas.addEventListener('mousedown',e=>{ if(currentTool==='select') startMarquee(e.clientX,e.clientY); });
     canvas.addEventListener('touchstart',e=>{ if(currentTool==='select'){ e.preventDefault(); startMarquee(e.touches[0].clientX,e.touches[0].clientY); }});
     
-/* ---------- IMPORT MODULE – FINAL VERSION (everything fixed) ---------- */
+    /* ---------- IMPORT MODULE (patched: showImportPreview enters import mode) ---------- */
 let importImg = null;
 let importPreview = null;
 let importDragging = false;
-let importOffsetX = 0, importOffsetY = 0;
-let importPosX = 0, importPosY = 0;
-let importBaseScale = 1;     // 100 % = fitted to-fit size
-let importRelScale = 1;      // slider value (1–200 % of fitted size)
+let importOffsetX = 0;
+let importOffsetY = 0;
+let importPosX = 0;
+let importPosY = 0;
+let importScale = 0.5; // actual scale factor (relative to base)
+let importBaseScale = 1.0; // NEW: fitted base scale (100% relative to this)
 let importRotation = 0;
-let importOpacity = 0.75;     // always 1.0 on new import
-let importFlipH = 1, importFlipV = 1;
+let importOpacity = 1.0; // Default to 100%
+let importFlipH = 1;
+let importFlipV = 1;
+let importImgNaturalWidth = 0;
+let importImgNaturalHeight = 0;
 
-const importSettingsDiv   = document.getElementById('import-settings');
-const importFileInput     = document.getElementById('import-image-file');
-const importSizeSlider     = document.getElementById('import-size');
-const importSizeValue      = document.getElementById('import-size-value');
-const importOpacitySlider  = document.getElementById('import-opacity');
-const importOpacityValue   = document.getElementById('import-opacity-value');
+const importSettingsDiv = document.getElementById('import-settings');
+const importFileInput = document.getElementById('import-image-file');
+const importSizeSlider = document.getElementById('import-size');
+const importSizeValue = document.getElementById('import-size-value');
+const importOpacitySlider = document.getElementById('import-opacity');
+const importOpacityValue = document.getElementById('import-opacity-value');
 const importRotationSlider = document.getElementById('import-rotation');
 const importRotationNumber = document.getElementById('import-rotation-number');
+const importFlipHBtn = document.getElementById('import-flip-h');
+const importFlipVBtn = document.getElementById('import-flip-v');
+const importStampBtn = document.getElementById('import-stamp-btn');
+const importCancelBtn = document.getElementById('import-cancel-btn');
+
+function hideImportPreview() {
+    if (importPreview && importPreview.parentNode) {
+        importPreview.parentNode.removeChild(importPreview);
+        importPreview = null;
+    }
+}
+
+function showImportPreview() {
+    hideImportPreview();
+    if (!importImg) return;
+
+    importPreview = document.createElement('img');
+    importPreview.id = 'import-preview-img';
+    importPreview.src = importImg.src;
+    importPreview.draggable = false;
+    importPreview.style.position = 'absolute';
+    importPreview.style.zIndex = 10060;
+    importPreview.style.cursor = 'grab';
+    importPreview.style.boxSizing = 'border-box';
+    importPreview.style.pointerEvents = 'none'; // do not block toolbox by default
+
+    container.appendChild(importPreview);
+    updateImportPreviewTransform();
+
+    // make sure we are in import mode (disable drawing tools)
+    enterImportMode();
+
+    // document-level move handlers are used; element-level handlers will not fire when pointer-events:none
+    document.removeEventListener('mousemove', imagePreviewDragMove);
+    document.removeEventListener('mouseup', imagePreviewDragEnd);
+    document.removeEventListener('touchmove', imagePreviewDragMove);
+    document.removeEventListener('touchend', imagePreviewDragEnd);
+
+    document.addEventListener('mousemove', imagePreviewDragMove);
+    document.addEventListener('mouseup', imagePreviewDragEnd);
+    document.addEventListener('touchmove', imagePreviewDragMove, { passive: false });
+    document.addEventListener('touchend', imagePreviewDragEnd);
+}
+
+function imagePreviewDragMove(e) {
+    if (!importDragging || !importPreview) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    const rect = container.getBoundingClientRect();
+    importPosX = clientX - rect.left - importOffsetX;
+    importPosY = clientY - rect.top - importOffsetY;
+
+    updateImportPreviewTransform();
+    if (e.cancelable) e.preventDefault();
+}
+
+function imagePreviewDragEnd() {
+    if(!importDragging) return;
+    importDragging = false;
+    if (importPreview) {
+        importPreview.style.cursor = 'grab';
+        importPreview.style.pointerEvents = 'none'; // stop blocking UI after drag
+    }
+}
 
 function updateImportPreviewTransform() {
-  if (!importPreview || !importImg) return;
-  const w = Math.max(1, Math.round(importImg.naturalWidth  * importBaseScale * importRelScale));
-  const h = Math.max(1, Math.round(importImg.naturalHeight * importBaseScale * importRelScale));
-  importPreview.style.width  = w + 'px';
-  importPreview.style.height = h + 'px';
-  importPreview.style.left   = importPosX + 'px';
-  importPreview.style.top    = importPosY + 'px';
-  importPreview.style.opacity = importOpacity;
-  importPreview.style.transform = `rotate(${importRotation}deg) scale(${importFlipH},${importFlipV})`;
+    if (!importPreview) return;
+
+    const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+    const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
+
+    importPreview.style.width = w + 'px';
+    importPreview.style.height = h + 'px';
+    importPreview.style.left = importPosX + 'px';
+    importPreview.style.top = importPosY + 'px';
+    importPreview.style.opacity = importOpacity;
+    importPreview.style.transform = `rotate(${importRotation}deg) scale(${importFlipH},${importFlipV})`;
 }
 
 function stampImageToActiveLayer() {
-  if (!importImg || !importPreview) return;
-  saveState();
+    if (!importImg || !importPreview) return;
+    saveState();
 
-  const canvasRect   = canvas.getBoundingClientRect();
-  const previewRect  = importPreview.getBoundingClientRect();
-  const cssToCanvas  = canvas.width / canvasRect.width;
+    // Use bounding rects for robust mapping from CSS -> canvas
+    const canvasRect = canvas.getBoundingClientRect();
+    const previewRect = importPreview.getBoundingClientRect();
+    const cssToCanvas = canvas.width / canvasRect.width;
 
-  const w = Math.round(importImg.naturalWidth  * importBaseScale * importRelScale * cssToCanvas);
-  const h = Math.round(importImg.naturalHeight * importBaseScale * importRelScale * cssToCanvas);
+    // FIX: Use ORIGINAL scaled dimensions (ignores rotation bbox expansion)
+    const w = Math.max(1, Math.round(importImgNaturalWidth * importScale * cssToCanvas));
+    const h = Math.max(1, Math.round(importImgNaturalHeight * importScale * cssToCanvas));
 
-  const centerX = (previewRect.left - canvasRect.left) * cssToCanvas + previewRect.width  / 2;
-  const centerY = (previewRect.top  - canvasRect.top)  * cssToCanvas + previewRect.height / 2;
+    // Position using visual center (preserves rotated alignment)
+    const centerCssX = (previewRect.left - canvasRect.left) + previewRect.width / 2;
+    const centerCssY = (previewRect.top - canvasRect.top) + previewRect.height / 2;
+    const px = centerCssX * cssToCanvas - w / 2;
+    const py = centerCssY * cssToCanvas - h / 2;
 
-  const ctx = getActiveCtx();
-  ctx.save();
-  ctx.globalAlpha = importOpacity;
-  ctx.translate(centerX, centerY);
-  ctx.rotate(importRotation * Math.PI / 180);
-  ctx.scale(importFlipH, importFlipV);
-  ctx.drawImage(importImg, -w/2, -h2, w, h);
-  ctx.restore();
+    const ctx = getActiveCtx();
+    ctx.save();
+    ctx.globalAlpha = importOpacity;
+    ctx.translate(px + w / 2, py + h / 2);
+    ctx.rotate(importRotation * Math.PI / 180);
+    ctx.scale(importFlipH, importFlipV);
+    ctx.drawImage(importImg, -w / 2, -h / 2, w, h);
+    ctx.restore();
 
-  importResetState();
-  renderComposite();
+    importResetState();
+    renderComposite();
 }
 
-function importResetState() {
-  importDragging = false;
-  if (importPreview?.parentNode) importPreview.parentNode.removeChild(importPreview);
-  importPreview = null;
+function importResetState() {  
+  // stop any dragging and remove preview element  
+  importDragging = false;  
+  if (importPreview) {  
+    try {  
+      if (importPreview.parentNode) importPreview.parentNode.removeChild(importPreview);  
+    } catch (e) {}  
+    importPreview = null;  
+  }  
 
-  importImg = null;
-  importBaseScale = 1;
-  importRelScale = 1;
-  importRotation = 0;
-  importOpacity = 1.0;
-  importFlipH = importFlipV = 1;
+  // remove the document-level image preview handlers if present  
+  try {  
+    document.removeEventListener('mousemove', imagePreviewDragMove);  
+    document.removeEventListener('mouseup', imagePreviewDragEnd);  
+    document.removeEventListener('touchmove', imagePreviewDragMove);  
+    document.removeEventListener('touchend', imagePreviewDragEnd);  
+  } catch (e){}  
 
-  // reset sliders visually
-  if (importSizeSlider)     { importSizeSlider.value = 100; importSizeValue.textContent = '100'; }
-  if (importOpacitySlider)  { importOpacitySlider.value = 100; importOpacityValue.textContent = '100'; }
-  if (importRotationSlider) { importRotationSlider.value = 0; importRotationNumber.value = 0; }
-  if (importSettingsDiv) importSettingsDiv.classList.add('hidden');
+  // reset all import state vars  
+  importImg = null;  
+  importImgNaturalWidth = 0;  
+  importImgNaturalHeight = 0;  
+  importScale = importBaseScale; // Reset to fitted  
+  importBaseScale = 1.0;  
+  importRotation = 0;  
+  importOpacity = 1.0; // FIX: Always reset to 100%
+  importFlipH = 1;  
+  importFlipV = 1;  
+  importPosX = (container.offsetWidth / 2) - 50;  
+  importPosY = (container.offsetHeight / 2) - 50;  
 
-  exitImportMode();
-}
+  // clear file input so the same file can be re-selected  
+  try { importFileInput.value = ''; } catch (e){}  
 
-// HEIC-safe loader
-importFileInput.addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
+  if (importSettingsDiv) importSettingsDiv.classList.add('hidden');  
 
-  importResetState();
+  // FIX: Reset sliders to reflect 100% opacity and scale
+  if (importOpacitySlider) importOpacitySlider.value = '100';
+  if (importOpacityValue) importOpacityValue.textContent = '100';
+  if (importSizeSlider) importSizeSlider.value = '100';
+  if (importSizeValue) importSizeValue.textContent = '100';
 
-  const isHeic = /\.(heic|heif)$/i.test(file.name);
+  // restore previous tool mode ONLY if in import mode  
+  if (currentTool === 'none' || prevTool !== null) {  
+    exitImportMode();  
+  }  
+}  
+// ----------------- EVENT LISTENERS -----------------
 
-  const process = blob => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const img = new Image();
-      img.onload = () => {
-        importImg = img;
+importFileInput.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
 
-        // auto-fit to canvas with 10 % margin
-        const rect = canvas.getBoundingClientRect();
-        importBaseScale = Math.min(
-          rect.width  / img.naturalWidth,
-          rect.height / img.naturalHeight
-        ) * 0.9;
+    importResetState();
 
-        importRelScale = 1; // 100 % of fitted size
-        importOpacity = 1.0;
+    let imgBlob = file;
 
-        const w = Math.round(img.naturalWidth  * importBaseScale);
-        const h = Math.round(img.naturalHeight * importBaseScale);
+    // Detect HEIC/HEIF
+    const isHeic = file.type === "image/heic" || 
+                   file.type === "image/heif" || 
+                   file.name.toLowerCase().endsWith('.heic') ||
+                   file.name.toLowerCase().endsWith('.heif');
 
-        importPosX = (rect.width  - w) / 2;
-        importPosY = (rect.height - h) / 2;
+    if (isHeic && typeof heic2any !== "undefined") {
+        heic2any({
+            blob: file,
+            toType: "image/png",
+            quality: 1
+        })
+        .then(converted => {
+            imgBlob = Array.isArray(converted) ? converted[0] : converted;
+            loadImageBlob(imgBlob);
+        })
+        .catch(err => {
+            console.warn("HEIC conversion failed:", err);
+            alert("Could not read HEIC file – try converting it to PNG/JPG first.");
+        });
+    } else {
+        loadImageBlob(imgBlob);
+    }
 
-        // reset sliders
-        importSizeSlider.value = 100;     importSizeValue.textContent = '100';
-        importOpacitySlider.value = 100;  importOpacityValue.textContent = '100';
-        importRotationSlider.value = 0;   importRotationNumber.value = 0;
+    function loadImageBlob(blob) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const img = new Image();
+            img.onload = () => {
+                importImg = img;
+                importImgNaturalWidth = img.naturalWidth;
+                importImgNaturalHeight = img.naturalHeight;
 
-        importSettingsDiv.classList.remove('hidden');
-        showImportPreview();
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(blob);
-  };
+                // NEW: Calculate base fitted scale (fits canvas with 10% margin)
+                const canvasRect = canvas.getBoundingClientRect();
+                const margin = 0.9; // 90% of canvas max dim
+                importBaseScale = Math.min(
+                    canvasRect.width / importImgNaturalWidth,
+                    canvasRect.height / importImgNaturalHeight
+                ) * margin;
+                importScale = importBaseScale; // Start at fitted size
 
-  if (isHeic && typeof heic2any !== 'undefined') {
-    heic2any({blob: file, toType: "image/png"}).then(process).catch(() => process(file));
-  else process(file);
+                // Set sliders to 100% (relative to fit)
+                if (importSizeSlider) importSizeSlider.value = 100;
+                if (importSizeValue) importSizeValue.textContent = 100;
+
+                importOpacity = 1.0; // 100%
+                if (importOpacitySlider) importOpacitySlider.value = 100;
+                if (importOpacityValue) importOpacityValue.textContent = 100;
+
+                importRotation = 0;
+                if (importRotationNumber) importRotationNumber.value = importRotation;
+                if (importRotationSlider) importRotationSlider.value = importRotation;
+
+                importFlipH = 1;
+                importFlipV = 1;
+
+                const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
+                const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
+                importPosX = (canvasRect.left - container.getBoundingClientRect().left) + (canvasRect.width - w) / 2;
+                importPosY = (canvasRect.top  - container.getBoundingClientRect().top)  + (canvasRect.height - h) / 2;
+
+                if (importSettingsDiv) importSettingsDiv.classList.remove('hidden');
+                showImportPreview();
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(blob);
+    }
 });
 
-// sliders
-importSizeSlider.addEventListener('input', () => {
-  importRelScale = importSizeSlider.value / 100;
-  importSizeValue.textContent = importSizeSlider.value;
-  updateImportPreviewTransform();
+importSizeSlider.addEventListener('input', function () { 
+    const relativePercent = parseInt(this.value, 10);
+    importScale = importBaseScale * (relativePercent / 100); 
+    importSizeValue.textContent = relativePercent; 
+    updateImportPreviewTransform(); 
 });
-importOpacitySlider.addEventListener('input', () => {
-  importOpacity = importOpacitySlider.value / 100;
-  importOpacityValue.textContent = importOpacitySlider.value;
-  updateImportPreviewTransform();
+importOpacitySlider.addEventListener('input', function () { 
+    importOpacity = parseInt(this.value, 10) / 100; 
+    importOpacityValue.textContent = this.value; 
+    updateImportPreviewTransform(); 
 });
-importRotationSlider.addEventListener('input', () => {
-  importRotation = +importRotationSlider.value;
-  importRotationNumber.value = importRotation;
-  updateImportPreviewTransform();
+importRotationSlider.addEventListener('input', function () { 
+    importRotation = parseInt(this.value, 10); 
+    importRotationNumber.value = importRotation; 
+    updateImportPreviewTransform(); 
 });
-importRotationNumber.addEventListener('input', () => {
-  importRotation = +importRotationNumber.value;
-  importRotationSlider.value = importRotation;
-  updateImportPreviewTransform();
+importRotationNumber.addEventListener('input', function () { 
+    importRotation = parseInt(this.value, 10); 
+    importRotationSlider.value = importRotation; 
+    updateImportPreviewTransform(); 
 });
-importFlipHBtn.addEventListener('click', () => { importFlipH *= -1; updateImportPreviewTransform(); });
-importFlipVBtn.addEventListener('click', () => { importFlipV *= -1; updateImportPreviewTransform(); });
+importFlipHBtn.addEventListener('click', function () { importFlipH *= -1; updateImportPreviewTransform(); });
+importFlipVBtn.addEventListener('click', function () { importFlipV *= -1; updateImportPreviewTransform(); });
 importStampBtn.addEventListener('click', stampImageToActiveLayer);
 importCancelBtn.addEventListener('click', importResetState);
+    
     // ---------- TEXT TOOL (fix alignment & sizing on stamp) ----------
     const textPreviewOverlay = document.getElementById('text-preview-overlay');
     const textPreviewContent = document.getElementById('text-preview-content');
