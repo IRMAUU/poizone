@@ -216,27 +216,7 @@
 }
   </style>
 <!-- Tiny reliable HEIC → PNG fallback (no external files, no async/await, no errors) -->
-<script>
-  window.heic2any = function(blob) {
-    return new Promise((resolve, reject) => {
-      if (!blob.type.match(/heic|heif/i) && !blob.name.match(/\.heic$/i)) return resolve(blob);
-      const a = new FileReader();
-      a.onload = e => {
-        const img = new Image();
-        img.onload = () => {
-          const c = document.createElement('canvas');
-          c.width = img.width; c.height = img.height;
-          c.getContext('2d').drawImage(img,0,0);
-          c.toBlob(resolve, 'image/png');
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      a.onerror = reject;
-      a.readAsDataURL(blob);
-    });
-  };
-  </script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 </head>
 <body>
   <center><img src="ppt.png" width="13%"></center>
@@ -415,7 +395,7 @@
       <div class="dropdown hidden" id="import-dropdown">
         <label class="import-label" for="import-image-file">upload<input type="file" id="import-image-file" accept="image/*"></label>
         <div id="import-settings" class="hidden" style="margin-top:6px;">
-          <label>size: <input type="range" id="import-size" min="1" max="400" value="50" style="width:90px;"> <span id="import-size-value">50</span>%</label><br>
+          <label>size: <input type="range" id="import-size" min="1" max="200" step="1" value="100"></label> <span id="import-size-value">100</span>%</label><br>
           <label>opacity: <input type="range" id="import-opacity" min="10" max="100" value="75" style="width:90px;"> <span id="import-opacity-value">75</span>%</label><br>
           <div class="rotation-control">
             <label for="import-rotation">rotation:</label>
@@ -1269,249 +1249,162 @@
     canvas.addEventListener('mousedown',e=>{ if(currentTool==='select') startMarquee(e.clientX,e.clientY); });
     canvas.addEventListener('touchstart',e=>{ if(currentTool==='select'){ e.preventDefault(); startMarquee(e.touches[0].clientX,e.touches[0].clientY); }});
     
-    /* ---------- IMPORT MODULE (patched: showImportPreview enters import mode) ---------- */
-    let importImg = null;
-    let importPreview = null;
-    let importDragging = false;
-    let importOffsetX = 0;
-    let importOffsetY = 0;
-    let importPosX = 0;
-    let importPosY = 0;
-    let importScale = 0.5;
-    let importRotation = 0;
-    let importOpacity = 0.75;
-    let importFlipH = 1;
-    let importFlipV = 1;
-    let importImgNaturalWidth = 0;
-    let importImgNaturalHeight = 0;
-    
-    const importSettingsDiv = document.getElementById('import-settings');
-    const importFileInput = document.getElementById('import-image-file');
-    const importSizeSlider = document.getElementById('import-size');
-    const importSizeValue = document.getElementById('import-size-value');
-    const importOpacitySlider = document.getElementById('import-opacity');
-    const importOpacityValue = document.getElementById('import-opacity-value');
-    const importRotationSlider = document.getElementById('import-rotation');
-    const importRotationNumber = document.getElementById('import-rotation-number');
-    const importFlipHBtn = document.getElementById('import-flip-h');
-    const importFlipVBtn = document.getElementById('import-flip-v');
-    const importStampBtn = document.getElementById('import-stamp-btn');
-    const importCancelBtn = document.getElementById('import-cancel-btn');
-    
-    function hideImportPreview() {
-        if (importPreview && importPreview.parentNode) {
-            importPreview.parentNode.removeChild(importPreview);
-            importPreview = null;
-        }
-    }
-    
-    function showImportPreview() {
-        hideImportPreview();
-        if (!importImg) return;
-    
-        importPreview = document.createElement('img');
-        importPreview.id = 'import-preview-img';
-        importPreview.src = importImg.src;
-        importPreview.draggable = false;
-        importPreview.style.position = 'absolute';
-        importPreview.style.zIndex = 10060;
-        importPreview.style.cursor = 'grab';
-        importPreview.style.boxSizing = 'border-box';
-        importPreview.style.pointerEvents = 'none'; // do not block toolbox by default
-    
-        container.appendChild(importPreview);
-        updateImportPreviewTransform();
-    
-        // make sure we are in import mode (disable drawing tools)
-        enterImportMode();
-    
-        // document-level move handlers are used; element-level handlers will not fire when pointer-events:none
-        document.removeEventListener('mousemove', imagePreviewDragMove);
-        document.removeEventListener('mouseup', imagePreviewDragEnd);
-        document.removeEventListener('touchmove', imagePreviewDragMove);
-        document.removeEventListener('touchend', imagePreviewDragEnd);
-    
-        document.addEventListener('mousemove', imagePreviewDragMove);
-        document.addEventListener('mouseup', imagePreviewDragEnd);
-        document.addEventListener('touchmove', imagePreviewDragMove, { passive: false });
-        document.addEventListener('touchend', imagePreviewDragEnd);
-    }
-    
-    function imagePreviewDragMove(e) {
-        if (!importDragging || !importPreview) return;
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    
-        const rect = container.getBoundingClientRect();
-        importPosX = clientX - rect.left - importOffsetX;
-        importPosY = clientY - rect.top - importOffsetY;
-    
-        updateImportPreviewTransform();
-        if (e.cancelable) e.preventDefault();
-    }
-    
-    function imagePreviewDragEnd() {
-        if(!importDragging) return;
-        importDragging = false;
-        if (importPreview) {
-            importPreview.style.cursor = 'grab';
-            importPreview.style.pointerEvents = 'none'; // stop blocking UI after drag
-        }
-    }
-    
-    function updateImportPreviewTransform() {
-        if (!importPreview) return;
-    
-        const w = Math.max(1, Math.round(importImgNaturalWidth * importScale));
-        const h = Math.max(1, Math.round(importImgNaturalHeight * importScale));
-    
-        importPreview.style.width = w + 'px';
-        importPreview.style.height = h + 'px';
-        importPreview.style.left = importPosX + 'px';
-        importPreview.style.top = importPosY + 'px';
-        importPreview.style.opacity = importOpacity;
-        importPreview.style.transform = `rotate(${importRotation}deg) scale(${importFlipH},${importFlipV})`;
-    }
-    
-    function stampImageToActiveLayer() {
-        if (!importImg || !importPreview) return;
-        saveState();
-    
-        // Use bounding rects for robust mapping from CSS -> canvas
-        const canvasRect = canvas.getBoundingClientRect();
-        const previewRect = importPreview.getBoundingClientRect();
-        const cssToCanvas = canvas.width / canvasRect.width;
-    
-        const w = Math.max(1, Math.round(previewRect.width * cssToCanvas));
-        const h = Math.max(1, Math.round(previewRect.height * cssToCanvas));
-        const px = Math.round((previewRect.left - canvasRect.left) * cssToCanvas);
-        const py = Math.round((previewRect.top  - canvasRect.top)  * cssToCanvas);
-    
-        const ctx = getActiveCtx();
-        ctx.save();
-        ctx.globalAlpha = importOpacity;
-        ctx.translate(px + w / 2, py + h / 2);
-        ctx.rotate(importRotation * Math.PI / 180);
-        ctx.scale(importFlipH, importFlipV);
-        ctx.drawImage(importImg, -w / 2, -h / 2, w, h);
-        ctx.restore();
-    
-        importResetState();
-        renderComposite();
-    }
-    
-    function importResetState() {  
-      // stop any dragging and remove preview element  
-      importDragging = false;  
-      if (importPreview) {  
-        try {  
-          if (importPreview.parentNode) importPreview.parentNode.removeChild(importPreview);  
-        } catch (e) {}  
-        importPreview = null;  
-      }  
-    
-      // remove the document-level image preview handlers if present  
-      try {  
-        document.removeEventListener('mousemove', imagePreviewDragMove);  
-        document.removeEventListener('mouseup', imagePreviewDragEnd);  
-        document.removeEventListener('touchmove', imagePreviewDragMove);  
-        document.removeEventListener('touchend', imagePreviewDragEnd);  
-      } catch (e){}  
-    
-      // reset all import state vars  
-      importImg = null;  
-      importImgNaturalWidth = 0;  
-      importImgNaturalHeight = 0;  
-      importScale = 0.5;  
-      importRotation = 0;  
-      importOpacity = 0.75;  
-      importFlipH = 1;  
-      importFlipV = 1;  
-      importPosX = (container.offsetWidth / 2) - 50;  
-      importPosY = (container.offsetHeight / 2) - 50;  
-    
-      // clear file input so the same file can be re-selected  
-      try { importFileInput.value = ''; } catch (e){}  
-    
-      if (importSettingsDiv) importSettingsDiv.classList.add('hidden');  
-    
-        // restore previous tool mode ONLY if in import mode  
-      if (currentTool === 'none' || prevTool !== null) {  
-        exitImportMode();  
-      }  
-    }  
-    // ----------------- EVENT LISTENERS -----------------
-    
-// ----------------- HEIC-SAFE IMAGE IMPORT (no async/await) -----------------
-importFileInput.addEventListener('change', function(e) {
+/* ---------- IMPORT MODULE – FINAL VERSION (everything fixed) ---------- */
+let importImg = null;
+let importPreview = null;
+let importDragging = false;
+let importOffsetX = 0, importOffsetY = 0;
+let importPosX = 0, importPosY = 0;
+let importBaseScale = 1;     // 100 % = fitted to-fit size
+let importRelScale = 1;      // slider value (1–200 % of fitted size)
+let importRotation = 0;
+let importOpacity = 0.75;     // always 1.0 on new import
+let importFlipH = 1, importFlipV = 1;
+
+const importSettingsDiv   = document.getElementById('import-settings');
+const importFileInput     = document.getElementById('import-image-file');
+const importSizeSlider     = document.getElementById('import-size');
+const importSizeValue      = document.getElementById('import-size-value');
+const importOpacitySlider  = document.getElementById('import-opacity');
+const importOpacityValue   = document.getElementById('import-opacity-value');
+const importRotationSlider = document.getElementById('import-rotation');
+const importRotationNumber = document.getElementById('import-rotation-number');
+
+function updateImportPreviewTransform() {
+  if (!importPreview || !importImg) return;
+  const w = Math.max(1, Math.round(importImg.naturalWidth  * importBaseScale * importRelScale));
+  const h = Math.max(1, Math.round(importImg.naturalHeight * importBaseScale * importRelScale));
+  importPreview.style.width  = w + 'px';
+  importPreview.style.height = h + 'px';
+  importPreview.style.left   = importPosX + 'px';
+  importPreview.style.top    = importPosY + 'px';
+  importPreview.style.opacity = importOpacity;
+  importPreview.style.transform = `rotate(${importRotation}deg) scale(${importFlipH},${importFlipV})`;
+}
+
+function stampImageToActiveLayer() {
+  if (!importImg || !importPreview) return;
+  saveState();
+
+  const canvasRect   = canvas.getBoundingClientRect();
+  const previewRect  = importPreview.getBoundingClientRect();
+  const cssToCanvas  = canvas.width / canvasRect.width;
+
+  const w = Math.round(importImg.naturalWidth  * importBaseScale * importRelScale * cssToCanvas);
+  const h = Math.round(importImg.naturalHeight * importBaseScale * importRelScale * cssToCanvas);
+
+  const centerX = (previewRect.left - canvasRect.left) * cssToCanvas + previewRect.width  / 2;
+  const centerY = (previewRect.top  - canvasRect.top)  * cssToCanvas + previewRect.height / 2;
+
+  const ctx = getActiveCtx();
+  ctx.save();
+  ctx.globalAlpha = importOpacity;
+  ctx.translate(centerX, centerY);
+  ctx.rotate(importRotation * Math.PI / 180);
+  ctx.scale(importFlipH, importFlipV);
+  ctx.drawImage(importImg, -w/2, -h2, w, h);
+  ctx.restore();
+
+  importResetState();
+  renderComposite();
+}
+
+function importResetState() {
+  importDragging = false;
+  if (importPreview?.parentNode) importPreview.parentNode.removeChild(importPreview);
+  importPreview = null;
+
+  importImg = null;
+  importBaseScale = 1;
+  importRelScale = 1;
+  importRotation = 0;
+  importOpacity = 1.0;
+  importFlipH = importFlipV = 1;
+
+  // reset sliders visually
+  if (importSizeSlider)     { importSizeSlider.value = 100; importSizeValue.textContent = '100'; }
+  if (importOpacitySlider)  { importOpacitySlider.value = 100; importOpacityValue.textContent = '100'; }
+  if (importRotationSlider) { importRotationSlider.value = 0; importRotationNumber.value = 0; }
+  if (importSettingsDiv) importSettingsDiv.classList.add('hidden');
+
+  exitImportMode();
+}
+
+// HEIC-safe loader
+importFileInput.addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
 
   importResetState();
 
-  const isHeic = file.type === "image/heic" || 
-                 file.type === "image/heif" || 
-                 /\.(heic|heif)$/i.test(file.name);
+  const isHeic = /\.(heic|heif)$/i.test(file.name);
 
-  if (isHeic && typeof heic2any === "function") {
-    // HEIC → show preview only after conversion
-    heic2any(file).then(convertedBlob => {
-      loadAndShowPreview(convertedBlob);
-    }).catch(() => {
-      loadAndShowPreview(file); // fallback
-    });
-  } else {
-    // Normal image → show preview immediately
-    loadAndShowPreview(file);
-  }
-
-  function loadAndShowPreview(blob) {
+  const process = blob => {
     const reader = new FileReader();
     reader.onload = ev => {
       const img = new Image();
       img.onload = () => {
-  importImg = img;
-  importImgNaturalWidth = img.naturalWidth;
-  importImgNaturalHeight = img.naturalHeight;
+        importImg = img;
 
-  // SMART INITIAL SCALE — fits huge photos perfectly on mobile + desktop
-  const maxDim = Math.max(img.naturalWidth, img.naturalHeight);
-  const canvasMax = Math.max(canvas.width, canvas.height);
-  importScale = Math.min(0.9, canvasMax / maxDim * 0.9); // never bigger than ~90 % of canvas
+        // auto-fit to canvas with 10 % margin
+        const rect = canvas.getBoundingClientRect();
+        importBaseScale = Math.min(
+          rect.width  / img.naturalWidth,
+          rect.height / img.naturalHeight
+        ) * 0.9;
 
-  if (importSizeSlider) importSizeSlider.value = Math.round(importScale * 100);
-  if (importSizeValue) importSizeValue.textContent = Math.round(importScale * 100);
+        importRelScale = 1; // 100 % of fitted size
+        importOpacity = 1.0;
 
-  importOpacity = 0.75;
-  importRotation = 0;
-  importFlipH = 1;
-  importFlipV = 1;
+        const w = Math.round(img.naturalWidth  * importBaseScale);
+        const h = Math.round(img.naturalHeight * importBaseScale);
 
-  const w = Math.max(1, Math.round(img.naturalWidth * importScale));
-  const h = Math.max(1, Math.round(img.naturalHeight * importScale));
+        importPosX = (rect.width  - w) / 2;
+        importPosY = (rect.height - h) / 2;
 
-  const canvasRect = canvas.getBoundingClientRect();
-  importPosX = (canvasRect.width - w) / 2;
-  importPosY = (canvasRect.height - h) / 2;
+        // reset sliders
+        importSizeSlider.value = 100;     importSizeValue.textContent = '100';
+        importOpacitySlider.value = 100;  importOpacityValue.textContent = '100';
+        importRotationSlider.value = 0;   importRotationNumber.value = 0;
 
-  if (importSettingsDiv) importSettingsDiv.classList.remove('hidden');
-  showImportPreview(); // now always fits on screen
-};
+        importSettingsDiv.classList.remove('hidden');
+        showImportPreview();
+      };
       img.src = ev.target.result;
     };
     reader.readAsDataURL(blob);
-  }
+  };
+
+  if (isHeic && typeof heic2any !== 'undefined') {
+    heic2any({blob: file, toType: "image/png"}).then(process).catch(() => process(file));
+  else process(file);
 });
-    
-    importSizeSlider.addEventListener('input', function () { importScale = parseInt(this.value, 10) / 100; importSizeValue.textContent = this.value; updateImportPreviewTransform(); });
-    importOpacitySlider.addEventListener('input', function () { importOpacity = parseInt(this.value, 10) / 100; importOpacityValue.textContent = this.value; updateImportPreviewTransform(); });
-    importRotationSlider.addEventListener('input', function () { importRotation = parseInt(this.value, 10); importRotationNumber.value = importRotation; updateImportPreviewTransform(); });
-    importRotationNumber.addEventListener('input', function () { importRotation = parseInt(this.value, 10); importRotationSlider.value = importRotation; updateImportPreviewTransform(); });
-    importFlipHBtn.addEventListener('click', function () { importFlipH *= -1; updateImportPreviewTransform(); });
-    importFlipVBtn.addEventListener('click', function () { importFlipV *= -1; updateImportPreviewTransform(); });
-    importStampBtn.addEventListener('click', stampImageToActiveLayer);
-    importCancelBtn.addEventListener('click', importResetState);
-    
+
+// sliders
+importSizeSlider.addEventListener('input', () => {
+  importRelScale = importSizeSlider.value / 100;
+  importSizeValue.textContent = importSizeSlider.value;
+  updateImportPreviewTransform();
+});
+importOpacitySlider.addEventListener('input', () => {
+  importOpacity = importOpacitySlider.value / 100;
+  importOpacityValue.textContent = importOpacitySlider.value;
+  updateImportPreviewTransform();
+});
+importRotationSlider.addEventListener('input', () => {
+  importRotation = +importRotationSlider.value;
+  importRotationNumber.value = importRotation;
+  updateImportPreviewTransform();
+});
+importRotationNumber.addEventListener('input', () => {
+  importRotation = +importRotationNumber.value;
+  importRotationSlider.value = importRotation;
+  updateImportPreviewTransform();
+});
+importFlipHBtn.addEventListener('click', () => { importFlipH *= -1; updateImportPreviewTransform(); });
+importFlipVBtn.addEventListener('click', () => { importFlipV *= -1; updateImportPreviewTransform(); });
+importStampBtn.addEventListener('click', stampImageToActiveLayer);
+importCancelBtn.addEventListener('click', importResetState);
     // ---------- TEXT TOOL (fix alignment & sizing on stamp) ----------
     const textPreviewOverlay = document.getElementById('text-preview-overlay');
     const textPreviewContent = document.getElementById('text-preview-content');
