@@ -1260,7 +1260,7 @@ let importPosY = 0;
 let importScale = 0.5; // actual scale factor (relative to base)
 let importBaseScale = 1.0; // NEW: fitted base scale (100% relative to this)
 let importRotation = 0;
-let importOpacity = 0.75; // Default to 100%
+let importOpacity = 0.75;
 let importFlipH = 1;
 let importFlipV = 1;
 let importImgNaturalWidth = 0;
@@ -1411,7 +1411,7 @@ function importResetState() {
   importScale = importBaseScale; // Reset to fitted  
   importBaseScale = 1.0;  
   importRotation = 0;  
-  importOpacity = 0.75; // FIX: Always reset to 100%
+  importOpacity = 0.75; 
   importFlipH = 1;  
   importFlipV = 1;  
   importPosX = (container.offsetWidth / 2) - 50;  
@@ -1423,8 +1423,8 @@ function importResetState() {
   if (importSettingsDiv) importSettingsDiv.classList.add('hidden');  
 
   // FIX: Reset sliders to reflect 100% opacity and scale
-  if (importOpacitySlider) importOpacitySlider.value = '100';
-  if (importOpacityValue) importOpacityValue.textContent = '100';
+  if (importOpacitySlider) importOpacitySlider.value = '75';
+  if (importOpacityValue) importOpacityValue.textContent = '75';
   if (importSizeSlider) importSizeSlider.value = '100';
   if (importSizeValue) importSizeValue.textContent = '100';
 
